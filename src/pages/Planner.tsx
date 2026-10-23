@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react'
 import { CalendarClock, Download, Info, Trash2 } from 'lucide-react'
 import { MODULES } from '../content/modules'
-import { isUnlocked, statusOf, totals, useProgress } from '../store/progress'
+import { statusOf, totals, useProgress } from '../store/progress'
+import { buildSchedule } from '../lib/schedule'
 import { Button, Card, SectionHead, Stat } from '../components/ui'
 
 export default function Planner() {
@@ -17,43 +18,15 @@ export default function Planner() {
     return d.toLocaleDateString(undefined, { month: 'long', year: 'numeric' })
   }, [weeksNeeded])
 
-  const schedule = useMemo(() => {
-    // Modules are stored in dependency order; take essential, unfinished ones.
-    const queue = MODULES.filter(
-      (m) => m.essential && statusOf(data, m.id) !== 'completed',
-    )
-    const weeks: { label: string; items: typeof MODULES; hours: number }[] = []
-    let idx = 0
-    let week = 1
-    const completedIds = new Set(
-      MODULES.filter((m) => statusOf(data, m.id) === 'completed').map((m) => m.id),
-    )
-    const virtualDone = new Set(completedIds)
-    while (idx < queue.length && week <= 52) {
-      let budget = hours
-      const items: typeof MODULES = []
-      // Prefer modules whose prerequisites are (now virtually) complete.
-      while (budget > 0 && idx < queue.length) {
-        const m = queue[idx]
-        const ready = m.prereqs.every((p) => virtualDone.has(p))
-        if (!ready || m.hours > budget + 2) break
-        items.push(m)
-        budget -= m.hours
-        virtualDone.add(m.id)
-        idx++
-      }
-      if (items.length === 0) {
-        // Nothing fits (a module longer than the weekly budget): schedule it alone.
-        const m = queue[idx]
-        items.push(m)
-        virtualDone.add(m.id)
-        idx++
-      }
-      weeks.push({ label: `Week ${week}`, items, hours: hours - Math.max(0, budget) })
-      week++
-    }
-    return weeks
-  }, [data, hours])
+  const schedule = useMemo(
+    () =>
+      buildSchedule(
+        MODULES,
+        new Set(MODULES.filter((m) => statusOf(data, m.id) === 'completed').map((m) => m.id)),
+        hours,
+      ),
+    [data, hours],
+  )
 
   const exportData = () => {
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })

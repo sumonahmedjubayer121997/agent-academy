@@ -1,5 +1,7 @@
 # Agent Academy — Become an AI Agent Engineer
 
+[![CI](https://github.com/sumonahmedjubayer121997/agent-academy/actions/workflows/ci.yml/badge.svg)](https://github.com/sumonahmedjubayer121997/agent-academy/actions/workflows/ci.yml)
+
 An interactive learning platform: a personalised, project-driven roadmap from React/ML foundations
 to production AI agent engineering. Built with Vite + React 18 + TypeScript + Tailwind CSS.
 **No paid APIs required** — everything works offline; progress is stored locally in your browser.
@@ -9,6 +11,7 @@ to production AI agent engineering. Built with Vite + React 18 + TypeScript + Ta
 ```bash
 npm install
 npm run dev        # http://localhost:5173
+npm test           # unit + component tests (Vitest)
 npm run build      # typecheck + production bundle (dist/)
 ```
 
