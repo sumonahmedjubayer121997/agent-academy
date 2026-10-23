@@ -21,6 +21,7 @@ import { statusOf, useProgress } from '../store/progress'
 import { Badge, Button, Card } from '../components/ui'
 import LoopVisual from '../components/demos/LoopVisual'
 import VectorSim from '../components/demos/VectorSim'
+import FocusTimer from '../components/FocusTimer'
 
 function Section({
   n,
@@ -277,18 +278,21 @@ export default function LessonPage() {
       </Link>
 
       <header className="mt-4">
-        <div className="flex flex-wrap items-center gap-2">
-          <Badge tone="accent">Interactive lesson</Badge>
-          <Badge>~{lesson.minutes} min</Badge>
-          {moduleStatus === 'not-started' && (
-            <button
-              onClick={() => setStatus(lesson.moduleId, 'in-progress')}
-              className="text-xs font-medium text-accent hover:underline"
-            >
-              mark module in progress →
-            </button>
-          )}
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge tone="accent">Interactive lesson</Badge>
+            <Badge>~{lesson.minutes} min</Badge>
+          </div>
+          <FocusTimer moduleId={lesson.moduleId} />
         </div>
+        {moduleStatus === 'not-started' && (
+          <button
+            onClick={() => setStatus(lesson.moduleId, 'in-progress')}
+            className="mt-3 text-xs font-medium text-accent hover:underline"
+          >
+            mark module in progress →
+          </button>
+        )}
         <h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">{lesson.title}</h1>
         <p className="mt-2 text-lg text-ink-soft">{lesson.tagline}</p>
       </header>

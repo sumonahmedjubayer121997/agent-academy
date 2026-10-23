@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react'
-import { CalendarClock, Download, Info, Trash2 } from 'lucide-react'
+import { CalendarClock, Download, Info, Timer, Trash2 } from 'lucide-react'
 import { MODULES } from '../content/modules'
-import { statusOf, totals, useProgress } from '../store/progress'
+import { dueCards, statusOf, todayStr, totals, useProgress } from '../store/progress'
+import { dueForecast } from '../lib/srs'
 import { buildSchedule } from '../lib/schedule'
 import { Button, Card, SectionHead, Stat } from '../components/ui'
 
@@ -11,7 +12,21 @@ export default function Planner() {
   const t = totals(data)
   const hours = data.weeklyHours
 
-  const weeksNeeded = Math.ceil(t.essentialRemaining / hours)
+  // Review load: cards due within the next 7 days.
+  const forecast = dueForecast(data.srs, todayStr())
+  const reviewsThisWeek = forecast.reduce((s, n) => s + n, 0)
+  const reviewMinutes = Math.round(reviewsThisWeek * 0.75)
+  const dueToday = dueCards(data, todayStr()).length
+
+  // Demonstrated pace: sessions from the last 14 days (needs ≥5 to activate).
+  const twoWeeksAgo = Date.now() - 14 * 86_400_000
+  const recent = data.sessions.filter((s) => Date.parse(s.at) >= twoWeeksAgo)
+  const paceHoursPerWeek = recent.length >= 5 ? (recent.reduce((s, x) => s + x.minutes, 0) / 60) * (7 / 14) : null
+  const effectiveWeekly = paceHoursPerWeek && paceHoursPerWeek > 0 ? paceHoursPerWeek : hours
+
+  const weeksNeeded = Math.ceil(t.essentialRemaining / effectiveWeekly)
+  const weeksPlanned = Math.ceil(t.essentialRemaining / hours)
+  const usingPace = paceHoursPerWeek !== null
   const targetDate = useMemo(() => {
     const d = new Date()
     d.setDate(d.getDate() + weeksNeeded * 7)
@@ -86,14 +101,36 @@ export default function Planner() {
         <Stat
           label="Weeks to finish (estimate)"
           value={`≈ ${weeksNeeded}`}
-          sub={`at ${hours}h per week`}
+          sub={usingPace ? `at your demonstrated ${paceHoursPerWeek!.toFixed(1)}h/wk pace` : `at ${hours}h per week`}
         />
         <Stat
           label="Projected completion"
           value={t.essentialRemaining === 0 ? 'Done ✓' : targetDate}
-          sub="estimate — updates as you progress"
+          sub={usingPace ? `from logged sessions (planned: ${weeksPlanned} wk)` : 'estimate — updates as you progress'}
         />
       </div>
+
+      {/* Minimum viable session + review load */}
+      <Card className="mt-6 border-accent/30 bg-accent-soft p-6">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <h3 className="flex items-center gap-2 font-semibold tracking-tight">
+              <Timer size={16} className="text-accent" /> Today's minimum viable session (~15 min)
+            </h3>
+            <p className="mt-1 text-sm text-ink-soft">
+              {dueToday > 0
+                ? `${dueToday} review card${dueToday === 1 ? '' : 's'} (~${Math.max(1, Math.round(dueToday * 0.75))} min) + one lesson section. Busy days keep the streak alive — perfection can wait.`
+                : 'No cards due today — read one lesson section and log it. Busy days keep the streak alive.'}
+            </p>
+          </div>
+          <div className="text-right text-sm">
+            <p className="font-semibold">
+              {reviewsThisWeek} review{reviewsThisWeek === 1 ? '' : 's'} this week
+            </p>
+            <p className="text-xs text-ink-faint">≈{reviewMinutes} min total, spread across days</p>
+          </div>
+        </div>
+      </Card>
 
       <Card className="mt-6 p-6">
         <h3 className="flex items-center gap-2 font-semibold tracking-tight">

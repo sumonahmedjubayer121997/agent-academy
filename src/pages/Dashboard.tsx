@@ -1,7 +1,9 @@
 import { Link } from 'react-router-dom'
-import { ArrowRight, CheckCircle2, ClipboardCheck, Flame, GraduationCap, Layers, Timer, Trophy } from 'lucide-react'
+import { ArrowRight, CheckCircle2, ClipboardCheck, Flame, GraduationCap, Layers, Timer, TrendingUp, Trophy } from 'lucide-react'
+import { LESSONS } from '../content/lessons'
 import { MODULES } from '../content/modules'
 import { currentPhase, dueCards, nextUp, phaseStats, streak, todayStr, totals, useProgress, type Confidence } from '../store/progress'
+import { dueForecast } from '../lib/srs'
 import { Card, ProgressBar, SectionHead, Stat, StatusBadge } from '../components/ui'
 
 const CONF_LEVELS: { key: Confidence; label: string }[] = [
@@ -26,7 +28,17 @@ export default function Dashboard() {
     .flatMap((s) => s.modules)
     .filter((m) => data.moduleStatus[m.id] === 'in-progress')
 
-  // Calibration: confidence before quiz vs actual accuracy, per module.
+  // Analytics: forecast, weak spots, demonstrated pace.
+  const forecast = dueForecast(data.srs, todayStr())
+  const lessonQuizRows = LESSONS.map((l) => {
+    const q = data.quiz[`lesson:${l.id}`]
+    return q ? { title: l.title, lessonId: l.id, pct: q.score / q.total } : null
+  }).filter((x): x is NonNullable<typeof x> => x !== null)
+  const weakest = lessonQuizRows.slice().sort((a, b) => a.pct - b.pct).slice(0, 3)
+  const twoWeeksAgo = Date.now() - 14 * 86_400_000
+  const recentSessions = data.sessions.filter((s) => Date.parse(s.at) >= twoWeeksAgo)
+  const loggedHours14d = recentSessions.reduce((s, x) => s + x.minutes, 0) / 60
+  const paceReady = recentSessions.length >= 5
   const calibration = CONF_LEVELS.map(({ key, label }) => {
     const rows = MODULES.filter(
       (m) => data.confidence[m.id] === key && m.lessonId && data.quiz[`lesson:${m.lessonId}`],
@@ -185,6 +197,75 @@ export default function Dashboard() {
           )}
         </Card>
       </div>
+
+      {/* Analytics */}
+      {Object.keys(data.srs).length > 0 && (
+        <div className="mt-10 grid gap-6 lg:grid-cols-3">
+          <Card className="p-6">
+            <h3 className="font-semibold tracking-tight">Retention forecast</h3>
+            <p className="mt-1 text-xs text-ink-faint">cards due, next 7 days</p>
+            <div className="mt-4 flex h-24 items-end gap-1.5">
+              {forecast.map((n, i) => {
+                const max = Math.max(...forecast, 1)
+                return (
+                  <div key={i} className="flex flex-1 flex-col items-center gap-1">
+                    <div
+                      className={`w-full rounded-t-md ${i === 0 ? 'bg-accent' : 'bg-accent/40'}`}
+                      style={{ height: `${Math.max(4, (n / max) * 100)}%` }}
+                      title={`${n} due`}
+                    />
+                    <span className="text-[10px] text-ink-faint">{i === 0 ? 'today' : `+${i}d`}</span>
+                  </div>
+                )
+              })}
+            </div>
+          </Card>
+
+          <Card className="p-6">
+            <h3 className="font-semibold tracking-tight">Weakest topics</h3>
+            <p className="mt-1 text-xs text-ink-faint">lowest quiz accuracy first — drill these</p>
+            {weakest.length === 0 ? (
+              <p className="mt-4 text-sm text-ink-soft">Take lesson quizzes to populate this.</p>
+            ) : (
+              <ul className="mt-4 space-y-2.5">
+                {weakest.map((w) => (
+                  <li key={w.lessonId} className="flex items-center justify-between gap-2 text-sm">
+                    <Link to={`/learn/${w.lessonId}`} className="truncate text-ink-soft hover:text-accent hover:underline">
+                      {w.title}
+                    </Link>
+                    <span className={`font-semibold ${w.pct < 0.7 ? 'text-bad' : 'text-ok'}`}>
+                      {Math.round(w.pct * 100)}%
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Card>
+
+          <Card className="p-6">
+            <div className="flex items-center gap-2">
+              <TrendingUp size={15} className="text-accent" />
+              <h3 className="font-semibold tracking-tight">Demonstrated pace</h3>
+            </div>
+            <p className="mt-1 text-xs text-ink-faint">logged sessions, last 14 days</p>
+            <p className="mt-4 text-2xl font-semibold tracking-tight">
+              {loggedHours14d.toFixed(1)}h
+              <span className="ml-2 text-sm font-normal text-ink-faint">
+                vs {data.weeklyHours / 2}h target
+              </span>
+            </p>
+            <ProgressBar
+              className="mt-3"
+              value={data.weeklyHours ? (loggedHours14d / (data.weeklyHours / 2)) * 100 : 0}
+            />
+            <p className="mt-2 text-xs text-ink-faint">
+              {paceReady
+                ? 'Planner estimates now use this real pace.'
+                : `Log ${5 - recentSessions.length} more session${5 - recentSessions.length === 1 ? '' : 's'} to unlock pace-based planning.`}
+            </p>
+          </Card>
+        </div>
+      )}
 
       {/* Current phase */}
       <Card className="mt-6 p-6 lg:col-span-2">
