@@ -68,3 +68,54 @@ def _ask(q: str) -> dict:
         raise HTTPException(status_code=503, detail=str(e)) from e
     except ProviderError as e:
         raise HTTPException(status_code=502, detail=f"LLM provider unavailable: {e}") from e
+
+
+# ── Agent endpoints (W6) ──────────────────────────────────────────────
+from .agent.loop import decide as agent_decide  # noqa: E402
+from .agent.loop import execute as agent_execute  # noqa: E402
+from .agent.loop import new_run  # noqa: E402
+
+RUNS: dict[str, object] = {}
+
+
+class AgentRequest(BaseModel):
+    goal: str = Field(min_length=5, max_length=500)
+
+
+class DecideRequest(BaseModel):
+    runId: str
+    approved: bool
+
+
+@app.post("/api/agent")
+def agent_start(req: AgentRequest) -> dict:
+    state = new_run(req.goal)
+    try:
+        agent_execute(get_provider(), state)
+    except ProviderError as e:
+        raise HTTPException(status_code=502, detail=f"LLM provider unavailable: {e}") from e
+    RUNS[state.run_id] = state
+    return _run_view(state)
+
+
+@app.post("/api/agent/decide")
+def agent_decide_endpoint(req: DecideRequest) -> dict:
+    state = RUNS.get(req.runId)
+    if state is None:
+        raise HTTPException(status_code=404, detail="run not found (runs are in-memory; restart clears them)")
+    try:
+        agent_decide(get_provider(), state, req.approved)
+    except ProviderError as e:
+        raise HTTPException(status_code=502, detail=f"LLM provider unavailable: {e}") from e
+    return _run_view(state)
+
+
+def _run_view(state) -> dict:
+    return {
+        "runId": state.run_id,
+        "status": state.status,
+        "trace": state.trace,
+        "steps": state.used_steps,
+        "provider": get_provider().name if state.status != "awaiting_approval" else None,
+        "pendingAction": (state.pending or {}).get("name"),
+    }

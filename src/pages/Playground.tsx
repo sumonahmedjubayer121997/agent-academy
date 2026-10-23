@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
-import { Bot, CheckCircle2, Pause, Play, RotateCcw, ShieldAlert, Wrench, X } from 'lucide-react'
+import { Bot, CheckCircle2, Pause, Play, RotateCcw, ShieldAlert, Wrench, X, Zap } from 'lucide-react'
 import { Badge, Button, Card, SectionHead } from '../components/ui'
 import { LOOP_STAGES } from '../components/demos/LoopVisual'
+import { agentDecide, agentStart, health, type AgentRunView, type HealthInfo } from '../lib/api'
 
 /* ── Simulation data ─────────────────────────────────────────────────── */
 
@@ -162,6 +163,17 @@ export default function Playground() {
   const queue = useRef<Trace[]>([])
   const traceEnd = useRef<HTMLDivElement>(null)
 
+  // Live mode (W6): real agent loop on the backend; simulation stays the offline default.
+  const [mode, setMode] = useState<'simulation' | 'live'>('simulation')
+  const [liveBackend, setLiveBackend] = useState<HealthInfo | null>(null)
+  const [live, setLive] = useState<AgentRunView | null>(null)
+  const [liveBusy, setLiveBusy] = useState(false)
+  const [liveError, setLiveError] = useState<string | null>(null)
+
+  useEffect(() => {
+    health().then(setLiveBackend)
+  }, [])
+
   useEffect(() => {
     traceEnd.current?.scrollIntoView({ block: 'end' })
   }, [visible])
@@ -210,6 +222,26 @@ export default function Playground() {
     setRunning(true)
   }
 
+  async function runLive() {
+    setLiveBusy(true)
+    setLiveError(null)
+    setLive(null)
+    const r = await agentStart(scenario.goal)
+    setLiveBusy(false)
+    if (r.ok) setLive(r.data)
+    else setLiveError(r.error)
+  }
+
+  async function decideLive(approved: boolean) {
+    if (!live) return
+    setLiveBusy(true)
+    setLiveError(null)
+    const r = await agentDecide(live.runId, approved)
+    setLiveBusy(false)
+    if (r.ok) setLive(r.data)
+    else setLiveError(r.error)
+  }
+
   const last = visible[visible.length - 1]
   const stage = visible.length ? stageFor(last) : -1
   const toolCount = visible.filter((t) => t.k === 'act').length
@@ -224,9 +256,30 @@ export default function Playground() {
       />
 
       <div className="mb-4 flex flex-wrap items-center gap-3">
-        <Badge tone="warn">
-          <ShieldAlert size={12} /> SIMULATION — scripted, no live LLM
-        </Badge>
+        <div className="flex rounded-xl border border-line bg-surface p-1 shadow-soft" role="tablist" aria-label="Playground mode">
+          {(['simulation', 'live'] as const).map((m) => (
+            <button
+              key={m}
+              role="tab"
+              aria-selected={mode === m}
+              onClick={() => setMode(m)}
+              className={`rounded-lg px-3 py-1.5 text-xs font-semibold capitalize transition-all ${
+                mode === m ? 'bg-accent text-accent-ink' : 'text-ink-soft hover:bg-raised'
+              }`}
+            >
+              {m}
+            </button>
+          ))}
+        </div>
+        {mode === 'simulation' ? (
+          <Badge tone="warn">
+            <ShieldAlert size={12} /> SIMULATION — scripted, no live LLM
+          </Badge>
+        ) : (
+          <Badge tone={liveBackend ? 'ok' : 'warn'}>
+            <Zap size={12} /> LIVE — backend {liveBackend ? `online (${liveBackend.provider}${liveBackend.provider === 'fake' ? ' · deterministic demo provider' : ''})` : 'offline'}
+          </Badge>
+        )}
         <div className="flex flex-wrap gap-1.5">
           {SCENARIOS.map((s) => (
             <button
@@ -250,70 +303,131 @@ export default function Playground() {
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line px-5 py-3">
             <span className="flex items-center gap-2 text-sm font-semibold">
               <Bot size={16} className="text-accent" /> Execution trace
+              {mode === 'live' && live && (
+                <span className="text-xs font-normal text-ink-faint">— {live.status.replace('_', ' ')}</span>
+              )}
             </span>
-            <div className="flex items-center gap-2">
-              <select
-                value={speed}
-                onChange={(e) => setSpeed(Number(e.target.value))}
-                className="rounded-lg border border-line bg-surface px-2 py-1 text-xs text-ink-soft"
-                aria-label="Playback speed"
-              >
-                <option value={1600}>0.5×</option>
-                <option value={1100}>1×</option>
-                <option value={600}>2×</option>
-              </select>
-              {running ? (
-                <Button size="sm" variant="secondary" onClick={() => setRunning(false)}>
-                  <Pause size={13} /> Pause
+            {mode === 'live' ? (
+              <div className="flex items-center gap-2">
+                <Button size="sm" onClick={runLive} disabled={liveBusy || !liveBackend}>
+                  {liveBusy ? 'Running…' : live ? 'Run again' : 'Run live agent'}
                 </Button>
-              ) : (
-                visible.length > 0 &&
-                !gate && (
-                  <Button size="sm" variant="secondary" onClick={() => setRunning(true)}>
-                    <Play size={13} /> Resume
+                {live && (
+                  <Button size="sm" variant="ghost" onClick={() => setLive(null)}>
+                    Clear
                   </Button>
-                )
-              )}
-              <Button size="sm" variant="ghost" onClick={reset}>
-                <RotateCcw size={13} /> Reset
-              </Button>
-              {visible.length === 0 && (
-                <Button size="sm" onClick={start}>
-                  <Play size={13} /> Run agent
+                )}
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <select
+                  value={speed}
+                  onChange={(e) => setSpeed(Number(e.target.value))}
+                  className="rounded-lg border border-line bg-surface px-2 py-1 text-xs text-ink-soft"
+                  aria-label="Playback speed"
+                >
+                  <option value={1600}>0.5×</option>
+                  <option value={1100}>1×</option>
+                  <option value={600}>2×</option>
+                </select>
+                {running ? (
+                  <Button size="sm" variant="secondary" onClick={() => setRunning(false)}>
+                    <Pause size={13} /> Pause
+                  </Button>
+                ) : (
+                  visible.length > 0 &&
+                  !gate && (
+                    <Button size="sm" variant="secondary" onClick={() => setRunning(true)}>
+                      <Play size={13} /> Resume
+                    </Button>
+                  )
+                )}
+                <Button size="sm" variant="ghost" onClick={reset}>
+                  <RotateCcw size={13} /> Reset
                 </Button>
-              )}
-            </div>
+                {visible.length === 0 && (
+                  <Button size="sm" onClick={start}>
+                    <Play size={13} /> Run agent
+                  </Button>
+                )}
+              </div>
+            )}
           </div>
 
           <div className="flex-1 space-y-2.5 overflow-y-auto p-5">
-            {visible.length === 0 && (
-              <p className="py-12 text-center text-sm text-ink-faint">
-                Press <span className="font-semibold text-ink">Run agent</span> to execute the goal:
-                “{scenario.goal}”
-              </p>
-            )}
-            {visible.map((t, i) => (
-              <TraceEntry key={i} t={t} />
-            ))}
+            {mode === 'live' ? (
+              liveError ? (
+                <p className="rounded-xl bg-bad/10 px-4 py-3 text-sm text-bad">{liveError}</p>
+              ) : !live ? (
+                <p className="py-12 text-center text-sm text-ink-faint">
+                  Press <span className="font-semibold text-ink">Run live agent</span> — the backend
+                  executes the loop for real against the goal: “{scenario.goal}”{' '}
+                  {liveBackend?.provider === 'fake' && '(deterministic demo provider)'}
+                </p>
+              ) : (
+                <>
+                  {(live.trace as Trace[]).map((t, i) => (
+                    <TraceEntry key={i} t={t} />
+                  ))}
+                  {live.status === 'awaiting_approval' && (
+                    <Card className="fade-up border-bad/40 p-5">
+                      <p className="flex items-center gap-2 font-semibold text-bad">
+                        <ShieldAlert size={16} /> Human approval required
+                      </p>
+                      <p className="mt-2 text-sm leading-relaxed text-ink-soft">
+                        The live agent wants to execute <b>{live.pendingAction}</b>. This request hits
+                        the server's gate — approve or reject it.
+                      </p>
+                      <div className="mt-4 flex gap-3">
+                        <Button onClick={() => decideLive(true)} size="sm" disabled={liveBusy}>
+                          <CheckCircle2 size={14} /> Approve action
+                        </Button>
+                        <Button onClick={() => decideLive(false)} size="sm" variant="secondary" disabled={liveBusy}>
+                          <X size={14} /> Reject
+                        </Button>
+                      </div>
+                    </Card>
+                  )}
+                  {live.status === 'done' && (
+                    <p className="rounded-xl bg-ok/10 px-4 py-3 text-sm text-ok">
+                      Run complete in {live.steps} step{live.steps === 1 ? '' : 's'}
+                      {live.provider ? ` · provider: ${live.provider}` : ''}.
+                    </p>
+                  )}
+                </>
+              )
+            ) : (
+              <>
+                {visible.length === 0 && (
+                  <p className="py-12 text-center text-sm text-ink-faint">
+                    Press <span className="font-semibold text-ink">Run agent</span> to execute the goal:
+                    “{scenario.goal}”
+                  </p>
+                )}
+                {visible.map((t, i) => (
+                  <TraceEntry key={i} t={t} />
+                ))}
 
-            {gate && (
-              <Card className="fade-up border-bad/40 p-5">
-                <p className="flex items-center gap-2 font-semibold text-bad">
-                  <ShieldAlert size={16} /> Human approval required
-                </p>
-                <p className="mt-2 text-sm leading-relaxed text-ink-soft">
-                  {visible[visible.length - 1].k === 'gate' &&
-                    (visible[visible.length - 1] as Extract<Trace, { k: 'gate' }>).detail}
-                </p>
-                <div className="mt-4 flex gap-3">
-                  <Button onClick={() => decide(true)} size="sm">
-                    <CheckCircle2 size={14} /> Approve action
-                  </Button>
-                  <Button onClick={() => decide(false)} size="sm" variant="secondary">
-                    <X size={14} /> Reject
-                  </Button>
-                </div>
-              </Card>
+                {gate && (
+                  <Card className="fade-up border-bad/40 p-5">
+                    <p className="flex items-center gap-2 font-semibold text-bad">
+                      <ShieldAlert size={16} /> Human approval required
+                    </p>
+                    <p className="mt-2 text-sm leading-relaxed text-ink-soft">
+                      {visible[visible.length - 1].k === 'gate' &&
+                        (visible[visible.length - 1] as Extract<Trace, { k: 'gate' }>).detail}
+                    </p>
+                    <div className="mt-4 flex gap-3">
+                      <Button onClick={() => decide(true)} size="sm">
+                        <CheckCircle2 size={14} /> Approve action
+                      </Button>
+                      <Button onClick={() => decide(false)} size="sm" variant="secondary">
+                        <X size={14} /> Reject
+                      </Button>
+                    </div>
+                  </Card>
+                )}
+              </>
             )}
             <div ref={traceEnd} />
           </div>
