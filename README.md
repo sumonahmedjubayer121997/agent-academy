@@ -5,44 +5,61 @@
 **Live:** https://agent-academy-peach.vercel.app
 
 An interactive learning platform: a personalised, project-driven roadmap from React/ML foundations
-to production AI agent engineering. Built with Vite + React 18 + TypeScript + Tailwind CSS.
-**No paid APIs required** — everything works offline; progress is stored locally in your browser.
+to production AI agent engineering — with the learning mechanics (spaced repetition, calibration,
+Feynman practice) and the AI systems (RAG, a bare-metal agent loop, approval gates) built in.
+Frontend: Vite + React 18 + TypeScript + Tailwind. Backend: FastAPI with a provider-independent
+LLM layer (defaults to a deterministic, honestly-labelled `fake` provider — no keys needed).
 
-## Run it
+## Quickstart
 
 ```bash
 npm install
-npm run dev        # http://localhost:5173
-npm test           # unit + component tests (Vitest)
-npm run build      # typecheck + production bundle (dist/)
+npm run dev        # http://localhost:5173 — works fully offline
+
+# optional backend (AI feedback, Ask-the-Roadmap, live playground):
+python3 -m venv --without-pip server/.venv && server/.venv/bin/python get-pip.py  # or plain venv
+server/.venv/bin/pip install -r server/requirements.txt
+server/.venv/bin/python -m uvicorn server.main:app --port 8000
+
+# or everything in docker (add --profile ollama for local models):
+docker compose up -d
+```
+
+## Tests
+
+```bash
+npm test                                        # frontend: SRS math, schedule, components (29)
+server/.venv/bin/python -m pytest server/tests -q  # backend: critique repair, RAG evals
+                                                # (hit-rate@5 gated), agent gate/budgets, rate limit
 ```
 
 ## What's inside
 
-| Area | Pages |
-|---|---|
-| Learn | Landing, Interactive roadmap (SVG dependency graph), Curriculum, Module pages, Lesson pages |
-| Track | Dashboard (real statistics only), Diagnostic assessment (5 domains × 3 Qs), Study planner (5/10/15 h/wk), Progress export/reset |
-| Practice | Agent Playground (clearly-labelled simulation with approval gate), Projects & portfolio specs, Verified resources |
+- **Learning engine** — 8 phases · 44 modules as typed data; interactive SVG roadmap with
+  prerequisites; diagnostic assessment with prior-knowledge credit; spaced-repetition reviews;
+  confidence calibration; pre-questions; focus timer; honest planner (pace from logged sessions).
+- **Lessons** — nine-section format with "go deeper" layers, interactive demos (agent loop,
+  draggable vector similarity), knowledge checks, Feynman boxes with AI critique.
+- **AI systems (server/)** — provider-independent layer (fake | OpenAI-compatible | Ollama),
+  schema-validated critique with a repair loop, BM25 RAG over the curriculum with clickable
+  citations, and a framework-free agent loop with tool registry, budgets, and a human-approval
+  gate — mirrored by the Playground's simulation/live modes.
+- **Production posture** — per-IP rate limiting, structured JSON logging, non-root Docker,
+  security review + ops runbook (`docs/SECURITY.md`, `docs/OPS.md`).
 
-- **8 phases · 44 modules · ~730 guided hours**, each module with objectives, prerequisites,
-  completion criteria, and a portfolio deliverable. 4 modules are optional specialisations.
-- **2 complete exemplar lessons** (`The Agent Loop`, `Embeddings & Similarity`) in the full
-  nine-section teaching format with interactive demos and knowledge checks.
-- **Content lives in `src/content/`** as typed data — curriculum updates never touch app logic.
-- `docs/ROADMAP_REPORT.md` is the full analysis & implementation report (timelines, essential vs
-  optional tech, architecture, portfolio strategy).
+## Build phases (docs/PHASED_BUILD_PLAN.md)
 
-## Architecture (see report for the full picture)
+W0 hardening ✓ · W1 retention ✓ · W2 depth ✓ · W3 analytics ✓ · W4 backend+LLM ✓ ·
+W5 RAG ✓ · W6 agent runtime ✓ · W7 production hardening ✓ *(auth/multi-user = next)*
+
+## Layout
 
 ```
-src/
-  content/     curriculum as typed data (phases, modules, lessons, projects, resources, assessment)
-  store/       ProgressProvider — localStorage adapter today, Firebase/Auth later via same interface
-  components/  design system, roadmap graph, interactive demos
-  pages/       one file per route
+src/content/   curriculum as typed data (phases, modules, lessons, glossary, edges)
+src/lib/       pure logic: SRS scheduler, schedule builder, API client
+src/pages/     one file per route
+server/        FastAPI: llm/ providers, rag/, agent/, critique, rate limit, tests/
+docs/          ROADMAP_REPORT · LEARNING_ACCELERATION_REPORT · PHASED_BUILD_PLAN · SECURITY · OPS
 ```
 
-Planned next iterations (P1/P2 in the report): full lesson content for all 44 modules, Firebase
-auth + sync, Mermaid diagrams in lessons, FastAPI backend with a provider-independent LLM layer
-(keys server-side only), live-model mode for the Playground, CI.
+API keys live only in server env (`server/.env`, git-ignored) — never in frontend code.
