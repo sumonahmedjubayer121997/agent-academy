@@ -110,7 +110,7 @@ export function AskTheRoadmapAndAssistant() {
         <button
           type="submit"
           disabled={busy || q.trim().length < 3}
-          className="rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-accent-ink shadow-soft transition-all hover:bg-accent-hover disabled:opacity-40"
+          className="rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-accent-ink transition-all hover:bg-accent-hover disabled:opacity-40"
         >
           {busy ? 'Thinking…' : 'Ask'}
         </button>
@@ -290,7 +290,7 @@ export default function Curriculum() {
                 </p>
               </Card>
 
-              <ul className="mt-3 divide-y divide-line overflow-hidden rounded-2xl border border-line bg-surface shadow-soft">
+              <ul className="mt-3 divide-y divide-line overflow-hidden rounded-xl border border-line bg-surface">
                 {filteredModules.map((m) => {
                   const stage = stageOf(data, m.id)
                   const unlocked = isUnlocked(data, m)

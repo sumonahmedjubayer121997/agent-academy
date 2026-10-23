@@ -66,14 +66,6 @@ body {
   stroke-width: 1.5;
 }
 
-.tilt-card {
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
-}
-.tilt-card:hover {
-  transform: perspective(900px) rotateX(1deg) rotateY(-1deg) translateY(-4px);
-  box-shadow: 0 2px 4px rgba(23, 21, 17, 0.06), 0 16px 40px -16px rgba(23, 21, 17, 0.3);
-}
-
 @keyframes fadeUp {
   from {
     opacity: 0;

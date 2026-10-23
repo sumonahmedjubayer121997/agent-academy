@@ -259,7 +259,7 @@ export default function Playground() {
       />
 
       <div className="mb-4 flex flex-wrap items-center gap-3">
-        <div className="flex rounded-xl border border-line bg-surface p-1 shadow-soft" role="tablist" aria-label="Playground mode">
+        <div className="flex rounded-xl border border-line bg-surface p-1" role="tablist" aria-label="Playground mode">
           {(['simulation', 'live'] as const).map((m) => (
             <button
               key={m}
@@ -447,7 +447,7 @@ export default function Playground() {
                   key={s.name}
                   className={`rounded-xl border px-3 py-3 text-center text-xs font-semibold transition-all duration-300 ${
                     i === stage
-                      ? 'border-accent bg-accent-soft text-accent shadow-soft'
+                      ? 'border-accent bg-accent-soft text-accent'
                       : 'border-line text-ink-faint'
                   }`}
                 >

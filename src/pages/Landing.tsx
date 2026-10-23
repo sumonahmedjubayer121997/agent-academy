@@ -25,7 +25,7 @@ export default function Landing() {
         />
         <div className="grid items-center gap-12 lg:grid-cols-[1.2fr_1fr]">
           <div className="fade-up">
-            <p className="mb-4 inline-flex items-center gap-2 rounded-full border border-line bg-surface px-3 py-1 text-xs font-medium text-ink-soft shadow-soft">
+            <p className="mb-4 inline-flex items-center gap-2 rounded-full border border-line bg-surface px-3 py-1 text-xs font-medium text-ink-soft">
               <Sparkles size={13} className="text-accent" />
               Personalised curriculum · {PHASES.length} phases · {MODULES.length} modules ·{' '}
               {PROJECTS.length} portfolio projects
@@ -41,7 +41,7 @@ export default function Landing() {
             <div className="mt-8 flex flex-wrap items-center gap-3">
               <Link
                 to="/assess"
-                className="inline-flex items-center gap-2 rounded-xl bg-accent px-5 py-2.5 text-sm font-semibold text-accent-ink shadow-soft transition-all hover:bg-accent-hover active:scale-[0.98]"
+                className="inline-flex items-center gap-2 rounded-xl bg-accent px-5 py-2.5 text-sm font-semibold text-accent-ink transition-all hover:bg-accent-hover active:scale-[0.98]"
               >
                 <ClipboardCheck size={16} /> Start with the diagnostic
               </Link>
@@ -58,7 +58,7 @@ export default function Landing() {
             </p>
           </div>
 
-          <Card className="tilt-card p-6">
+          <Card className="p-6">
             <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-accent">
               The core idea you'll own
             </p>
@@ -98,7 +98,7 @@ export default function Landing() {
               body: 'Each phase ends in a portfolio checkpoint with evaluation suites, measured cost/latency, trade-off write-ups and interview questions — engineering ability, not API glue.',
             },
           ].map(({ icon: Icon, title, body }) => (
-            <Card key={title} className="tilt-card p-6">
+            <Card key={title} className="p-6">
               <div className="mb-3 inline-flex rounded-xl bg-accent-soft p-2.5 text-accent">
                 <Icon size={18} />
               </div>
@@ -122,7 +122,7 @@ export default function Landing() {
             <Link
               key={phase.id}
               to="/curriculum"
-              className="group rounded-2xl border border-line bg-surface p-5 shadow-soft transition-all hover:-translate-y-0.5 hover:shadow-lift"
+              className="group rounded-xl border border-line bg-surface p-5 transition-all hover:-translate-y-0.5 hover:shadow-lift"
             >
               <div className="flex items-baseline justify-between">
                 <p className="text-xs font-bold uppercase tracking-widest text-accent">

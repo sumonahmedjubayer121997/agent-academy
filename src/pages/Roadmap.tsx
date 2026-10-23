@@ -85,7 +85,7 @@ export default function Roadmap() {
             onClick={() => setFilter(item.id)}
             className={`rounded-xl border px-3.5 py-1.5 text-xs font-semibold transition-all ${
               filter === item.id
-                ? 'border-accent bg-accent text-accent-ink shadow-soft'
+                ? 'border-accent bg-accent text-accent-ink'
                 : 'border-line bg-surface text-ink-soft hover:bg-raised'
             }`}
           >

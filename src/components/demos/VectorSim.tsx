@@ -59,7 +59,7 @@ export default function VectorSim() {
       <svg
         ref={svgRef}
         viewBox={`0 0 ${S} ${S}`}
-        className="w-full max-w-[320px] cursor-crosshair touch-none select-none rounded-2xl border border-line bg-surface"
+        className="w-full max-w-[320px] cursor-crosshair touch-none select-none rounded-xl border border-line bg-surface"
         aria-label="Interactive vector similarity playground — drag the two arrowheads"
       >
         {/* grid */}
