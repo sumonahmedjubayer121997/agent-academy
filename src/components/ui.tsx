@@ -2,17 +2,34 @@ import type { ButtonHTMLAttributes, ReactNode } from 'react'
 import { CheckCircle2, CircleDot, Circle, Sparkles, Code2, BookOpen } from 'lucide-react'
 import type { MasteryStage, ModuleStatus } from '../store/progress'
 
-export function Card({ children, className = '' }: { children: ReactNode; className?: string }) {
-  return (
-    <div className={`rounded-2xl border border-line bg-surface shadow-soft ${className}`}>{children}</div>
-  )
+/**
+ * Card — one component, three elevations (Linear/Geist discipline):
+ *  flat (default) resting content: border only, no shadow
+ *  raised        hover/active surfaces: subtle raised background
+ *  overlay       floating layers only (modals, dropdowns, palettes): shadow
+ */
+export function Card({
+  children,
+  className = '',
+  variant = 'flat',
+}: {
+  children: ReactNode
+  className?: string
+  variant?: 'flat' | 'raised' | 'overlay'
+}) {
+  const variants = {
+    flat: 'border border-line bg-surface',
+    raised: 'border border-line bg-raised',
+    overlay: 'border border-line bg-surface shadow-lift',
+  }
+  return <div className={`rounded-xl ${variants[variant]} ${className}`}>{children}</div>
 }
 
 const badgeTones: Record<string, string> = {
-  neutral: 'bg-raised text-ink-soft border-line',
-  accent: 'bg-accent-soft text-accent border-accent/30',
-  ok: 'bg-ok/10 text-ok border-ok/30',
-  warn: 'bg-bad/10 text-bad border-bad/30',
+  neutral: 'bg-transparent text-ink-soft border-line',
+  accent: 'bg-transparent text-accent border-accent/25',
+  ok: 'bg-transparent text-ok border-ok/25',
+  warn: 'bg-transparent text-bad border-bad/25',
 }
 
 export function Badge({
@@ -43,7 +60,7 @@ export function Button({ variant = 'primary', size = 'md', className = '', ...re
     'inline-flex items-center justify-center gap-2 rounded-xl font-medium transition-all duration-150 active:scale-[0.98] disabled:opacity-40 disabled:pointer-events-none'
   const sizes = { sm: 'px-3 py-1.5 text-sm', md: 'px-4 py-2 text-sm' }
   const variants = {
-    primary: 'bg-accent text-accent-ink hover:bg-accent-hover shadow-soft',
+    primary: 'bg-accent text-accent-ink hover:bg-accent-hover',
     secondary: 'border border-line-strong bg-surface text-ink hover:bg-raised',
     ghost: 'text-ink-soft hover:text-ink hover:bg-raised',
   }

@@ -91,7 +91,7 @@ export default function RoadmapGraph({ filterTrack = 'all' }: RoadmapGraphProps)
   }, [data, geom])
 
   return (
-    <div className="overflow-x-auto rounded-2xl border border-line bg-surface shadow-soft">
+    <div className="overflow-x-auto rounded-xl border border-line bg-surface">
       {/* The graph is interactive, so no role="img" here — that would hide the
           labelled node buttons from assistive technology. The sr-only line gives
           context; the Curriculum page is the full text alternative. */}

@@ -195,7 +195,7 @@ export default function Dashboard() {
           {continueModule && (
             <Link
               to={`/roadmap/${continueModule.id}`}
-              className="inline-flex items-center gap-2 rounded-xl bg-accent px-4 py-2.5 text-sm font-semibold text-accent-ink shadow-soft transition-all hover:bg-accent-hover"
+              className="inline-flex items-center gap-2 rounded-xl bg-accent px-4 py-2.5 text-sm font-semibold text-accent-ink transition-all hover:bg-accent-hover"
             >
               <Play size={15} />
               Continue: {continueModule.title}
@@ -341,7 +341,7 @@ export default function Dashboard() {
               const rec = recommendations[expandedRecIdx] ?? recommendations[0]
               const wave = waveForModule(rec.module.id)
               return (
-                <div className="mt-4 rounded-2xl border border-line bg-raised/40 p-4">
+                <div className="mt-4 rounded-xl border border-line bg-raised/40 p-4">
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
                       <div className="flex flex-wrap items-center gap-2">
@@ -364,7 +364,7 @@ export default function Dashboard() {
                     </div>
                     <Link
                       to={`/roadmap/${rec.module.id}`}
-                      className="rounded-xl bg-accent px-3.5 py-2 text-xs font-semibold text-accent-ink shadow-soft transition-all hover:bg-accent-hover"
+                      className="rounded-xl bg-accent px-3.5 py-2 text-xs font-semibold text-accent-ink transition-all hover:bg-accent-hover"
                     >
                       Open module
                     </Link>
@@ -470,7 +470,7 @@ export default function Dashboard() {
             {due.length > 0 ? (
               <Link
                 to="/review"
-                className="rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-accent-ink shadow-soft transition-all hover:bg-accent-hover"
+                className="rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-accent-ink transition-all hover:bg-accent-hover"
               >
                 Review {due.length} {due.length === 1 ? 'card' : 'cards'} (~{Math.max(1, Math.round(due.length * 0.75))} min)
               </Link>
@@ -842,7 +842,7 @@ export default function Dashboard() {
                 </p>
                 <Link
                   to="/assess"
-                  className="mt-3 inline-flex rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-accent-ink shadow-soft transition-all hover:bg-accent-hover"
+                  className="mt-3 inline-flex rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-accent-ink transition-all hover:bg-accent-hover"
                 >
                   Take the diagnostic
                 </Link>
@@ -895,7 +895,7 @@ export default function Dashboard() {
               <button
                 onClick={() => setReportWindow('7d')}
                 className={`rounded-lg px-3 py-1.5 transition-colors ${
-                  reportWindow === '7d' ? 'bg-surface text-ink shadow-soft' : 'text-ink-soft hover:text-ink'
+                  reportWindow === '7d' ? 'bg-surface text-ink' : 'text-ink-soft hover:text-ink'
                 }`}
               >
                 Weekly (7d)
@@ -903,7 +903,7 @@ export default function Dashboard() {
               <button
                 onClick={() => setReportWindow('30d')}
                 className={`rounded-lg px-3 py-1.5 transition-colors ${
-                  reportWindow === '30d' ? 'bg-surface text-ink shadow-soft' : 'text-ink-soft hover:text-ink'
+                  reportWindow === '30d' ? 'bg-surface text-ink' : 'text-ink-soft hover:text-ink'
                 }`}
               >
                 Monthly (30d)
@@ -1017,7 +1017,7 @@ export default function Dashboard() {
               <Link
                 key={phase.id}
                 to="/curriculum"
-                className="rounded-2xl border border-line bg-surface p-4 shadow-soft transition-all hover:-translate-y-0.5"
+                className="rounded-xl border border-line bg-surface p-4 transition-all hover:-translate-y-0.5"
               >
                 <div className="flex items-center justify-between text-sm">
                   <span className="font-medium">

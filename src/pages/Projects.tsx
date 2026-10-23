@@ -58,53 +58,57 @@ const AUTONOMY_LEVELS: {
   },
 ]
 
-function PracticeProjectCard({ p }: { p: PracticeProject }) {
+function PracticeProjectRow({ p }: { p: PracticeProject }) {
   const [open, setOpen] = useState(false)
   return (
-    <Card className="p-5 transition-all hover:-translate-y-0.5">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <div className="flex flex-wrap items-center gap-1.5">
-            <Badge tone="accent">P{p.phase}</Badge>
-            <Badge>{p.hours}h</Badge>
-            <Badge tone={p.difficulty === 'advanced' ? 'warn' : p.difficulty === 'intermediate' ? 'neutral' : 'ok'}>
-              {p.difficulty}
-            </Badge>
-          </div>
-          <h3 className="mt-2 font-semibold tracking-tight">{p.title}</h3>
-        </div>
-        <button
-          onClick={() => setOpen((v) => !v)}
-          aria-expanded={open}
-          className="flex items-center gap-1 rounded-lg border border-line-strong px-2.5 py-1 text-xs font-medium text-ink-soft transition-all hover:bg-raised"
+    <div className="border-b border-line last:border-0">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-raised/60"
+      >
+        <span className="w-7 shrink-0 font-mono text-[11px] font-semibold text-ink-faint">P{p.phase}</span>
+        <span className="min-w-0 flex-1 truncate text-sm font-medium">{p.title}</span>
+        <span className="hidden max-w-[38%] shrink-0 truncate text-xs text-ink-faint lg:block">
+          {p.modules.map((id) => MODULES.find((x) => x.id === id)?.title).filter(Boolean).join(' · ')}
+        </span>
+        <Badge
+          tone={p.difficulty === 'advanced' ? 'warn' : p.difficulty === 'starter' ? 'ok' : 'neutral'}
+          className="hidden shrink-0 sm:inline-flex"
         >
-          {open ? <ChevronUp size={12} /> : <ChevronDown size={12} />} steps
-        </button>
-      </div>
-      <p className="mt-2 text-sm leading-relaxed text-ink-soft">{p.brief}</p>
-      <div className="mt-2.5 flex flex-wrap gap-1.5">
-        {p.stack.map((s) => (
-          <Badge key={s}>{s}</Badge>
-        ))}
-      </div>
+          {p.difficulty}
+        </Badge>
+        <span className="w-12 shrink-0 text-right font-mono text-[11px] text-ink-faint">{p.hours}h</span>
+        {open ? (
+          <ChevronUp size={13} className="shrink-0 text-ink-faint" />
+        ) : (
+          <ChevronDown size={13} className="shrink-0 text-ink-faint" />
+        )}
+      </button>
       {open && (
-        <div className="mt-4 border-t border-line pt-3">
-          <p className="text-xs font-semibold uppercase tracking-wide text-ink-faint">Step by step</p>
-          <ol className="mt-2 space-y-2 text-sm leading-relaxed text-ink-soft">
+        <div className="px-4 pb-4 pt-1">
+          <p className="text-sm leading-relaxed text-ink-soft">{p.brief}</p>
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            {p.stack.map((s) => (
+              <Badge key={s}>{s}</Badge>
+            ))}
+          </div>
+          <p className="mt-3 text-[11px] font-semibold uppercase tracking-widest text-ink-faint">Step by step</p>
+          <ol className="mt-1.5 space-y-1.5 text-sm leading-relaxed text-ink-soft">
             {p.steps.map((s, i) => (
               <li key={i} className="flex gap-2.5">
-                <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent-soft font-mono text-[11px] font-bold text-accent">
+                <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-line font-mono text-[11px] font-bold text-ink-faint">
                   {i + 1}
                 </span>
                 {s}
               </li>
             ))}
           </ol>
-          <p className="mt-3 rounded-xl bg-ok/10 px-3.5 py-2.5 text-sm text-ink-soft">
+          <p className="mt-3 rounded-lg bg-ok/10 px-3.5 py-2 text-sm text-ink-soft">
             <span className="font-semibold text-ok">Done when: </span>
             {p.doneWhen}
           </p>
-          <div className="mt-3 flex flex-wrap gap-1.5">
+          <div className="mt-2.5 flex flex-wrap gap-1.5">
             {p.modules.map((id) => {
               const m = MODULES.find((x) => x.id === id)
               return m ? (
@@ -116,13 +120,7 @@ function PracticeProjectCard({ p }: { p: PracticeProject }) {
           </div>
         </div>
       )}
-      {!open && (
-        <p className="mt-3 text-xs text-ink-faint">
-          {p.steps.length} steps · teaches:{' '}
-          {p.modules.map((id) => MODULES.find((x) => x.id === id)?.title).filter(Boolean).join(' · ')}
-        </p>
-      )}
-    </Card>
+    </div>
   )
 }
 
@@ -139,11 +137,11 @@ function PracticeProjectsSection() {
         title="The reps between milestones"
         sub="Five step-by-step projects per phase — small, concrete builds that exercise exactly what the phase teaches. The five flagship projects above remain your portfolio pieces; these are how you earn them."
       />
-      <div className="mb-5 flex flex-wrap gap-1.5">
+      <div className="mb-4 flex flex-wrap gap-1">
         <button
           onClick={() => setPhase('all')}
-          className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors ${
-            phase === 'all' ? 'border-accent bg-accent text-accent-ink' : 'border-line text-ink-soft hover:bg-raised'
+          className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
+            phase === 'all' ? 'bg-raised text-ink' : 'text-ink-faint hover:bg-raised hover:text-ink'
           }`}
         >
           All 40
@@ -152,19 +150,19 @@ function PracticeProjectsSection() {
           <button
             key={n}
             onClick={() => setPhase(n)}
-            className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors ${
-              phase === n ? 'border-accent bg-accent text-accent-ink' : 'border-line text-ink-soft hover:bg-raised'
+            className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
+              phase === n ? 'bg-raised text-ink' : 'text-ink-faint hover:bg-raised hover:text-ink'
             }`}
           >
-            P{n} ({phaseHours(n)}h)
+            P{n} <span className="text-ink-faint">{phaseHours(n)}h</span>
           </button>
         ))}
       </div>
-      <div className="grid gap-4 md:grid-cols-2">
+      <Card className="overflow-hidden">
         {shown.map((p) => (
-          <PracticeProjectCard key={p.id} p={p} />
+          <PracticeProjectRow key={p.id} p={p} />
         ))}
-      </div>
+      </Card>
     </section>
   )
 }
@@ -209,7 +207,7 @@ export default function Projects() {
                     <h2 className="mt-1.5 text-xl font-semibold tracking-tight">{p.title}</h2>
                   </div>
                   {module && (
-                    <div className="flex flex-col items-end gap-1.5">
+                    <div className="flex flex-row flex-wrap items-center gap-x-2 gap-y-1 sm:flex-col sm:items-end sm:gap-1.5">
                       <StatusBadge status={modStage} />
                       <Link
                         to={`/roadmap/${module.id}`}
@@ -226,14 +224,14 @@ export default function Projects() {
                   <p className="text-xs font-semibold uppercase tracking-wide text-ink-faint">
                     Independence & Mastery Level — {currentAutonomy.hint}
                   </p>
-                  <div className="mt-1.5 inline-flex flex-wrap rounded-xl border border-line bg-surface p-1">
+                  <div className="mt-1.5 inline-flex max-w-full flex-wrap rounded-xl border border-line bg-surface p-1">
                     {AUTONOMY_LEVELS.map((lvl) => (
                       <button
                         key={lvl.id}
                         onClick={() => updateProject(p.id, p.moduleId, { autonomy: lvl.id })}
                         className={`rounded-lg px-2.5 py-1 text-xs font-medium transition-all ${
                           rec.autonomy === lvl.id
-                            ? 'bg-accent text-accent-ink shadow-soft'
+                            ? 'bg-accent text-accent-ink'
                             : 'text-ink-soft hover:bg-raised'
                         }`}
                       >

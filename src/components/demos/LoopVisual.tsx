@@ -39,7 +39,7 @@ export default function LoopVisual({ compact = false }: { compact?: boolean }) {
             <div
               className={`flex-1 rounded-xl border px-2 py-3 text-center text-[12px] font-semibold transition-all duration-300 ${
                 idx === i
-                  ? 'border-accent bg-accent-soft text-accent shadow-soft scale-[1.03]'
+                  ? 'border-accent bg-accent-soft text-accent scale-[1.03]'
                   : 'border-line bg-surface text-ink-faint'
               }`}
             >

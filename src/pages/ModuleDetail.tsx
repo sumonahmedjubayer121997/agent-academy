@@ -219,7 +219,7 @@ export default function ModuleDetail() {
                   title={st.description}
                   className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all sm:text-sm ${
                     stage === st.id
-                      ? 'bg-accent text-accent-ink shadow-soft'
+                      ? 'bg-accent text-accent-ink'
                       : 'text-ink-soft hover:bg-surface hover:text-ink'
                   }`}
                 >
@@ -270,7 +270,7 @@ export default function ModuleDetail() {
             aria-label="Mastery evidence check"
             onClick={() => setMasterPrompt(null)}
           >
-            <Card className="max-w-md p-6">
+            <Card variant="overlay" className="max-w-md p-6">
               <div onClick={(e) => e.stopPropagation()}>
                 <p className="flex items-center gap-2 font-semibold tracking-tight">
                   <Sparkles size={16} className="text-accent" /> Mastered means demonstrated — not

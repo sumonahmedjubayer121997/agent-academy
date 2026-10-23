@@ -265,7 +265,7 @@ export default function Review() {
                 <Link
                   key={l.id}
                   to={`/learn/${l.id}`}
-                  className="rounded-xl border border-line bg-surface px-4 py-3 text-sm font-medium shadow-soft transition-all hover:-translate-y-0.5 hover:text-accent"
+                  className="rounded-xl border border-line bg-surface px-4 py-3 text-sm font-medium transition-all hover:-translate-y-0.5 hover:text-accent"
                 >
                   {l.title} <ArrowRight size={13} className="ml-1 inline" />
                 </Link>
