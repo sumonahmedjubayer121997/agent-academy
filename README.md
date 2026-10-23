@@ -35,7 +35,7 @@ server/.venv/bin/python -m pytest server/tests -q  # backend: critique repair, R
 
 ## What's inside
 
-- **Learning engine** — 8 phases · 44 modules as typed data; interactive SVG roadmap with
+- **Learning engine** — 8 phases · 60 modules as typed data; interactive SVG roadmap with
   prerequisites; diagnostic assessment with prior-knowledge credit; spaced-repetition reviews;
   confidence calibration; pre-questions; focus timer; honest planner (pace from logged sessions).
 - **Lessons** — nine-section format with "go deeper" layers, interactive demos (agent loop,
