@@ -1,0 +1,1395 @@
+{
+  "exportedAt": "2026-10-23T18:56:10.976Z",
+  "modules": [
+    {
+      "id": "p1-python-core",
+      "phase": 1,
+      "title": "Python Core, Idioms & OOP",
+      "why": "Every later phase is written in Python; fluency here compounds into everything from data work to agent orchestration.",
+      "objectives": [
+        "Write idiomatic Python (comprehensions, unpacking, typing)",
+        "Design classes, dataclasses, and protocols",
+        "Use exceptions, context managers, and pathlib",
+        "Read and debug unfamiliar Python quickly"
+      ],
+      "completion": [
+        "Solve 30 varied exercises without a JS-to-Python mental translation",
+        "Explain decorators and generators with an example of each",
+        "Type-annotate a 200-line module and pass mypy --strict"
+      ],
+      "deliverable": "A small typed Python library (e.g. a CLI expense tracker) with docstrings and tests.",
+      "essential": true,
+      "hours": 20,
+      "prereqs": []
+    },
+    {
+      "id": "p1-env-packages",
+      "phase": 1,
+      "title": "Environments, Modules & Dependencies",
+      "why": "Virtual environments and packaging are the difference between \"works on my machine\" and reproducible AI projects.",
+      "objectives": [
+        "Create and manage venvs (venv, uv)",
+        "Structure packages with src layout",
+        "Pin dependencies and understand lock files",
+        "Publish or install an editable package"
+      ],
+      "completion": [
+        "Install your Phase-1 library into a fresh venv from a lock file",
+        "Explain why installing globally is a trap"
+      ],
+      "deliverable": "Your tracker library installed as a package with pinned, reproducible dependencies.",
+      "essential": true,
+      "hours": 8,
+      "prereqs": [
+        "p1-python-core"
+      ]
+    },
+    {
+      "id": "p1-data-stack",
+      "phase": 1,
+      "title": "NumPy, pandas & Visualisation",
+      "why": "The lingua franca of ML data preparation; also your bridge from the Netflix/sentiment projects to rigorous pipelines.",
+      "objectives": [
+        "Vectorised thinking with NumPy arrays",
+        "Clean, join, group, and reshape data with pandas",
+        "Matplotlib/Seaborn plots that communicate",
+        "Load real messy datasets confidently"
+      ],
+      "completion": [
+        "Rewrite a slow loop as vectorised NumPy and benchmark the speedup",
+        "Produce an exploratory data analysis notebook on a messy real dataset"
+      ],
+      "deliverable": "An EDA notebook (with narrative) on a public dataset, exported to HTML.",
+      "essential": true,
+      "hours": 18,
+      "prereqs": [
+        "p1-python-core"
+      ]
+    },
+    {
+      "id": "p1-apis-async",
+      "phase": 1,
+      "title": "HTTP, JSON, APIs & Async Python",
+      "why": "LLM apps are network programs: async API calls, streaming responses, and retries are the daily bread of AI engineering.",
+      "objectives": [
+        "Call REST APIs with requests and httpx",
+        "Understand status codes, headers, auth, pagination",
+        "Write async coroutines and gather concurrent calls",
+        "Handle errors, timeouts, and exponential backoff"
+      ],
+      "completion": [
+        "Fetch from 3 paginated public APIs concurrently with retries",
+        "Explain when async beats threads and when it does not"
+      ],
+      "deliverable": "A resilient API client module with tests using recorded responses.",
+      "essential": true,
+      "hours": 14,
+      "prereqs": [
+        "p1-python-core"
+      ]
+    },
+    {
+      "id": "p1-git-testing",
+      "phase": 1,
+      "title": "Git, GitHub, Testing & Clean Code",
+      "why": "Employers read your Git history and run your tests; both are part of proving engineering ability.",
+      "objectives": [
+        "Branch, rebase, and review workflows",
+        "pytest fixtures and parametrised tests",
+        "Debug systematically (breakpoints, logging)",
+        "Format and lint (ruff) as habits"
+      ],
+      "completion": [
+        "Get a PR reviewed and merged into your own project",
+        "Reach high coverage on the API client module"
+      ],
+      "deliverable": "A public repo with CI running tests on every push.",
+      "essential": true,
+      "hours": 12,
+      "prereqs": [
+        "p1-python-core"
+      ]
+    },
+    {
+      "id": "p1-sql",
+      "phase": 1,
+      "title": "SQL & Database Basics",
+      "why": "Conversation state, user data, and production persistence all live in databases you must be able to query directly.",
+      "objectives": [
+        "SELECT/JOIN/GROUP BY fluency",
+        "Model tables, keys, and indexes",
+        "Use SQLite and Postgres from Python",
+        "Understand transactions at a basic level"
+      ],
+      "completion": [
+        "Write 20 queries including multi-table joins and aggregates",
+        "Design a schema for a chat application with conversation history"
+      ],
+      "deliverable": "A normalised SQLite schema plus a query cheat-sheet you wrote yourself.",
+      "essential": true,
+      "hours": 10,
+      "prereqs": []
+    },
+    {
+      "id": "p1-project",
+      "phase": 1,
+      "title": "Checkpoint Project: API Insight Tracker",
+      "why": "Proves Phase 1 end-to-end: real API, persistence, tests, packaging — the template for every future project.",
+      "objectives": [
+        "Consume a public API on a schedule",
+        "Store history in SQLite",
+        "Surface insight via CLI or tiny web page",
+        "Ship with tests and README"
+      ],
+      "completion": [
+        "Deployed or runnable by a stranger in under 5 minutes from your README"
+      ],
+      "deliverable": "Portfolio project #1 (see Projects page).",
+      "essential": true,
+      "hours": 12,
+      "prereqs": [
+        "p1-data-stack",
+        "p1-apis-async",
+        "p1-git-testing"
+      ]
+    },
+    {
+      "id": "p2-linear-algebra",
+      "phase": 2,
+      "title": "Linear Algebra for ML",
+      "why": "Embeddings, attention, and every model weight are vectors and matrices; this module makes them geometric and intuitive.",
+      "objectives": [
+        "Vectors, dot products, and cosine similarity by hand",
+        "Matrix multiplication as transformation",
+        "Norms, orthogonality, projections",
+        "NumPy implementations of each concept"
+      ],
+      "completion": [
+        "Compute dot products and cosine similarity without reference",
+        "Explain what a matrix multiplication does geometrically"
+      ],
+      "deliverable": "A Jupyter notebook deriving and visualising each concept with tiny numerical examples.",
+      "essential": true,
+      "hours": 14,
+      "prereqs": []
+    },
+    {
+      "id": "p2-prob-stats",
+      "phase": 2,
+      "title": "Probability & Statistics",
+      "why": "Evaluation is statistics. Precision/recall, confidence, and distributions decide whether your AI system actually works.",
+      "objectives": [
+        "Conditional probability and Bayes reasoning",
+        "Distributions, expectation, variance",
+        "Sampling and the central limit theorem",
+        "Hypothesis tests and p-value literacy"
+      ],
+      "completion": [
+        "Solve base-rate problems correctly (see the diagnostic!)",
+        "Explain what a confidence interval does and does not mean"
+      ],
+      "deliverable": "A notebook applying Bayesian reasoning to a real spam/medical-style screening example.",
+      "essential": true,
+      "hours": 16,
+      "prereqs": []
+    },
+    {
+      "id": "p2-calc-gradient",
+      "phase": 2,
+      "title": "Calculus Essentials & Gradients",
+      "why": "Training any neural network is gradient descent; you need just enough calculus to own that idea.",
+      "objectives": [
+        "Derivatives as sensitivity",
+        "Partial derivatives and gradients",
+        "Chain rule (the heart of backprop)",
+        "Gradient descent by hand and in NumPy"
+      ],
+      "completion": [
+        "Fit a line to points with hand-written gradient descent",
+        "Explain the chain rule with a two-layer example"
+      ],
+      "deliverable": "Gradient-descent-from-scratch notebook with visualised loss curves.",
+      "essential": true,
+      "hours": 8,
+      "prereqs": []
+    },
+    {
+      "id": "p2-ml-core",
+      "phase": 2,
+      "title": "Supervised & Unsupervised Learning",
+      "why": "Classical ML teaches methodology (splits, baselines, metrics) that agent evaluation inherits wholesale.",
+      "objectives": [
+        "Regression and regularisation (Ridge/Lasso)",
+        "Classification (logistic, trees, ensembles)",
+        "Clustering and dimensionality reduction",
+        "Fit/predict/evaluate workflow in scikit-learn"
+      ],
+      "completion": [
+        "Build a baseline-first pipeline and beat it deliberately",
+        "Choose metrics justified by class balance and costs"
+      ],
+      "deliverable": "A trained, evaluated model notebook with honest error analysis.",
+      "essential": true,
+      "hours": 24,
+      "prereqs": [
+        "p2-linear-algebra",
+        "p2-prob-stats",
+        "p1-data-stack"
+      ]
+    },
+    {
+      "id": "p2-ml-engineering",
+      "phase": 2,
+      "title": "Preprocessing, Overfitting & Evaluation",
+      "why": "The gap between tutorial ML and defensible ML: leakage, proper cross-validation, and metric choices you can justify.",
+      "objectives": [
+        "Encodings, scaling, and pipelines that avoid leakage",
+        "Cross-validation done right",
+        "Precision/recall/F1/ROC trade-offs",
+        "Error analysis by segment"
+      ],
+      "completion": [
+        "Find and fix a deliberately planted leakage bug",
+        "Defend your metric choice for an imbalanced problem"
+      ],
+      "deliverable": "A leakage-hunt write-up plus corrected pipeline.",
+      "essential": true,
+      "hours": 12,
+      "prereqs": [
+        "p2-ml-core"
+      ]
+    },
+    {
+      "id": "p2-experiment-tracking",
+      "phase": 2,
+      "title": "Experiment Tracking & Reproducibility",
+      "why": "Optional but high-leverage: tracking turns flailing into science and directly transfers to LLM evaluation later.",
+      "objectives": [
+        "Log params/metrics/artifacts (MLflow or wandb)",
+        "Seed everything; reproduce a run",
+        "Compare experiments honestly"
+      ],
+      "completion": [
+        "Reproduce any past run from its record alone"
+      ],
+      "deliverable": "A tracked experiment table for your Phase-2 project.",
+      "essential": false,
+      "hours": 6,
+      "prereqs": [
+        "p2-ml-engineering"
+      ]
+    },
+    {
+      "id": "p2-project",
+      "phase": 2,
+      "title": "Checkpoint Project: Rigorous ML App",
+      "why": "Rebuild your sentiment project with proper methodology — the perfect \"I leveled up\" portfolio story.",
+      "objectives": [
+        "Baseline → features → model → evaluation",
+        "Cross-validated results with confidence",
+        "Error analysis and limitations section",
+        "Reproducible from repo alone"
+      ],
+      "completion": [
+        "A reviewer can reproduce your headline number"
+      ],
+      "deliverable": "Portfolio project #2 (see Projects page).",
+      "essential": true,
+      "hours": 16,
+      "prereqs": [
+        "p2-ml-engineering",
+        "p1-git-testing"
+      ]
+    },
+    {
+      "id": "p3-nn-fundamentals",
+      "phase": 3,
+      "title": "Neural Networks & Backpropagation",
+      "why": "Owning backprop demystifies everything later — training, fine-tuning, and why agents cost tokens.",
+      "objectives": [
+        "Perceptrons to deep MLPs",
+        "Loss functions and optimisers",
+        "Backprop by hand on a tiny network",
+        "NumPy implementation from scratch"
+      ],
+      "completion": [
+        "Train an MLP on MNIST in pure NumPy",
+        "Explain vanishing gradients and one fix"
+      ],
+      "deliverable": "From-scratch NumPy neural network notebook.",
+      "essential": true,
+      "hours": 16,
+      "prereqs": [
+        "p2-calc-gradient",
+        "p2-linear-algebra"
+      ]
+    },
+    {
+      "id": "p3-pytorch",
+      "phase": 3,
+      "title": "PyTorch Fundamentals",
+      "why": "PyTorch is the research-and-industry default; every open-weight model you will touch is a PyTorch model.",
+      "objectives": [
+        "Tensors, autograd, and devices",
+        "nn.Module, Dataset, DataLoader",
+        "Training and evaluation loops",
+        "Saving/loading and transfer learning"
+      ],
+      "completion": [
+        "Rewrite your NumPy network in PyTorch and match accuracy",
+        "Fine-tune a pretrained image classifier on new classes"
+      ],
+      "deliverable": "A PyTorch training repo with config-driven runs.",
+      "essential": true,
+      "hours": 18,
+      "prereqs": [
+        "p3-nn-fundamentals"
+      ]
+    },
+    {
+      "id": "p3-embeddings-repr",
+      "phase": 3,
+      "title": "Embeddings & Representation Learning",
+      "why": "The single most reused idea in applied AI: meaning as geometry powers search, RAG, and memory.",
+      "objectives": [
+        "Learn embeddings as vector representations",
+        "Cosine similarity and nearest neighbours",
+        "Train a small embedding model (e.g. word2vec-style)",
+        "Use pretrained sentence transformers"
+      ],
+      "completion": [
+        "Explain why cosine beats Euclidean for text",
+        "Build a semantic search over 100 sentences"
+      ],
+      "deliverable": "Interactive similarity notebook + short write-up.",
+      "essential": true,
+      "hours": 10,
+      "prereqs": [
+        "p3-pytorch"
+      ]
+    },
+    {
+      "id": "p3-attention",
+      "phase": 3,
+      "title": "Attention & the Transformer",
+      "why": "The transformer is the machine inside every LLM; understanding Q/K/V removes the magic from the whole field.",
+      "objectives": [
+        "Attention as weighted retrieval",
+        "Multi-head attention and positional encoding",
+        "Encoder vs decoder blocks",
+        "Trace one forward pass on paper"
+      ],
+      "completion": [
+        "Implement single-head attention in ~30 lines",
+        "Explain why attention scales quadratically with sequence length"
+      ],
+      "deliverable": "Annotated mini-transformer implementation (Karpathy-style).",
+      "essential": true,
+      "hours": 16,
+      "prereqs": [
+        "p3-pytorch",
+        "p3-embeddings-repr"
+      ]
+    },
+    {
+      "id": "p3-tokens-inference",
+      "phase": 3,
+      "title": "Tokenisation, Context Windows & Inference",
+      "why": "Tokens are the unit of cost, latency, and memory in every LLM system you will engineer.",
+      "objectives": [
+        "BPE tokenisation mechanics",
+        "Context windows and their cost",
+        "KV cache and why inference is fast",
+        "Sampling parameters (temperature, top-p)"
+      ],
+      "completion": [
+        "Predict which strings tokenise expensively",
+        "Explain the KV cache to a colleague"
+      ],
+      "deliverable": "Token-cost analysis of real prompts using tiktoken.",
+      "essential": true,
+      "hours": 8,
+      "prereqs": [
+        "p3-attention"
+      ]
+    },
+    {
+      "id": "p3-finetuning",
+      "phase": 3,
+      "title": "Pretraining, Fine-tuning & Inference Optimisation",
+      "why": "Optional specialisation: needed for LLM-engineer research-flavoured roles; awareness suffices for most agent roles.",
+      "objectives": [
+        "Pretraining vs fine-tuning vs prompting",
+        "LoRA/PEFT and quantisation basics",
+        "When fine-tuning is the wrong answer",
+        "Serve with vLLM/llama.cpp locally"
+      ],
+      "completion": [
+        "LoRA-fine-tune a small open model on a toy task",
+        "Run a quantised model locally and measure quality/speed"
+      ],
+      "deliverable": "Fine-tuning experiment report with before/after evals.",
+      "essential": false,
+      "hours": 12,
+      "prereqs": [
+        "p3-attention"
+      ]
+    },
+    {
+      "id": "p3-project",
+      "phase": 3,
+      "title": "Checkpoint Project: Neural Net + Pretrained Models",
+      "why": "Consolidates Phase 3: your own tiny network plus confident use of pretrained models.",
+      "objectives": [
+        "Train and evaluate your own model",
+        "Compare against a pretrained baseline",
+        "Document trade-offs honestly"
+      ],
+      "completion": [
+        "Written comparison with numbers, not vibes"
+      ],
+      "deliverable": "Model comparison write-up in your portfolio repo.",
+      "essential": true,
+      "hours": 12,
+      "prereqs": [
+        "p3-pytorch",
+        "p3-tokens-inference"
+      ]
+    },
+    {
+      "id": "p4-llm-apis",
+      "phase": 4,
+      "title": "LLM APIs & Local Open-Weight Models",
+      "why": "First contact with the raw material of agent engineering — and motivation fuel: you can start here early.",
+      "objectives": [
+        "Chat completions end-to-end",
+        "Run open-weight models locally (Ollama)",
+        "Roles: system/user/assistant",
+        "Compare model families and trade-offs"
+      ],
+      "completion": [
+        "Same prompt across cloud and local models, compared",
+        "Explain temperature and when you want it near zero"
+      ],
+      "deliverable": "A tiny provider-independent wrapper module with tests.",
+      "essential": true,
+      "hours": 10,
+      "prereqs": [
+        "p1-apis-async"
+      ]
+    },
+    {
+      "id": "p4-prompting",
+      "phase": 4,
+      "title": "Prompt Design, System Instructions & Context",
+      "why": "Prompts are programs with fuzzy semantics; engineering them (and versioning them) is a core job skill.",
+      "objectives": [
+        "System prompts that constrain reliably",
+        "Few-shot and format steering",
+        "Context window budgeting",
+        "Prompt versioning and regression testing"
+      ],
+      "completion": [
+        "Improve a weak prompt measurably on 20 test cases",
+        "Explain why prompts must be treated as code under test"
+      ],
+      "deliverable": "A prompt library repo with before/after eval cases.",
+      "essential": true,
+      "hours": 10,
+      "prereqs": [
+        "p4-llm-apis"
+      ]
+    },
+    {
+      "id": "p4-structured-outputs",
+      "phase": 4,
+      "title": "Structured Outputs & Schema Validation",
+      "why": "Agents that emit sloppy JSON break pipelines; validated schemas are what make LLM output programmable.",
+      "objectives": [
+        "JSON mode and schema-constrained decoding",
+        "Pydantic models as the contract",
+        "Validation failure handling and repair loops",
+        "When not to force structure"
+      ],
+      "completion": [
+        "Zero invalid outputs across 200 sampled generations",
+        "Implement a validate-and-retry loop with error feedback"
+      ],
+      "deliverable": "A typed output layer reused by your Phase-4 project.",
+      "essential": true,
+      "hours": 8,
+      "prereqs": [
+        "p4-prompting"
+      ]
+    },
+    {
+      "id": "p4-function-calling",
+      "phase": 4,
+      "title": "Function Calling & Tool Use",
+      "why": "The exact mechanism behind every agent: the model requests actions, your code executes them.",
+      "objectives": [
+        "Define tool schemas the model can use",
+        "Handle tool-call round-trips",
+        "Design tool descriptions that get picked correctly",
+        "Multi-tool routing"
+      ],
+      "completion": [
+        "Build a 3-tool assistant with correct tool selection on 30 test prompts"
+      ],
+      "deliverable": "Tool-using assistant core with fixtures-based tests.",
+      "essential": true,
+      "hours": 12,
+      "prereqs": [
+        "p4-structured-outputs"
+      ]
+    },
+    {
+      "id": "p4-reliability",
+      "phase": 4,
+      "title": "Streaming, Retries, Rate Limits & Errors",
+      "why": "Production LLM apps fail at the network and budget layer far more than at the prompt layer.",
+      "objectives": [
+        "Stream tokens to UX",
+        "Backoff, jitter, idempotency",
+        "Handle provider errors and timeouts",
+        "Graceful degradation patterns"
+      ],
+      "completion": [
+        "Survive a chaos test with injected 429s and 500s",
+        "Explain idempotency for tool side-effects"
+      ],
+      "deliverable": "A hardened client with a chaos-test suite.",
+      "essential": true,
+      "hours": 10,
+      "prereqs": [
+        "p4-function-calling"
+      ]
+    },
+    {
+      "id": "p4-cost-models",
+      "phase": 4,
+      "title": "Cost, Latency, Privacy & Model Selection",
+      "why": "Choosing models is an engineering economics problem: quality per dollar per millisecond, plus data policy.",
+      "objectives": [
+        "Estimate and measure cost per request",
+        "Latency budgets and TTFT",
+        "Route tasks to model tiers",
+        "Privacy/data-residency basics"
+      ],
+      "completion": [
+        "Produce a cost/latency table for one workload across 3 models",
+        "Justify a routing rule in writing"
+      ],
+      "deliverable": "Model-selection decision record for your project.",
+      "essential": true,
+      "hours": 6,
+      "prereqs": [
+        "p4-llm-apis"
+      ]
+    },
+    {
+      "id": "p4-project",
+      "phase": 4,
+      "title": "Checkpoint Project: Tool-Using Assistant",
+      "why": "Portfolio proof of LLM engineering: validated outputs, real tools, measured cost and latency.",
+      "objectives": [
+        "Assistant with 3+ tools",
+        "Schema-validated responses",
+        "Retries and streaming",
+        "Cost/latency report"
+      ],
+      "completion": [
+        "Runs from a stranger's terminal with only a README"
+      ],
+      "deliverable": "Portfolio project #3 (see Projects page).",
+      "essential": true,
+      "hours": 14,
+      "prereqs": [
+        "p4-reliability"
+      ]
+    },
+    {
+      "id": "p5-ingestion",
+      "phase": 5,
+      "title": "Document Ingestion & Parsing",
+      "why": "RAG quality is capped by what you manage to extract from source documents — tables, PDFs, and layout included.",
+      "objectives": [
+        "Parse PDF/HTML/Markdown robustly",
+        "Preserve structure (headings, tables)",
+        "Handle failure and dirty documents",
+        "Metadata that survives ingestion"
+      ],
+      "completion": [
+        "Ingest a 100-doc mixed corpus with zero silent failures"
+      ],
+      "deliverable": "An ingestion pipeline with per-document status reports.",
+      "essential": true,
+      "hours": 8,
+      "prereqs": [
+        "p3-embeddings-repr",
+        "p4-llm-apis"
+      ]
+    },
+    {
+      "id": "p5-chunking",
+      "phase": 5,
+      "title": "Chunking Strategies & Metadata",
+      "why": "Chunk boundaries decide retrieval granularity; done badly, perfect embeddings still return garbage.",
+      "objectives": [
+        "Fixed, recursive, and semantic chunking",
+        "Overlap and boundary heuristics",
+        "Metadata filters (source, date, section)",
+        "Measure chunking impact on retrieval"
+      ],
+      "completion": [
+        "A/B two chunking strategies with hit-rate@5 on 20 queries"
+      ],
+      "deliverable": "Chunking experiment write-up with numbers.",
+      "essential": true,
+      "hours": 8,
+      "prereqs": [
+        "p5-ingestion"
+      ]
+    },
+    {
+      "id": "p5-vector-search",
+      "phase": 5,
+      "title": "Embedding Models & Vector Databases",
+      "why": "The storage and lookup layer of semantic memory — in agents, in RAG, in recommendations.",
+      "objectives": [
+        "Choose and evaluate embedding models",
+        "Index vectors (Chroma/Qdrant/pgvector)",
+        "ANN search and its trade-offs",
+        "Metadata-filtered search"
+      ],
+      "completion": [
+        "Explain HNSW trade-offs in two sentences",
+        "Serve semantic search under 50 ms on 100k chunks"
+      ],
+      "deliverable": "A queryable vector index over your corpus.",
+      "essential": true,
+      "hours": 12,
+      "prereqs": [
+        "p5-chunking"
+      ]
+    },
+    {
+      "id": "p5-hybrid-retrieval",
+      "phase": 5,
+      "title": "Hybrid Retrieval, Query Transforms & Reranking",
+      "why": "Production retrieval combines keyword precision with semantic recall, then reranks — this is where quality jumps.",
+      "objectives": [
+        "BM25 + dense fusion (RRF)",
+        "Multi-query and HyDE transforms",
+        "Cross-encoder reranking",
+        "Top-k budget tuning"
+      ],
+      "completion": [
+        "Beat your dense-only baseline on hit-rate@5 with hybrid+rerank"
+      ],
+      "deliverable": "Retrieval upgrade experiment with eval table.",
+      "essential": true,
+      "hours": 12,
+      "prereqs": [
+        "p5-vector-search"
+      ]
+    },
+    {
+      "id": "p5-grounding",
+      "phase": 5,
+      "title": "Citations, Grounding & Hallucination Reduction",
+      "why": "Users trust what they can verify; citations and grounding turn a text generator into a knowledge system.",
+      "objectives": [
+        "Span-level citation plumbing",
+        "Answer-only-from-context prompting",
+        "Refusal when evidence is missing",
+        "Detecting ungrounded claims"
+      ],
+      "completion": [
+        "Every answer sentence traceable to a source or refused"
+      ],
+      "deliverable": "Grounding checks integrated into your pipeline.",
+      "essential": true,
+      "hours": 8,
+      "prereqs": [
+        "p5-hybrid-retrieval"
+      ]
+    },
+    {
+      "id": "p5-rag-eval",
+      "phase": 5,
+      "title": "RAG Evaluation & Observability",
+      "why": "You cannot improve what you don't measure; eval harnesses are the resume-differentiator of AI engineering.",
+      "objectives": [
+        "Build a golden question set",
+        "Retrieval metrics (hit-rate, MRR)",
+        "Faithfulness and relevance scoring",
+        "Trace and debug failing queries"
+      ],
+      "completion": [
+        "A 30-question eval suite wired into CI"
+      ],
+      "deliverable": "Eval harness + dashboard for your RAG app.",
+      "essential": true,
+      "hours": 8,
+      "prereqs": [
+        "p5-grounding"
+      ]
+    },
+    {
+      "id": "p5-project",
+      "phase": 5,
+      "title": "Checkpoint Project: Document Q&A with Citations",
+      "why": "The flagship RAG portfolio piece: cited answers over your own documents with published quality numbers.",
+      "objectives": [
+        "Full pipeline: ingest → retrieve → answer → cite",
+        "Eval suite with results table",
+        "Failure-mode analysis page",
+        "Cost per query measured"
+      ],
+      "completion": [
+        "Demo survives a stranger asking adversarial questions"
+      ],
+      "deliverable": "Portfolio project #4 (see Projects page).",
+      "essential": true,
+      "hours": 16,
+      "prereqs": [
+        "p5-rag-eval"
+      ]
+    },
+    {
+      "id": "p6-agent-mental-model",
+      "phase": 6,
+      "title": "Chatbots vs Workflows vs Agents",
+      "why": "Naming the architecture you need is the first engineering decision of every AI project.",
+      "objectives": [
+        "Define agent vs workflow vs chatbot precisely",
+        "Choose determinism vs autonomy deliberately",
+        "Cost/risk framing for autonomy",
+        "Recognise over-engineering"
+      ],
+      "completion": [
+        "Classify 10 real products correctly and justify each"
+      ],
+      "deliverable": "An architecture-decision note for your own project.",
+      "essential": true,
+      "hours": 6,
+      "prereqs": [
+        "p4-function-calling"
+      ]
+    },
+    {
+      "id": "p6-agent-loop",
+      "phase": 6,
+      "title": "The Agent Loop: Observe–Reason–Act–Evaluate",
+      "why": "Every agent framework is this loop wearing a costume; owning it bare-metal makes frameworks transparent.",
+      "objectives": [
+        "Implement the loop from scratch (no framework)",
+        "Tool schemas + observation plumbing",
+        "Stopping conditions and budgets",
+        "Cost of autonomy: step economics"
+      ],
+      "completion": [
+        "Framework-free agent completes a 3-tool task",
+        "Explain each loop field's role from memory"
+      ],
+      "deliverable": "A ~100-line agent loop you fully understand.",
+      "essential": true,
+      "hours": 10,
+      "prereqs": [
+        "p6-agent-mental-model"
+      ]
+    },
+    {
+      "id": "p6-tools-design",
+      "phase": 6,
+      "title": "Tool Selection, Design & Execution Safety",
+      "why": "Tools are your agent's hands; bad tool design causes most real-world agent failures.",
+      "objectives": [
+        "Design tool APIs models use correctly",
+        "Schemas, defaults, and error messages for models",
+        "Idempotency and dry-run modes",
+        "Least-privilege execution"
+      ],
+      "completion": [
+        "Redesign one bad tool and measure selection accuracy gains"
+      ],
+      "deliverable": "A tool-design checklist applied to your own tools.",
+      "essential": true,
+      "hours": 10,
+      "prereqs": [
+        "p6-agent-loop"
+      ]
+    },
+    {
+      "id": "p6-planning",
+      "phase": 6,
+      "title": "Planning, Decomposition & State",
+      "why": "Multi-step competence requires explicit plans and durable state — the difference between demos and reliability.",
+      "objectives": [
+        "Task decomposition patterns (plan-and-execute, ReAct)",
+        "Explicit state machines vs free-form loops",
+        "Checkpointing and resumability",
+        "Failure recovery strategies"
+      ],
+      "completion": [
+        "Convert a flaky free-form agent into a stateful, resumable one"
+      ],
+      "deliverable": "A state-diagram (Mermaid) plus checkpointed implementation.",
+      "essential": true,
+      "hours": 10,
+      "prereqs": [
+        "p6-agent-loop"
+      ]
+    },
+    {
+      "id": "p6-memory",
+      "phase": 6,
+      "title": "Short-Term & Long-Term Memory",
+      "why": "Context is scarce and expensive; memory systems are how agents stay coherent across sessions without gold-plating every prompt.",
+      "objectives": [
+        "Context window as working memory",
+        "Summarisation and compaction",
+        "Episodic vs semantic memory stores",
+        "Retrieval-based recall (RAG as memory)"
+      ],
+      "completion": [
+        "Agent maintains coherence across a 50-turn session within budget"
+      ],
+      "deliverable": "A memory layer with compaction you can demonstrate.",
+      "essential": true,
+      "hours": 10,
+      "prereqs": [
+        "p6-agent-loop"
+      ]
+    },
+    {
+      "id": "p6-reflection",
+      "phase": 6,
+      "title": "Reflection & Controlled Retries",
+      "why": "Self-correction with limits: reflection improves quality, unbounded reflection melts your budget.",
+      "objectives": [
+        "Self-critique patterns",
+        "Retry with error feedback (not blind retries)",
+        "Budgets and circuit breakers",
+        "Measuring whether reflection helps"
+      ],
+      "completion": [
+        "A/B reflection on a 20-task suite; keep only if it pays"
+      ],
+      "deliverable": "Reflection experiment with cost/quality data.",
+      "essential": true,
+      "hours": 6,
+      "prereqs": [
+        "p6-planning"
+      ]
+    },
+    {
+      "id": "p6-workflows-hitl",
+      "phase": 6,
+      "title": "Deterministic Workflows & Human-in-the-Loop",
+      "why": "Real deployments put humans before irreversible actions and rails around the rest.",
+      "objectives": [
+        "Workflow graphs vs agent autonomy",
+        "Approval gates and escalations",
+        "Undo, audit trails, and dry-runs",
+        "Designing for trust"
+      ],
+      "completion": [
+        "Design an approval flow for a sensitive action with rollback"
+      ],
+      "deliverable": "A HITL design doc for your capstone.",
+      "essential": true,
+      "hours": 8,
+      "prereqs": [
+        "p6-planning",
+        "p6-reflection"
+      ]
+    },
+    {
+      "id": "p6-langchain-langgraph",
+      "phase": 6,
+      "title": "LangChain & LangGraph Orchestration",
+      "why": "Your primary framework: LangGraph models agents as state graphs — exactly the mental model you built bare-metal.",
+      "objectives": [
+        "LangChain primitives (models, messages, tools)",
+        "LangGraph nodes, edges, and state",
+        "Checkpointing and interrupts (HITL)",
+        "When to skip the framework"
+      ],
+      "completion": [
+        "Rebuild your bare-metal agent in LangGraph with an interrupt"
+      ],
+      "deliverable": "A LangGraph agent repo with graph diagram in README.",
+      "essential": true,
+      "hours": 16,
+      "prereqs": [
+        "p6-workflows-hitl",
+        "p6-memory"
+      ]
+    },
+    {
+      "id": "p6-mcp",
+      "phase": 6,
+      "title": "MCP Servers & Clients",
+      "why": "MCP is becoming the USB-C of AI tooling — write tools once, plug into any client.",
+      "objectives": [
+        "MCP architecture (hosts, clients, servers)",
+        "Build and expose an MCP server",
+        "Consume MCP tools from your agent",
+        "Security review of third-party servers"
+      ],
+      "completion": [
+        "Your capstone exposes one tool via MCP and consumes one external server"
+      ],
+      "deliverable": "A documented MCP server for your domain.",
+      "essential": true,
+      "hours": 10,
+      "prereqs": [
+        "p6-tools-design"
+      ]
+    },
+    {
+      "id": "p6-multi-agent",
+      "phase": 6,
+      "title": "Multi-Agent Architectures",
+      "why": "Optional specialisation: powerful for scale, seductive to over-use. Learn when a single agent with good tools wins.",
+      "objectives": [
+        "Supervisor vs peer patterns",
+        "Message passing and shared state",
+        "Cost/latency of orchestration layers",
+        "Failure isolation"
+      ],
+      "completion": [
+        "Justify (or reject) multi-agent design in a written trade-off note"
+      ],
+      "deliverable": "A multi-agent demo plus a single-agent counterfactual.",
+      "essential": false,
+      "hours": 12,
+      "prereqs": [
+        "p6-langchain-langgraph"
+      ]
+    },
+    {
+      "id": "p6-projects",
+      "phase": 6,
+      "title": "Checkpoint Projects: The Agent Suite",
+      "why": "Four smaller agent projects that jointly prove planning, retrieval, analysis, and human-approval skills.",
+      "objectives": [
+        "Research assistant with citations",
+        "Data analyst agent on real datasets",
+        "RAG agent combining retrieval + tools",
+        "Workflow with approval before sensitive actions"
+      ],
+      "completion": [
+        "Each has an eval set and a recorded demo"
+      ],
+      "deliverable": "Agent suite feeding your capstone and portfolio.",
+      "essential": true,
+      "hours": 40,
+      "prereqs": [
+        "p6-langchain-langgraph",
+        "p6-mcp",
+        "p5-project"
+      ]
+    },
+    {
+      "id": "p7-fastapi",
+      "phase": 7,
+      "title": "FastAPI & Backend Architecture",
+      "why": "Your React skills meet Python: FastAPI is how agents become services with typed contracts.",
+      "objectives": [
+        "Routes, dependency injection, Pydantic",
+        "Streaming endpoints (SSE) for tokens",
+        "Background tasks and queues",
+        "Project layout that scales"
+      ],
+      "completion": [
+        "Serve your Phase-4 assistant over a typed streaming API"
+      ],
+      "deliverable": "A FastAPI service with OpenAPI docs and tests.",
+      "essential": true,
+      "hours": 14,
+      "prereqs": [
+        "p1-project",
+        "p4-llm-apis"
+      ]
+    },
+    {
+      "id": "p7-auth-persistence",
+      "phase": 7,
+      "title": "Auth, Databases & Conversation State",
+      "why": "Multi-user agents need identities, sessions, and durable conversation history.",
+      "objectives": [
+        "JWT/OAuth flows at a working level",
+        "Postgres schema for conversations",
+        "Per-user data isolation",
+        "Secrets management basics"
+      ],
+      "completion": [
+        "Two users with isolated histories on your deployed service"
+      ],
+      "deliverable": "Auth + persistence layer with migration scripts.",
+      "essential": true,
+      "hours": 12,
+      "prereqs": [
+        "p7-fastapi"
+      ]
+    },
+    {
+      "id": "p7-docker",
+      "phase": 7,
+      "title": "Docker & Environment Configuration",
+      "why": "Docker is the unit of deployment everywhere; reproducible envs end \"works on my machine\".",
+      "objectives": [
+        "Dockerfile best practices for Python AI apps",
+        "Compose for multi-service stacks",
+        "Config via env vars, never baked secrets",
+        "Image size and layer caching"
+      ],
+      "completion": [
+        "One-command local start of your full stack via compose"
+      ],
+      "deliverable": "Published images + compose file.",
+      "essential": true,
+      "hours": 10,
+      "prereqs": [
+        "p7-fastapi"
+      ]
+    },
+    {
+      "id": "p7-cloud",
+      "phase": 7,
+      "title": "Cloud Deployment",
+      "why": "A public URL transforms a repo into a portfolio artefact recruiters can actually try.",
+      "objectives": [
+        "Deploy the container (Railway/Render/Fly or a VM)",
+        "Domains, TLS, and health checks",
+        "Scaling and cost controls",
+        "Basic IaC mindset"
+      ],
+      "completion": [
+        "Live public demo with uptime monitoring"
+      ],
+      "deliverable": "Your service, deployed and linked from your README.",
+      "essential": true,
+      "hours": 12,
+      "prereqs": [
+        "p7-docker"
+      ]
+    },
+    {
+      "id": "p7-observability",
+      "phase": 7,
+      "title": "Logging, Tracing & Monitoring",
+      "why": "You cannot debug what you cannot see; traces are how agent failures become diagnosable.",
+      "objectives": [
+        "Structured logging",
+        "Distributed tracing (OpenTelemetry)",
+        "LLM-specific tracing (LangSmith/self-hosted)",
+        "Dashboards and alerts"
+      ],
+      "completion": [
+        "Trace one failing agent run end-to-end from a dashboard"
+      ],
+      "deliverable": "An observability stack on your capstone.",
+      "essential": true,
+      "hours": 8,
+      "prereqs": [
+        "p7-cloud"
+      ]
+    },
+    {
+      "id": "p7-testing-evals",
+      "phase": 7,
+      "title": "Tests, Integration & Agent Evaluations",
+      "why": "Agent behaviour needs regression suites exactly like code does — this is rare and hireable skill.",
+      "objectives": [
+        "Unit/integration boundaries for AI services",
+        "Eval suites in CI with golden datasets",
+        "LLM-as-judge with spot-checked calibration",
+        "Canary and A/B thinking"
+      ],
+      "completion": [
+        "CI fails when agent quality regresses beyond threshold"
+      ],
+      "deliverable": "A CI-integrated eval pipeline.",
+      "essential": true,
+      "hours": 12,
+      "prereqs": [
+        "p7-fastapi",
+        "p6-projects"
+      ]
+    },
+    {
+      "id": "p7-security",
+      "phase": 7,
+      "title": "Security: Injection, Tools & Data Leakage",
+      "why": "Prompt injection is the SQL injection of this decade; safe tool design is the defence.",
+      "objectives": [
+        "Prompt injection classes and defences",
+        "Output handling and exfiltration paths",
+        "Tool permission scoping and sandboxing",
+        "Threat-modeling an agent"
+      ],
+      "completion": [
+        "Break your own agent with an injection, then fix it"
+      ],
+      "deliverable": "A security review document with red-team transcript.",
+      "essential": true,
+      "hours": 10,
+      "prereqs": [
+        "p7-testing-evals"
+      ]
+    },
+    {
+      "id": "p7-reliability-cost",
+      "phase": 7,
+      "title": "Budgets, Fallbacks & Reliability",
+      "why": "Production agents must fail gracefully and cost predictably under real traffic.",
+      "objectives": [
+        "Cost budgets and caps per session/task",
+        "Model fallback chains",
+        "Queueing and backpressure",
+        "Load and soak testing"
+      ],
+      "completion": [
+        "Survive a load test within budget with graceful degradation"
+      ],
+      "deliverable": "Reliability report with load-test graphs.",
+      "essential": true,
+      "hours": 6,
+      "prereqs": [
+        "p7-observability"
+      ]
+    },
+    {
+      "id": "p7-cicd",
+      "phase": 7,
+      "title": "CI/CD & Maintenance",
+      "why": "Optional depth: automated pipelines keep quality high while you keep learning.",
+      "objectives": [
+        "GitHub Actions pipelines",
+        "Preview environments",
+        "Release and rollback discipline",
+        "Dependency and prompt updates"
+      ],
+      "completion": [
+        "Ship a change via PR with tests, evals, and preview"
+      ],
+      "deliverable": "A working pipeline file in your capstone repo.",
+      "essential": false,
+      "hours": 6,
+      "prereqs": [
+        "p7-testing-evals"
+      ]
+    },
+    {
+      "id": "p7-project",
+      "phase": 7,
+      "title": "Capstone: Secure Deployed Agent",
+      "why": "The interview centrepiece: an agent that is deployed, evaluated, monitored, and hardened.",
+      "objectives": [
+        "Combine Phase 6 agent suite + Phase 7 infrastructure",
+        "Public demo with approval gate",
+        "Full eval + security story",
+        "Measured quality, latency, cost"
+      ],
+      "completion": [
+        "A stranger can use it; an engineer can trace it; you can defend every choice"
+      ],
+      "deliverable": "Portfolio project #5 (see Projects page).",
+      "essential": true,
+      "hours": 30,
+      "prereqs": [
+        "p7-security",
+        "p7-reliability-cost"
+      ]
+    },
+    {
+      "id": "p8-portfolio",
+      "phase": 8,
+      "title": "Portfolio Assembly (3–5 Projects)",
+      "why": "Depth beats quantity: a few projects with real engineering stories outweigh a wall of tutorials.",
+      "objectives": [
+        "Select and polish the strongest 3–5 projects",
+        "Architecture diagrams per project",
+        "Measured results tables",
+        "Consistent quality bar"
+      ],
+      "completion": [
+        "Each project has demo, diagram, numbers, and clean README"
+      ],
+      "deliverable": "A portfolio section on your GitHub profile site.",
+      "essential": true,
+      "hours": 24,
+      "prereqs": [
+        "p7-project"
+      ]
+    },
+    {
+      "id": "p8-readmes-demos",
+      "phase": 8,
+      "title": "READMEs, Demos & Technical Storytelling",
+      "why": "Recruiters spend 90 seconds per repo; writing and demo craft decide what they see.",
+      "objectives": [
+        "The README skeleton that works",
+        "Recorded demos (asciinema/GIF/video)",
+        "Trade-off narratives",
+        "Blog-style write-ups"
+      ],
+      "completion": [
+        "A stranger understands each project in 2 minutes"
+      ],
+      "deliverable": "Three polished READMEs + one recorded demo.",
+      "essential": true,
+      "hours": 8,
+      "prereqs": [
+        "p6-projects"
+      ]
+    },
+    {
+      "id": "p8-interview-prep",
+      "phase": 8,
+      "title": "Interview Preparation",
+      "why": "Convert projects into offers: system design, agent debugging scenarios, and honest depth signals.",
+      "objectives": [
+        "AI-agent system-design interviews",
+        "Project deep-dive narratives",
+        "Live agent-debugging scenarios",
+        "Role mapping (Agent/LLM/Applied AI engineer)"
+      ],
+      "completion": [
+        "Pass a mock interview for each target role"
+      ],
+      "deliverable": "An interview story bank per project.",
+      "essential": true,
+      "hours": 12,
+      "prereqs": [
+        "p8-portfolio",
+        "p8-readmes-demos"
+      ]
+    },
+    {
+      "id": "p8-final-review",
+      "phase": 8,
+      "title": "Final Review & Job-Readiness Assessment",
+      "why": "Close the loop: measure readiness against the role bar and set the next learning horizon.",
+      "objectives": [
+        "Self-assessment across all 16 stages",
+        "Gap plan for the first 90 days on the job",
+        "Continuous-learning system",
+        "Celebrate properly"
+      ],
+      "completion": [
+        "Written readiness verdict with evidence"
+      ],
+      "deliverable": "Your job-readiness report — the final artefact.",
+      "essential": true,
+      "hours": 6,
+      "prereqs": [
+        "p8-interview-prep"
+      ]
+    }
+  ],
+  "lessons": [
+    {
+      "id": "agent-loop",
+      "moduleId": "p6-agent-loop",
+      "title": "The Agent Loop",
+      "tagline": "Every agent framework is this one loop wearing a costume.",
+      "simple": [
+        "An AI agent is a program that repeatedly asks a large language model \"what should I do next?\" and actually does it. That is almost the whole idea. The model cannot run code, search the web, or send emails by itself — it can only write text. So your program gives the model a list of tools it may ask for, plus the current situation, and the model replies with either a final answer or a request to call one of the tools.",
+        "Your code executes that tool, attaches the result back into the conversation, and asks the model again. Round and round it goes — until the model produces a final answer, or a limit you set is reached. The loop is the agent. Frameworks like LangGraph wrap this loop with nicer state management, but underneath, this is all they do."
+      ],
+      "intuition": {
+        "analogy": "A brilliant intern with a phone, working for you remotely.",
+        "paragraphs": [
+          "The intern (the model) is extremely well-read and reasons well, but has no hands: they cannot open your files, browse, or send messages themselves. You give them a goal (\"find out why churn spiked and brief me\"), a phone directory of people who can do things (the tools), and a rule: check in before doing anything irreversible.",
+          "The intern calls you with requests (\"phone the analytics desk\"), you place the call and read them the answer (tool execution → observation), and they continue reasoning. Eventually they hand you the brief (final answer). If they ramble for hours, you cut them off (max steps). If they want to publish something to customers, you approve it first (human-in-the-loop)."
+        ]
+      },
+      "technical": [
+        "Formally, an agent is a state machine over a message history M and a tool set T = {t₁…tₙ}, each tool described by a JSON schema. Each iteration: send M + tool schemas to the model; the model returns either a tool call (name + arguments) or a final completion. The orchestrator validates arguments, executes the tool, appends the result as a tool-role message (the observation), and loops.",
+        "The stopping conditions are engineering decisions, not model decisions: a final answer, a maximum step count, a token/cost budget, or an interrupt (approval gate). Observations are just messages — which means context grows every step, attention cost grows quadratically, and older steps can be summarised or dropped (compaction).",
+        "Note what the model never does: it never executes anything. It emits structured requests; your runtime holds the privileges. This separation — decisions in the model, execution in your code — is the security boundary you will defend in Phase 7."
+      ],
+      "deeper": [
+        "Context growth is the loop's hidden quadratic tax. Each step re-sends the whole history, and transformer attention over n tokens costs O(n²) time and O(n) memory per layer — so step 40 of a long agent run is dramatically more expensive per token than step 1, before you even count the extra input tokens themselves. This is why serious agent runtimes compact: summarise older tool results, keep structured digests of observations, or move long outputs to external scratch files referenced by path.",
+        "ReAct vs plan-and-execute are the two canonical loop shapes. ReAct (Reason+Act) interleaves thinking and tool calls step by step — flexible, but prone to drift on long tasks. Plan-and-execute produces an explicit plan first, then executes items (sometimes re-planning after each) — more deterministic and easier to resume, at the cost of adaptability. Most production systems are hybrids: a plan skeleton with local ReAct-style flexibility inside each step.",
+        "Formally, the loop defines a Markov decision process where the policy is the model conditioned on the message history, actions are tool calls ∪ {final}, and the reward is implicit in your stopping rules and evaluation harness. You don't train this policy — you engineer around it: tool design shapes the action space, prompts shape the policy, and budgets shape the horizon."
+      ],
+      "walkthroughCode": "import json\n\nTOOLS = {\n    \"search_web\": lambda q: f\"[sim] results for {q!r}\",\n    \"read_page\":  lambda url: f\"[sim] content of {url}\",\n}\n\ndef run_agent(goal: str, max_steps: int = 6) -> str:\n    messages = [{\"role\": \"user\", \"content\": goal}]\n    for step in range(max_steps):\n        reply = call_model(messages, tools=TOOL_SPECS)\n        if reply.tool_calls:\n            for call in reply.tool_calls:\n                result = TOOLS[call.name](**json.loads(call.arguments))\n                messages.append(tool_msg(call.id, result))\n        else:\n            return reply.content\n    return \"Stopped: max steps reached.\"",
+      "realWorld": [
+        "Claude Code and similar coding agents are this loop with tools like \"read file\", \"edit file\", and \"run command\" — plus approval gates exactly like the one in the Playground.",
+        "Customer-support agents loop over tools like look_up_order, check_refund_policy, and issue_refund; the irreversible tool always sits behind a rule or a human.",
+        "LangGraph's graph runtime, OpenAI's agent loops, and MCP clients all reduce to this structure — which is why you build it once, framework-free, before touching any framework."
+      ]
+    },
+    {
+      "id": "embeddings-intuition",
+      "moduleId": "p3-embeddings-repr",
+      "title": "Embeddings & Similarity",
+      "tagline": "Turn meaning into geometry — the most reused idea in applied AI.",
+      "simple": [
+        "An embedding is a list of numbers (a vector) that represents the meaning of a piece of text. The trick: texts with similar meanings get vectors that point in similar directions. \"Cats chase laser pointers\" and \"Felines pursue blinking lights\" are different words, but their vectors end up close together — while \"Interest rates rose this quarter\" points somewhere entirely different.",
+        "Nobody types these numbers by hand. An embedding model (a small neural network) is trained on huge amounts of text so that it produces this geometry. Once you have vectors, \"how similar are these two texts?\" becomes arithmetic you already know: multiply and add."
+      ],
+      "intuition": {
+        "analogy": "A library where shelves are arranged by meaning, not alphabet.",
+        "paragraphs": [
+          "Every book gets a position on a giant map: cooking books cluster in one region, astrophysics in another, and a book about \"the chemistry of cooking\" sits between them. To find books similar to yours, you do not read every book — you look at what is nearby on the map.",
+          "A vector is just coordinates on that map (with hundreds of dimensions instead of two). Cosine similarity answers \"how close to the same shelf?\" — and search, RAG retrieval, deduplication, and agent memory are all, at heart, \"find me the neighbours\"."
+        ]
+      },
+      "technical": [
+        "An embedding model f: text → ℝᵈ maps sequences to d-dimensional vectors (384–3,072 dims are typical). Training objectives (contrastive losses, masked-language objectives) shape the space so semantically related inputs land near each other; normalising vectors to unit length makes dot product equal cosine similarity.",
+        "Cosine similarity cos(a, b) = a·b / (|a||b|) measures the angle between vectors: 1 = same direction, 0 = unrelated (orthogonal), −1 = opposite. Cosine ignores magnitude — useful because a long document is not \"more about its topic\" than a short one; length is not meaning.",
+        "Search over millions of vectors uses approximate nearest neighbour indexes (HNSW and friends) that trade a little recall for orders-of-magnitude speed-up — the machinery behind every vector database you will meet in Phase 5."
+      ],
+      "deeper": [
+        "Embedding models are trained with contrastive objectives: pull annotated paraphrase pairs together, push random (negative) pairs apart — InfoNCE loss is the common formulation. The quality of a retrieval system is largely decided by how well the embedding model's training distribution matches your documents; a model trained on web paragraphs may underperform on legal text or code without domain-tuned alternatives.",
+        "HNSW (Hierarchical Navigable Small World) indexes build layered proximity graphs: upper layers are sparse \"highways\" for long jumps, lower layers dense for precision. Search descends greedily layer by layer — O(log n) hops in practice, at the cost of memory-heavy graphs and no exact guarantees. That is the concrete meaning of \"approximate\" nearest neighbour, and why vector DBs expose an ef_search dial trading recall for latency.",
+        "Why cosine rather than dot product or Euclidean? With unit-normalised vectors, all three give identical rankings — the choice is really about raw vectors, where magnitude encodes length/token-count signal you usually do not want ranking your results. The professional habit: normalise once at ingest, then think purely in angles."
+      ],
+      "walkthroughCode": "from sentence_transformers import SentenceTransformer\nimport numpy as np\n\nmodel = SentenceTransformer(\"all-MiniLM-L6-v2\")\n\ndocs = [\"Cats chase laser pointers.\",\n        \"Felines pursue blinking lights.\",\n        \"Interest rates rose this quarter.\"]\n\nV = model.encode(docs, normalize_embeddings=True)\n\nsim = V @ V.T\nprint(np.round(sim, 2))",
+      "realWorld": [
+        "Your Netflix recommendation project used collaborative filtering (\"users like you liked…\"); embeddings add content-based similarity (\"items like this…\"). Modern recommenders blend both.",
+        "Every RAG system (Phase 5) is this lesson at scale: embed chunks once, embed the query, take the top-k neighbours, and hand them to the LLM as context.",
+        "Agent memory (Phase 6) uses the same trick: past conversations are embedded and retrieved when relevant, instead of stuffing everything into the context window."
+      ]
+    }
+  ],
+  "projects": [
+    {
+      "id": "api-insight-tracker",
+      "title": "API Insight Tracker",
+      "problem": "Public APIs give raw data; nobody has the trend. Track any public API (weather, crypto, GitHub stars) over time and surface the insight.",
+      "evaluation": "Unit tests on parsers with recorded API fixtures; integration test on a local SQLite; deterministic report snapshot test."
+    },
+    {
+      "id": "rigorous-ml",
+      "title": "Sentiment Analysis, Done Rigorously",
+      "problem": "Rebuild your social-media sentiment project with defensible methodology: cross-validation, a beaten baseline, calibrated metrics, and honest error analysis.",
+      "evaluation": "Grouped/times-aware cross-validation; confidence intervals via bootstrap; ablation table; train-serve skew check."
+    },
+    {
+      "id": "tool-assistant",
+      "title": "Tool-Using Assistant",
+      "problem": "A CLI/web assistant that answers real questions using 3+ tools (weather, notes, calculator/search) — and never returns invalid JSON.",
+      "evaluation": "30-prompt tool-selection suite in CI; schema-validity fuzz (500 sampled outputs); chaos tests with injected 429/500."
+    },
+    {
+      "id": "cited-qa",
+      "title": "Cited Document Q&A",
+      "problem": "\"Ask my documents\" apps hallucinate. Build one where every claim links to its source and quality is measured, not asserted.",
+      "evaluation": "Golden Q&A set; retrieval hit-rate@5 and MRR; faithfulness scoring (LLM-as-judge, spot-checked by hand); adversarial set for refusal."
+    },
+    {
+      "id": "secure-hitl-agent",
+      "title": "Capstone: Secure Deployed Agent",
+      "problem": "An agent that researches a topic and drafts an external action (email/report), requires human approval before acting, and runs as a hardened public service.",
+      "evaluation": "Task-success eval on 20 scenarios; injection red-team suite (must resist 10/10); load test within cost budget; tracing on every run."
+    }
+  ]
+}

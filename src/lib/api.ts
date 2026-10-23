@@ -46,3 +46,35 @@ export async function critique(
     return { ok: false, error: 'Backend unreachable — is the server running? (server/README.md)' }
   }
 }
+
+export interface AskCitation {
+  id: string
+  title: string
+  route: string
+}
+
+export interface AskResult {
+  answer: string
+  citations: AskCitation[]
+  provider: string
+}
+
+export async function ask(
+  q: string,
+): Promise<{ ok: true; data: AskResult } | { ok: false; error: string }> {
+  try {
+    const r = await fetch(`${BASE}/api/ask`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ q }),
+      signal: AbortSignal.timeout(20000),
+    })
+    if (!r.ok) {
+      const detail = await r.json().catch(() => ({ detail: r.statusText }))
+      return { ok: false, error: String(detail.detail ?? 'request failed') }
+    }
+    return { ok: true, data: (await r.json()) as AskResult }
+  } catch {
+    return { ok: false, error: 'Backend unreachable — start the server (server/README.md) to ask questions.' }
+  }
+}

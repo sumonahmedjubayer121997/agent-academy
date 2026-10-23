@@ -14,7 +14,6 @@ from . import config
 from .critique import critique_explanation, Critique
 from .llm import get_provider
 from .llm.base import ProviderError
-
 app = FastAPI(title="Agent Academy API", version="0.1.0")
 
 app.add_middleware(
@@ -44,3 +43,28 @@ def critique(req: CritiqueRequest) -> Critique:
         raise HTTPException(status_code=502, detail=f"LLM provider unavailable: {e}") from e
     except Exception as e:  # invalid JSON even after repair
         raise HTTPException(status_code=502, detail=f"provider returned unparseable output: {e}") from e
+
+
+class AskRequest(BaseModel):
+    q: str = Field(min_length=3, max_length=300)
+
+
+@app.get("/api/ask")
+def ask_get(q: str) -> dict:
+    return _ask(q)
+
+
+@app.post("/api/ask")
+def ask(req: AskRequest) -> dict:
+    return _ask(req.q)
+
+
+def _ask(q: str) -> dict:
+    from .rag.retriever import get_retriever
+
+    try:
+        return get_retriever().ask(get_provider(), q)
+    except FileNotFoundError as e:
+        raise HTTPException(status_code=503, detail=str(e)) from e
+    except ProviderError as e:
+        raise HTTPException(status_code=502, detail=f"LLM provider unavailable: {e}") from e
