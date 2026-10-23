@@ -23,6 +23,8 @@ export function newCard(now: Date): SrsCard {
   return { ease: 2.5, intervalDays: 1, due: dayStr(addDays(now, 1)), reps: 0, lapses: 0 }
 }
 
+export type RecallGrade = 'again' | 'hard' | 'good' | 'easy'
+
 /**
  * Grade a card: gotIt=false is a lapse (ease penalty, back to 1 day);
  * gotIt=true grows the interval 1d → 3d → interval×ease.
@@ -41,6 +43,27 @@ export function review(card: SrsCard, gotIt: boolean, now: Date): SrsCard {
   const ease = Math.min(2.5, round2(card.ease + 0.05))
   const intervalDays =
     reps === 1 ? 1 : reps === 2 ? 3 : Math.max(1, Math.round(card.intervalDays * ease))
+  return { ease, intervalDays, due: dayStr(addDays(now, intervalDays)), reps, lapses: card.lapses }
+}
+
+/**
+ * Four-grade SM-2 active recall scheduler ('again' | 'hard' | 'good' | 'easy').
+ */
+export function reviewWithGrade(card: SrsCard, grade: RecallGrade, now: Date): SrsCard {
+  if (grade === 'again') return review(card, false, now)
+  if (grade === 'good') return review(card, true, now)
+  if (grade === 'hard') {
+    const reps = card.reps + 1
+    const ease = Math.max(1.3, round2(card.ease - 0.05))
+    const intervalDays =
+      reps === 1 ? 1 : reps === 2 ? 2 : Math.max(1, Math.round(card.intervalDays * 1.2))
+    return { ease, intervalDays, due: dayStr(addDays(now, intervalDays)), reps, lapses: card.lapses }
+  }
+  // 'easy'
+  const reps = card.reps + 1
+  const ease = Math.min(2.5, round2(card.ease + 0.15))
+  const intervalDays =
+    reps === 1 ? 3 : reps === 2 ? 6 : Math.max(2, Math.round(card.intervalDays * ease * 1.3))
   return { ease, intervalDays, due: dayStr(addDays(now, intervalDays)), reps, lapses: card.lapses }
 }
 

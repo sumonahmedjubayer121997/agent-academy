@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { NavLink, Link } from 'react-router-dom'
+import { NavLink, Link, useLocation } from 'react-router-dom'
 import {
   BookOpen,
   Bot,
@@ -12,6 +12,7 @@ import {
   Map,
   Menu,
   Moon,
+  NotebookPen,
   Sun,
   X,
 } from 'lucide-react'
@@ -21,11 +22,12 @@ const LINKS = [
   { to: '/roadmap', label: 'Roadmap', icon: Map },
   { to: '/curriculum', label: 'Curriculum', icon: BookOpen },
   { to: '/review', label: 'Review', icon: Layers },
-  { to: '/playground', label: 'Playground', icon: Bot },
   { to: '/projects', label: 'Projects', icon: FolderGit2 },
+  { to: '/journal', label: 'Journal', icon: NotebookPen },
+  { to: '/planner', label: 'Planner', icon: CalendarClock },
+  { to: '/playground', label: 'Playground', icon: Bot },
   { to: '/resources', label: 'Resources', icon: LibraryBig },
   { to: '/assess', label: 'Assessment', icon: ClipboardCheck },
-  { to: '/planner', label: 'Planner', icon: CalendarClock },
 ]
 
 function ThemeToggle() {
@@ -51,28 +53,29 @@ function ThemeToggle() {
 
 export default function Navbar() {
   const [open, setOpen] = useState(false)
-  useEffect(() => setOpen(false), [location.pathname])
+  const { pathname } = useLocation()
+  useEffect(() => setOpen(false), [pathname])
 
   return (
     <header className="sticky top-0 z-40 border-b border-line bg-base/80 backdrop-blur-md">
-      <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-4 px-4">
-        <Link to="/" className="flex items-center gap-2 font-semibold tracking-tight">
+      <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-3 px-4">
+        <Link to="/" className="flex shrink-0 items-center gap-2 font-semibold tracking-tight">
           <span className="inline-block h-2.5 w-2.5 rounded-full bg-accent shadow-[0_0_0_4px_var(--accent-soft)]" />
           Agent Academy
         </Link>
 
-        <nav className="hidden items-center gap-0.5 xl:flex" aria-label="Primary">
+        <nav className="hidden items-center gap-0.5 lg:flex" aria-label="Primary">
           {LINKS.map(({ to, label, icon: Icon }) => (
             <NavLink
               key={to}
               to={to}
               className={({ isActive }) =>
-                `flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[13px] font-medium transition-colors ${
+                `flex items-center gap-1 rounded-lg px-2 py-1.5 text-[12.5px] font-medium transition-colors ${
                   isActive ? 'bg-accent-soft text-accent' : 'text-ink-soft hover:bg-raised hover:text-ink'
                 }`
               }
             >
-              <Icon size={14} />
+              <Icon size={13} />
               {label}
             </NavLink>
           ))}
@@ -81,7 +84,7 @@ export default function Navbar() {
         <div className="flex items-center gap-1">
           <ThemeToggle />
           <button
-            className="rounded-lg p-2 text-ink-soft hover:bg-raised hover:text-ink xl:hidden"
+            className="rounded-lg p-2 text-ink-soft hover:bg-raised hover:text-ink lg:hidden"
             onClick={() => setOpen((v) => !v)}
             aria-label={open ? 'Close menu' : 'Open menu'}
             aria-expanded={open}
@@ -93,7 +96,7 @@ export default function Navbar() {
 
       {open && (
         <nav
-          className="border-t border-line bg-surface px-4 py-3 xl:hidden"
+          className="border-t border-line bg-surface px-4 py-3 lg:hidden"
           aria-label="Mobile"
         >
           <div className="grid grid-cols-2 gap-1">

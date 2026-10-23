@@ -11,16 +11,26 @@ export default function FocusTimer({ moduleId }: { moduleId: string }) {
   const [running, setRunning] = useState(false)
   const [logged, setLogged] = useState(false)
   const startedRef = useRef(false)
+  const endTimeRef = useRef<number | null>(null)
 
   useEffect(() => {
-    if (!running) return
+    if (!running) {
+      endTimeRef.current = null
+      return
+    }
+    endTimeRef.current = Date.now() + left * 1000
     const t = setInterval(() => {
       setLeft((v) => {
-        if (v <= 1) {
+        const byClock =
+          endTimeRef.current !== null
+            ? Math.max(0, Math.round((endTimeRef.current - Date.now()) / 1000))
+            : v - 1
+        const next = Math.min(v - 1, byClock)
+        if (next <= 0) {
           setRunning(false)
           return 0
         }
-        return v - 1
+        return next
       })
     }, 1000)
     return () => clearInterval(t)

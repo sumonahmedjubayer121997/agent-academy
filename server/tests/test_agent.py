@@ -4,7 +4,7 @@ import json
 import pytest
 
 from ..agent.loop import decide, execute, new_run
-from ..agent.tools import calculator
+from ..agent.tools import calculator, fetch_page
 from ..llm.fake import FakeProvider
 
 
@@ -17,6 +17,13 @@ def test_calculator_is_safe():
     assert calculator("2**10 / 4") == "256.0"
     assert calculator("__import__('os')").startswith("tool error")
     assert calculator("open('/etc/passwd')").startswith("tool error")
+
+
+def test_fetch_page_blocks_ssrf_targets():
+    assert "only https://" in fetch_page("http://example.com")
+    assert "blocked" in fetch_page("https://localhost/admin")
+    assert "blocked" in fetch_page("https://127.0.0.1:8000/api/health")
+    assert "blocked" in fetch_page("https://169.254.169.254/latest/meta-data/")
 
 
 def test_agent_completes_after_tool_call():

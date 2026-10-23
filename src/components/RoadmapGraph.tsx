@@ -1,8 +1,23 @@
 import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { cardsForModule } from '../content/cards'
 import { MODULES } from '../content/modules'
 import { PHASES } from '../content/phases'
-import { isUnlocked, statusOf, useProgress } from '../store/progress'
+import {
+  downstreamUnlockCount,
+  trackForModule,
+  trackSpecFor,
+  type TrackId,
+} from '../content/tracks'
+import { isDue } from '../lib/srs'
+import {
+  isUnlocked,
+  moduleRecordOf,
+  stageOf,
+  statusOf,
+  todayStr,
+  useProgress,
+} from '../store/progress'
 
 const NODE_W = 224
 const NODE_H = 58
@@ -13,9 +28,14 @@ const LEFT = 20
 
 const trunc = (s: string, n = 25) => (s.length > n ? s.slice(0, n - 1) + '…' : s)
 
-export default function RoadmapGraph() {
+export interface RoadmapGraphProps {
+  filterTrack?: TrackId | 'all' | 'bottlenecks' | 'revision'
+}
+
+export default function RoadmapGraph({ filterTrack = 'all' }: RoadmapGraphProps) {
   const navigate = useNavigate()
   const { data } = useProgress()
+  const today = todayStr()
 
   const geom = useMemo(() => {
     const cols = PHASES.map((phase) => MODULES.filter((m) => m.phase === phase.n))
@@ -31,7 +51,17 @@ export default function RoadmapGraph() {
     return { cols, width, height, pos }
   }, [])
 
-  const moduleById = useMemo(() => new Map(MODULES.map((m) => [m.id, m])), [])
+  // Compute top bottleneck module IDs (unlocked, not yet completed, highest downstream unlock count)
+  const bottleneckIds = useMemo(() => {
+    const unlockedIncomplete = MODULES.filter(
+      (m) => m.essential && statusOf(data, m.id) !== 'completed' && isUnlocked(data, m),
+    )
+      .map((m) => ({ id: m.id, unlocks: downstreamUnlockCount(m.id, MODULES) }))
+      .filter((x) => x.unlocks >= 2)
+      .sort((a, b) => b.unlocks - a.unlocks)
+      .slice(0, 4)
+    return new Set(unlockedIncomplete.map((x) => x.id))
+  }, [data])
 
   const edges = useMemo(() => {
     const out: { d: string; active: boolean }[] = []
@@ -61,8 +91,16 @@ export default function RoadmapGraph() {
   }, [data, geom])
 
   return (
-    <div className="overflow-x-auto rounded-2xl border border-line bg-surface shadow-soft" role="img" aria-label="Interactive learning roadmap graph">
-      <svg width={geom.width} height={geom.height} className="block min-w-full cursor-default select-none">
+    <div
+      className="overflow-x-auto rounded-2xl border border-line bg-surface shadow-soft"
+      role="img"
+      aria-label="Interactive learning roadmap graph"
+    >
+      <svg
+        width={geom.width}
+        height={geom.height}
+        className="block min-w-full cursor-default select-none"
+      >
         {/* Phase headers */}
         {PHASES.map((p, i) => {
           const x = LEFT + i * (NODE_W + COL_GAP)
@@ -95,11 +133,64 @@ export default function RoadmapGraph() {
         {/* Module nodes */}
         {MODULES.map((m) => {
           const p = geom.pos.get(m.id)!
+          const stage = stageOf(data, m.id)
           const status = statusOf(data, m.id)
+          const rec = moduleRecordOf(data, m.id)
           const unlocked = isUnlocked(data, m)
+          const trackId = trackForModule(m.id)
+          const trackSpec = trackSpecFor(trackId)
+          const isBottleneck = bottleneckIds.has(m.id)
+
+          const modCardIds = cardsForModule(m.id).map((c) => c.cardId)
+          const hasDueSrs = modCardIds.some((cid) => data.srs[cid] && isDue(data.srs[cid], today))
+          const isShaky = data.confidence[m.id] === 'shaky' || data.confidence[m.id] === 'lost'
+          const dueForRevision = hasDueSrs || (stage !== 'not-started' && isShaky)
+
+          const matchesFilter =
+            filterTrack === 'all'
+              ? true
+              : filterTrack === 'bottlenecks'
+                ? isBottleneck
+                : filterTrack === 'revision'
+                  ? dueForRevision
+                  : trackId === filterTrack
+
           const stroke =
-            status === 'not-started' ? 'var(--line-strong)' : 'var(--accent)'
-          const title = `Phase ${m.phase} · ${m.title} · ${m.hours}h${unlocked ? '' : ' · locked: finish prerequisites first (you can still open it)'}`
+            stage === 'mastered'
+              ? 'var(--ok)'
+              : status === 'not-started'
+                ? isBottleneck
+                  ? 'var(--accent)'
+                  : 'var(--line-strong)'
+                : 'var(--accent)'
+
+          const fill =
+            stage === 'mastered'
+              ? 'rgba(47, 125, 91, 0.10)'
+              : status === 'completed'
+                ? 'var(--accent-soft)'
+                : 'var(--surface)'
+
+          const stageLabel =
+            stage === 'mastered'
+              ? 'demonstrated mastery'
+              : stage === 'confident'
+                ? rec.completionDone.length > 0
+                  ? 'practised & confident'
+                  : 'understood theoretically'
+                : stage === 'practising'
+                  ? 'practising'
+                  : stage === 'learning'
+                    ? 'learning'
+                    : 'not started'
+
+          const title = `Phase ${m.phase} · ${m.title} · ${m.hours}h · ${stageLabel}${
+            unlocked ? '' : ' · locked: finish prerequisites first (you can still open it)'
+          }`
+
+          const baseOpacity = unlocked ? 1 : 0.62
+          const finalOpacity = matchesFilter ? baseOpacity : 0.22
+
           return (
             <g
               key={m.id}
@@ -111,43 +202,86 @@ export default function RoadmapGraph() {
               onKeyDown={(e) => e.key === 'Enter' && navigate(`/roadmap/${m.id}`)}
             >
               <title>{title}</title>
-              {/* Inner group carries the CSS hover-lift; the outer group owns the SVG position
-                  transform, because a CSS transform would override it. */}
               <g className="rm-node">
                 <rect
                   width={NODE_W}
                   height={NODE_H}
                   rx={10}
-                  fill={status === 'completed' ? 'var(--accent-soft)' : 'var(--surface)'}
+                  fill={fill}
                   stroke={stroke}
-                  strokeWidth={status === 'not-started' ? 1 : 1.4}
+                  strokeWidth={status === 'not-started' && !isBottleneck ? 1 : 1.5}
                   strokeDasharray={unlocked ? undefined : '4 3'}
-                  opacity={unlocked ? 1 : 0.62}
+                  opacity={finalOpacity}
                   style={{ filter: 'drop-shadow(0 1px 2px rgba(23,21,17,.06))' }}
                 />
                 <circle
                   cx={18}
                   cy={NODE_H / 2}
                   r={5.5}
+                  opacity={finalOpacity}
                   fill={
-                    status === 'completed'
-                      ? 'var(--accent)'
-                      : status === 'in-progress'
-                        ? 'var(--surface)'
-                        : 'var(--line-strong)'
+                    stage === 'mastered'
+                      ? 'var(--ok)'
+                      : status === 'completed'
+                        ? 'var(--accent)'
+                        : stage === 'practising'
+                          ? 'var(--accent-soft)'
+                          : status === 'in-progress'
+                            ? 'var(--surface)'
+                            : 'var(--line-strong)'
                   }
-                  stroke="var(--accent)"
+                  stroke={stage === 'mastered' ? 'var(--ok)' : 'var(--accent)'}
                   strokeWidth={status === 'in-progress' ? 2 : 0}
                 />
-                <text x={34} y={NODE_H / 2 - 4} fontSize="12.5" fontWeight={600} fill="var(--ink)">
+                <text
+                  x={34}
+                  y={NODE_H / 2 - 4}
+                  fontSize="12.5"
+                  fontWeight={600}
+                  fill="var(--ink)"
+                  opacity={finalOpacity}
+                >
                   {trunc(m.title)}
                 </text>
-                <text x={34} y={NODE_H / 2 + 13} fontSize="10.5" fill="var(--ink-faint)">
-                  {m.hours}h · {m.essential ? 'essential' : 'optional'}
-                  {m.project ? ' · project' : ''}
+                <text
+                  x={34}
+                  y={NODE_H / 2 + 13}
+                  fontSize="10.5"
+                  fill="var(--ink-faint)"
+                  opacity={finalOpacity}
+                >
+                  [{trackSpec.code}] {m.hours}h · {stage === 'not-started' ? (m.essential ? 'essential' : 'optional') : stage}
+                  {m.project ? ' · proj' : ''}
                 </text>
+                {dueForRevision && (
+                  <circle
+                    cx={NODE_W - 14}
+                    cy={14}
+                    r={4.5}
+                    fill="var(--bad)"
+                    opacity={finalOpacity}
+                  />
+                )}
+                {isBottleneck && !dueForRevision && (
+                  <text
+                    x={NODE_W - 22}
+                    y={17}
+                    fontSize="9"
+                    fontWeight={700}
+                    fill="var(--accent)"
+                    opacity={finalOpacity}
+                  >
+                    KEY
+                  </text>
+                )}
                 {!unlocked && (
-                  <text x={NODE_W - 18} y={NODE_H / 2 + 4} fontSize="11" fill="var(--ink-faint)">
+                  <text
+                    x={NODE_W - 18}
+                    y={NODE_H / 2 + 14}
+                    fontSize="11"
+                    fill="var(--ink-faint)"
+                    opacity={finalOpacity}
+                  >
                     🔒
                   </text>
                 )}
