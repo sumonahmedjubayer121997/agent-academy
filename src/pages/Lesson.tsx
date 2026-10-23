@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import {
   ArrowLeft,
@@ -22,6 +22,7 @@ import { Badge, Button, Card } from '../components/ui'
 import LoopVisual from '../components/demos/LoopVisual'
 import VectorSim from '../components/demos/VectorSim'
 import FocusTimer from '../components/FocusTimer'
+import { critique, health, type CritiqueResult, type HealthInfo } from '../lib/api'
 
 function Section({
   n,
@@ -195,10 +196,28 @@ function PreQuestion({ q }: { q: NonNullable<import('../content/types').Lesson['
   )
 }
 
-function FeynmanBox({ lessonId }: { lessonId: string }) {
+function FeynmanBox({ lessonId, lessonTitle }: { lessonId: string; lessonTitle: string }) {
   const { data, saveFeynman } = useProgress()
   const [text, setText] = useState('')
+  const [backend, setBackend] = useState<HealthInfo | null>(null)
+  const [feedback, setFeedback] = useState<(CritiqueResult & { provider: string }) | null>(null)
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const entries = data.feynman[lessonId] ?? []
+
+  useEffect(() => {
+    health().then(setBackend)
+  }, [])
+
+  const requestFeedback = async (source: string) => {
+    setBusy(true)
+    setError(null)
+    setFeedback(null)
+    const r = await critique(lessonId, lessonTitle, source)
+    setBusy(false)
+    if (!r.ok) setError(r.error)
+    else setFeedback({ ...r.data, provider: backend?.provider ?? 'unknown' })
+  }
 
   return (
     <div>
@@ -214,22 +233,59 @@ function FeynmanBox({ lessonId }: { lessonId: string }) {
         placeholder="An embedding is…"
         className="w-full rounded-xl border border-line bg-surface px-4 py-3 text-sm leading-relaxed placeholder:text-ink-faint focus:border-accent focus:outline-none"
       />
-      <div className="mt-2 flex items-center justify-between">
+      <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
         <span className="text-xs text-ink-faint">
-          saved entries resurface when this topic's review comes due
+          {backend
+            ? `backend online · provider: ${backend.provider}${backend.provider === 'fake' ? ' (deterministic demo — clearly not a real model)' : ''}`
+            : 'backend offline — feedback unavailable, saving still works'}
         </span>
-        <Button
-          variant="secondary"
-          size="sm"
-          disabled={text.trim().length < 20}
-          onClick={() => {
-            saveFeynman(lessonId, text.trim())
-            setText('')
-          }}
-        >
-          Save attempt
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="secondary"
+            size="sm"
+            disabled={text.trim().length < 20}
+            onClick={() => {
+              saveFeynman(lessonId, text.trim())
+              setText('')
+            }}
+          >
+            Save attempt
+          </Button>
+          <Button
+            size="sm"
+            disabled={text.trim().length < 20 || !backend || busy}
+            onClick={() => requestFeedback(text.trim())}
+          >
+            {busy ? 'Thinking…' : 'Get AI feedback'}
+          </Button>
+        </div>
       </div>
+      {error && <p className="mt-3 rounded-xl bg-bad/10 px-4 py-3 text-sm text-bad">{error}</p>}
+      {feedback && (
+        <div className="mt-4 rounded-xl border border-line bg-raised p-4">
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-faint">
+            Model feedback · provider: {feedback.provider} · score {feedback.score}/10
+          </p>
+          <div className="grid gap-3 text-sm sm:grid-cols-2">
+            <div>
+              <p className="font-semibold text-ok">Strengths</p>
+              <ul className="mt-1 space-y-1 text-ink-soft">
+                {feedback.strengths.map((s) => (
+                  <li key={s}>• {s}</li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <p className="font-semibold text-bad">Gaps</p>
+              <ul className="mt-1 space-y-1 text-ink-soft">
+                {feedback.gaps.map((g) => (
+                  <li key={g}>• {g}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
+      )}
       {entries.length > 0 && (
         <div className="mt-4 space-y-2">
           {entries
@@ -238,9 +294,18 @@ function FeynmanBox({ lessonId }: { lessonId: string }) {
             .slice(0, 3)
             .map((e, i) => (
               <div key={e.at} className="rounded-xl bg-raised px-4 py-3 text-sm leading-relaxed text-ink-soft">
-                <p className="mb-1 text-xs text-ink-faint">
-                  attempt {entries.length - i} · {new Date(e.at).toLocaleDateString()}
-                </p>
+                <div className="mb-1 flex items-center justify-between">
+                  <p className="text-xs text-ink-faint">
+                    attempt {entries.length - i} · {new Date(e.at).toLocaleDateString()}
+                  </p>
+                  <button
+                    onClick={() => requestFeedback(e.text)}
+                    disabled={!backend || busy}
+                    className="text-xs text-accent hover:underline disabled:opacity-40"
+                  >
+                    re-critique
+                  </button>
+                </div>
                 {e.text}
               </div>
             ))}
@@ -425,7 +490,7 @@ export default function LessonPage() {
         </Section>
 
         <Section n={lesson.demo && lesson.numbers ? 11 : 10} icon={PencilLine} title="Feynman — explain it back">
-          <FeynmanBox lessonId={lesson.id} />
+          <FeynmanBox lessonId={lesson.id} lessonTitle={lesson.title} />
         </Section>
       </div>
     </article>
