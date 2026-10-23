@@ -82,7 +82,41 @@ recommend reasons, backup round-trip) → commit as V2.3. Do not deploy main+wav
 The content flywheel (authoring the remaining 58 lessons while studying) runs *across* all of V2 —
 platform work must never again consume the study time it exists to serve.
 
-## 6. Decisions needed (from the audit + verification)
+## 7. Second audit verification (2026-10-23, post-V2.3)
+
+A second external audit ("Personal AI Learning Academy", 706 lines) was received after V2.3 landed.
+Verified against `main` (commit ac67ac7, 46 tests green):
+
+**Its P0 bug findings were real — and all are now closed.** The worst were genuine bugs in the
+original W1/W6 code, caught by this audit after our test suite missed them (pure-logic tests
+cannot catch interaction bugs):
+
+| Finding | Verdict on main |
+|---|---|
+| Review page skips every 2nd card, crashes ≥2 cards (reactive `due` shrank under `i`) | **Was real; fixed in V2.3** — queue snapshotted per session (`sessionQueue`), regression test `Review.test.tsx` proves a 5-card session grades all 5 |
+| Dashboard pace target compared 14-day hours vs `weeklyHours / 2` (4× error) | **Was real; fixed in V2.3** — `targetHours14d = weeklyHours * 2` |
+| Analytics row hidden until a quiz is taken | Fixed in V2.3 (session-driven) |
+| Live playground metrics read simulation state (zeros in live mode) | **Was real; fixed in V2.3** — `activeTrace` follows mode |
+| FocusTimer interval drift in background tabs | **Was real; fixed in V2.3** — wall-clock anchored (`endTimeRef`) |
+| Navbar global `location.pathname`, `xl` overflow | Fixed in V2.3 — `useLocation`, `lg` breakpoint |
+| vercel.json SPA 404s | Fixed in V2.0 (verified `/dashboard → 200`) |
+| No JSON import / validation | Fixed in V2.3 (validated migration + import/backup/restore) |
+
+**Feature coverage:** Features 1–8 and 10 (dashboard, 5-stage tracker, recommender, daily
+planner, curriculum-wide deck, project tracker, journal, track/gap map with bottleneck detector,
+weekly/monthly reports) are all implemented. **Still open from that report:** the optional
+LLM assistant endpoint (`/api/assistant` — offline `localSearch` half exists), navbar
+regrouping into 5 pillars + ⌘K palette, assessment per-question explanations after submission,
+Pyodide runner (deferred to Phase-1 study by this plan).
+
+**Stale claims in the report** (written against pre-V2 code): "44 modules" (actual 60),
+"29 tests" (now 46), static Projects page (now an interactive tracker), missing import.
+
+**Process lesson recorded:** interaction-level bugs (queue/index races, mode-dependent
+metrics, timer drift) survive pure-function test suites — the next hardening pass should add
+component/interaction tests (and eventually Playwright) rather than more pure-logic coverage.
+
+## 8. Decisions needed (from the audits + verification)
 
 1. **Backend on the public URL?** Options: (a) keep local-first AI (current), (b) host on
    Railway/Fly behind a shared-secret header + set `VITE_API_BASE`. Recommendation: (b) when a
