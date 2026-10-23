@@ -194,6 +194,61 @@ function PreQuestion({ q }: { q: NonNullable<import('../content/types').Lesson['
   )
 }
 
+function FeynmanBox({ lessonId }: { lessonId: string }) {
+  const { data, saveFeynman } = useProgress()
+  const [text, setText] = useState('')
+  const entries = data.feynman[lessonId] ?? []
+
+  return (
+    <div>
+      <p className="mb-3 leading-relaxed text-ink-soft">
+        <span className="font-semibold text-ink">Explain it back — </span>
+        in your own words, to a smart friend, in ≤5 sentences. Writing forces the gaps into the open
+        (and your explanations become future portfolio material).
+      </p>
+      <textarea
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        rows={4}
+        placeholder="An embedding is…"
+        className="w-full rounded-xl border border-line bg-surface px-4 py-3 text-sm leading-relaxed placeholder:text-ink-faint focus:border-accent focus:outline-none"
+      />
+      <div className="mt-2 flex items-center justify-between">
+        <span className="text-xs text-ink-faint">
+          saved entries resurface when this topic's review comes due
+        </span>
+        <Button
+          variant="secondary"
+          size="sm"
+          disabled={text.trim().length < 20}
+          onClick={() => {
+            saveFeynman(lessonId, text.trim())
+            setText('')
+          }}
+        >
+          Save attempt
+        </Button>
+      </div>
+      {entries.length > 0 && (
+        <div className="mt-4 space-y-2">
+          {entries
+            .slice()
+            .reverse()
+            .slice(0, 3)
+            .map((e, i) => (
+              <div key={e.at} className="rounded-xl bg-raised px-4 py-3 text-sm leading-relaxed text-ink-soft">
+                <p className="mb-1 text-xs text-ink-faint">
+                  attempt {entries.length - i} · {new Date(e.at).toLocaleDateString()}
+                </p>
+                {e.text}
+              </div>
+            ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function LessonPage() {
   const { lessonId } = useParams()
   const { data, setStatus } = useProgress()
@@ -363,6 +418,10 @@ export default function LessonPage() {
               </li>
             ))}
           </ul>
+        </Section>
+
+        <Section n={lesson.demo && lesson.numbers ? 11 : 10} icon={PencilLine} title="Feynman — explain it back">
+          <FeynmanBox lessonId={lesson.id} />
         </Section>
       </div>
     </article>
