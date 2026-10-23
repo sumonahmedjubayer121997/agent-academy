@@ -11,6 +11,7 @@ import {
 } from 'lucide-react'
 import { MODULES } from '../content/modules'
 import { PROJECTS } from '../content/projects'
+import { PRACTICE_PROJECTS, type PracticeProject } from '../content/practiceProjects'
 import { Badge, Button, Card, ProgressBar, SectionHead, StatusBadge } from '../components/ui'
 import {
   emptyProjectRecord,
@@ -56,6 +57,117 @@ const AUTONOMY_LEVELS: {
     tone: 'ok',
   },
 ]
+
+function PracticeProjectCard({ p }: { p: PracticeProject }) {
+  const [open, setOpen] = useState(false)
+  return (
+    <Card className="p-5 transition-all hover:-translate-y-0.5">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <div className="flex flex-wrap items-center gap-1.5">
+            <Badge tone="accent">P{p.phase}</Badge>
+            <Badge>{p.hours}h</Badge>
+            <Badge tone={p.difficulty === 'advanced' ? 'warn' : p.difficulty === 'intermediate' ? 'neutral' : 'ok'}>
+              {p.difficulty}
+            </Badge>
+          </div>
+          <h3 className="mt-2 font-semibold tracking-tight">{p.title}</h3>
+        </div>
+        <button
+          onClick={() => setOpen((v) => !v)}
+          aria-expanded={open}
+          className="flex items-center gap-1 rounded-lg border border-line-strong px-2.5 py-1 text-xs font-medium text-ink-soft transition-all hover:bg-raised"
+        >
+          {open ? <ChevronUp size={12} /> : <ChevronDown size={12} />} steps
+        </button>
+      </div>
+      <p className="mt-2 text-sm leading-relaxed text-ink-soft">{p.brief}</p>
+      <div className="mt-2.5 flex flex-wrap gap-1.5">
+        {p.stack.map((s) => (
+          <Badge key={s}>{s}</Badge>
+        ))}
+      </div>
+      {open && (
+        <div className="mt-4 border-t border-line pt-3">
+          <p className="text-xs font-semibold uppercase tracking-wide text-ink-faint">Step by step</p>
+          <ol className="mt-2 space-y-2 text-sm leading-relaxed text-ink-soft">
+            {p.steps.map((s, i) => (
+              <li key={i} className="flex gap-2.5">
+                <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent-soft font-mono text-[11px] font-bold text-accent">
+                  {i + 1}
+                </span>
+                {s}
+              </li>
+            ))}
+          </ol>
+          <p className="mt-3 rounded-xl bg-ok/10 px-3.5 py-2.5 text-sm text-ink-soft">
+            <span className="font-semibold text-ok">Done when: </span>
+            {p.doneWhen}
+          </p>
+          <div className="mt-3 flex flex-wrap gap-1.5">
+            {p.modules.map((id) => {
+              const m = MODULES.find((x) => x.id === id)
+              return m ? (
+                <Link key={id} to={`/roadmap/${id}`}>
+                  <Badge>↗ {m.title}</Badge>
+                </Link>
+              ) : null
+            })}
+          </div>
+        </div>
+      )}
+      {!open && (
+        <p className="mt-3 text-xs text-ink-faint">
+          {p.steps.length} steps · teaches:{' '}
+          {p.modules.map((id) => MODULES.find((x) => x.id === id)?.title).filter(Boolean).join(' · ')}
+        </p>
+      )}
+    </Card>
+  )
+}
+
+function PracticeProjectsSection() {
+  const [phase, setPhase] = useState<number | 'all'>('all')
+  const shown = PRACTICE_PROJECTS.filter((p) => phase === 'all' || p.phase === phase)
+  const phaseHours = (n: number) =>
+    PRACTICE_PROJECTS.filter((p) => p.phase === n).reduce((s, p) => s + p.hours, 0)
+
+  return (
+    <section className="mt-14" aria-labelledby="practice-projects">
+      <SectionHead
+        eyebrow="Practice projects · 40"
+        title="The reps between milestones"
+        sub="Five step-by-step projects per phase — small, concrete builds that exercise exactly what the phase teaches. The five flagship projects above remain your portfolio pieces; these are how you earn them."
+      />
+      <div className="mb-5 flex flex-wrap gap-1.5">
+        <button
+          onClick={() => setPhase('all')}
+          className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors ${
+            phase === 'all' ? 'border-accent bg-accent text-accent-ink' : 'border-line text-ink-soft hover:bg-raised'
+          }`}
+        >
+          All 40
+        </button>
+        {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
+          <button
+            key={n}
+            onClick={() => setPhase(n)}
+            className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors ${
+              phase === n ? 'border-accent bg-accent text-accent-ink' : 'border-line text-ink-soft hover:bg-raised'
+            }`}
+          >
+            P{n} ({phaseHours(n)}h)
+          </button>
+        ))}
+      </div>
+      <div className="grid gap-4 md:grid-cols-2">
+        {shown.map((p) => (
+          <PracticeProjectCard key={p.id} p={p} />
+        ))}
+      </div>
+    </section>
+  )
+}
 
 export default function Projects() {
   const { data, updateProject, toggleProjectMilestone, setStage } = useProgress()
@@ -404,6 +516,8 @@ export default function Projects() {
           )
         })}
       </div>
+
+      <PracticeProjectsSection />
 
       <Card className="mt-8 p-6">
         <div className="flex items-center gap-2">
