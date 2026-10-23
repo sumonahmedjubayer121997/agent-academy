@@ -242,10 +242,13 @@ export default function Playground() {
     else setLiveError(r.error)
   }
 
-  const last = visible[visible.length - 1]
-  const stage = visible.length ? stageFor(last) : -1
-  const toolCount = visible.filter((t) => t.k === 'act').length
-  const modelCalls = visible.filter((t) => ['think', 'plan', 'eval', 'reflect'].includes(t.k)).length + (visible.length ? 1 : 0)
+  const activeTrace: Trace[] = mode === 'live' ? ((live?.trace as Trace[]) ?? []) : visible
+  const last = activeTrace[activeTrace.length - 1]
+  const stage = activeTrace.length ? stageFor(last) : -1
+  const toolCount = activeTrace.filter((t) => t.k === 'act').length
+  const modelCalls =
+    activeTrace.filter((t) => ['think', 'plan', 'eval', 'reflect'].includes(t.k)).length +
+    (activeTrace.length ? 1 : 0)
 
   return (
     <div className="py-10">
@@ -472,7 +475,7 @@ export default function Playground() {
               </div>
               <div className="flex justify-between">
                 <span className="text-ink-soft">Approval gates hit</span>
-                <span className="font-semibold">{visible.some((t) => t.k === 'gate') ? '1' : '0'}</span>
+                <span className="font-semibold">{activeTrace.some((t) => t.k === 'gate') ? '1' : '0'}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-ink-soft">Est. cost (this sim)</span>

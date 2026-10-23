@@ -148,11 +148,22 @@ function LessonQuiz({ quiz, quizId, moduleId }: { quiz: QuizQ[]; quizId: string;
           {allAnswered ? 'Check answers' : `Answer all ${quiz.length} questions`}
         </Button>
       ) : (
-        <p className="flex items-center gap-2 font-semibold">
-          <CheckCircle2 size={18} className={score === quiz.length ? 'text-ok' : 'text-accent'} />
-          Score: {score}/{quiz.length} — recorded on your Dashboard. Re-read the section above and
-          reload to retry.
-        </p>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <p className="flex items-center gap-2 font-semibold">
+            <CheckCircle2 size={18} className={score === quiz.length ? 'text-ok' : 'text-accent'} />
+            Score: {score}/{quiz.length} — recorded on your Dashboard.
+          </p>
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => {
+              setSubmitted(false)
+              setAnswers({})
+            }}
+          >
+            Retry quiz
+          </Button>
+        </div>
       )}
     </div>
   )

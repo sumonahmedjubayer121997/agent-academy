@@ -10,7 +10,10 @@ from __future__ import annotations
 
 import ast
 import datetime as _dt
+import ipaddress
 import operator
+import socket
+from urllib.parse import urlparse
 
 import httpx
 
@@ -53,10 +56,58 @@ def time_now() -> str:
     return _dt.datetime.now(_dt.timezone.utc).isoformat(timespec="seconds")
 
 
-def fetch_page(url: str) -> str:
-    """Fetch a page as truncated text. Network tool — bounded and read-only."""
+def _validate_public_https_url(url: str) -> None:
+    """Block non-HTTPS schemes and private/loopback/link-local/reserved hosts (SSRF guard)."""
+    parsed = urlparse(url.strip())
+    if parsed.scheme != "https":
+        raise ValueError("only https:// URLs are allowed")
+    host = (parsed.hostname or "").strip().lower()
+    if not host:
+        raise ValueError("missing hostname")
+    if host in {"localhost", "0.0.0.0"} or host.endswith(".local") or host.endswith(".internal"):
+        raise ValueError(f"blocked internal host: {host}")
+
+    # Check literal IP first
     try:
-        r = httpx.get(url, timeout=15, follow_redirects=True, headers={"User-Agent": "agent-academy/0.1"})
+        ip_obj = ipaddress.ip_address(host)
+        if (
+            ip_obj.is_private
+            or ip_obj.is_loopback
+            or ip_obj.is_link_local
+            or ip_obj.is_multicast
+            or ip_obj.is_reserved
+            or ip_obj.is_unspecified
+        ):
+            raise ValueError(f"blocked non-public IP address: {host}")
+    except ValueError as e:
+        if "blocked" in str(e):
+            raise
+
+    # Resolve DNS and ensure all resolved addresses are public
+    try:
+        infos = socket.getaddrinfo(host, 443, proto=socket.IPPROTO_TCP)
+    except socket.gaierror as e:
+        raise ValueError(f"DNS resolution failed for {host}: {e}") from e
+
+    for info in infos:
+        addr = info[4][0]
+        ip_obj = ipaddress.ip_address(addr)
+        if (
+            ip_obj.is_private
+            or ip_obj.is_loopback
+            or ip_obj.is_link_local
+            or ip_obj.is_multicast
+            or ip_obj.is_reserved
+            or ip_obj.is_unspecified
+        ):
+            raise ValueError(f"blocked resolved non-public IP: {addr}")
+
+
+def fetch_page(url: str) -> str:
+    """Fetch a page as truncated text. Network tool — bounded, SSRF-guarded, and read-only."""
+    try:
+        _validate_public_https_url(url)
+        r = httpx.get(url, timeout=15, follow_redirects=False, headers={"User-Agent": "agent-academy/0.1"})
         r.raise_for_status()
         text = " ".join(r.text.split())
         return text[:600] + ("…" if len(text) > 600 else "")

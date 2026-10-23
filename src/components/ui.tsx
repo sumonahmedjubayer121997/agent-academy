@@ -1,6 +1,6 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react'
-import { CheckCircle2, CircleDot, Circle } from 'lucide-react'
-import type { ModuleStatus } from '../store/progress'
+import { CheckCircle2, CircleDot, Circle, Sparkles, Code2, BookOpen } from 'lucide-react'
+import type { MasteryStage, ModuleStatus } from '../store/progress'
 
 export function Card({ children, className = '' }: { children: ReactNode; className?: string }) {
   return (
@@ -62,17 +62,30 @@ export function ProgressBar({ value, className = '' }: { value: number; classNam
   )
 }
 
-export function StatusBadge({ status }: { status: ModuleStatus }) {
-  if (status === 'completed')
+export function StatusBadge({ status }: { status: ModuleStatus | MasteryStage }) {
+  if (status === 'mastered')
     return (
       <Badge tone="ok">
-        <CheckCircle2 size={12} /> Completed
+        <Sparkles size={12} /> Mastered
       </Badge>
     )
-  if (status === 'in-progress')
+  if (status === 'confident' || status === 'completed')
+    return (
+      <Badge tone="ok">
+        <CheckCircle2 size={12} /> {status === 'confident' ? 'Confident' : 'Completed'}
+      </Badge>
+    )
+  if (status === 'practising')
     return (
       <Badge tone="accent">
-        <CircleDot size={12} /> In progress
+        <Code2 size={12} /> Practising
+      </Badge>
+    )
+  if (status === 'learning' || status === 'in-progress')
+    return (
+      <Badge tone="accent">
+        {status === 'learning' ? <BookOpen size={12} /> : <CircleDot size={12} />}{' '}
+        {status === 'learning' ? 'Learning' : 'In progress'}
       </Badge>
     )
   return (

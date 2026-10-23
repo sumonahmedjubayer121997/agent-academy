@@ -14,6 +14,7 @@ import Resources from './pages/Resources'
 import Assessment from './pages/Assessment'
 import Planner from './pages/Planner'
 import Review from './pages/Review'
+import Journal from './pages/Journal'
 
 function ScrollToTop() {
   const { pathname } = useLocation()
@@ -65,6 +66,7 @@ export default function App() {
               <Route path="/resources" element={<Resources />} />
               <Route path="/assess" element={<Assessment />} />
               <Route path="/review" element={<Review />} />
+              <Route path="/journal" element={<Journal />} />
               <Route path="/planner" element={<Planner />} />
               <Route path="*" element={<NotFound />} />
             </Routes>

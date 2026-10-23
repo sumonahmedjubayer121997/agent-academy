@@ -1,7 +1,20 @@
 import { describe, expect, it } from 'vitest'
-import { isUnlocked, phaseStats, statusOf, streak, totals, todayStr } from './progress'
+import {
+  emptyModuleRecord,
+  isUnlocked,
+  legacyStatusToStage,
+  phaseStats,
+  stageOf,
+  stageToLegacyStatus,
+  statusOf,
+  streak,
+  totals,
+  todayStr,
+  validateAndMigrateProgress,
+} from './progress'
 import type { ProgressData } from './progress'
 import { MODULES } from '../content/modules'
+import { answerPersonalAssistantQuery } from '../lib/localSearch'
 
 const base = (over: Partial<ProgressData> = {}): ProgressData => ({
   moduleStatus: {},
@@ -102,5 +115,56 @@ describe('todayStr', () => {
   it('formats the local date as yyyy-mm-dd', () => {
     expect(todayStr()).toMatch(/^\d{4}-\d{2}-\d{2}$/)
     expect(todayStr()).toBe(day(0))
+  })
+})
+
+describe('v2 5-stage mastery lifecycle & schema validation', () => {
+  it('maps between 5-stage lifecycle and legacy 3-state status consistently', () => {
+    expect(stageToLegacyStatus('not-started')).toBe('not-started')
+    expect(stageToLegacyStatus('learning')).toBe('in-progress')
+    expect(stageToLegacyStatus('practising')).toBe('in-progress')
+    expect(stageToLegacyStatus('confident')).toBe('completed')
+    expect(stageToLegacyStatus('mastered')).toBe('completed')
+
+    expect(legacyStatusToStage('not-started')).toBe('not-started')
+    expect(legacyStatusToStage('in-progress')).toBe('learning')
+    expect(legacyStatusToStage('completed')).toBe('confident')
+  })
+
+  it('prefers explicit v2 module stage over legacy status in stageOf()', () => {
+    const d = base({
+      moduleStatus: { 'p1-python-core': 'completed' },
+      modules: { 'p1-python-core': { ...emptyModuleRecord('mastered') } },
+    })
+    expect(stageOf(d, 'p1-python-core')).toBe('mastered')
+    expect(statusOf(d, 'p1-python-core')).toBe('completed')
+  })
+
+  it('validates and migrates v1/v2 JSON backups while rejecting malformed payloads', () => {
+    expect(validateAndMigrateProgress(null).ok).toBe(false)
+    expect(validateAndMigrateProgress([]).ok).toBe(false)
+    expect(validateAndMigrateProgress({ activity: 'not-an-array' }).ok).toBe(false)
+
+    const valid = validateAndMigrateProgress({
+      moduleStatus: { 'p1-python-core': 'completed' },
+      weeklyHours: 14,
+      activity: ['2026-04-01'],
+    })
+    expect(valid.ok).toBe(true)
+    if (valid.ok) {
+      expect(valid.data.weeklyHours).toBe(14)
+      expect(valid.data.moduleStatus['p1-python-core']).toBe('completed')
+    }
+  })
+
+  it('strictly separates savedFacts from recommendations in personal assistant answers', () => {
+    const d = base({
+      moduleStatus: { 'p1-python-core': 'completed', 'p4-llm-apis': 'in-progress' },
+      confidence: { 'p4-llm-apis': 'shaky' },
+    })
+    const resp = answerPersonalAssistantQuery('What am I struggling with and what should I learn next?', d)
+    expect(resp.savedFacts.length).toBeGreaterThan(0)
+    expect(resp.recommendations.length).toBeGreaterThan(0)
+    expect(resp.savedFacts.some((f) => f.includes('LLM APIs') || f.includes('Mastered / Confident'))).toBe(true)
   })
 })
