@@ -3,12 +3,25 @@ import { MODULES } from '../content/modules'
 import { PHASES } from '../content/phases'
 import { DOMAIN_CREDIT, type Domain } from '../content/assessment'
 import type { LearningModule, Phase } from '../content/types'
+import { isDue, newCard, review, type SrsCard } from '../lib/srs'
 
 export type ModuleStatus = 'not-started' | 'in-progress' | 'completed'
+export type Confidence = 'sure' | 'shaky' | 'lost'
 
 export interface QuizResult {
   score: number
   total: number
+  at: string
+}
+
+export interface FeynmanEntry {
+  text: string
+  at: string
+}
+
+export interface StudySession {
+  moduleId: string | 'review'
+  minutes: number
   at: string
 }
 
@@ -18,6 +31,10 @@ export interface ProgressData {
   quiz: Record<string, QuizResult>
   weeklyHours: number
   assessment: { done: boolean; applied: boolean; scores: Partial<Record<Domain, number>> }
+  srs: Record<string, SrsCard>
+  confidence: Record<string, Confidence>
+  feynman: Record<string, FeynmanEntry[]>
+  sessions: StudySession[]
 }
 
 const KEY = 'aa-progress-v1'
@@ -28,6 +45,10 @@ const DEFAULT_DATA: ProgressData = {
   quiz: {},
   weeklyHours: 10,
   assessment: { done: false, applied: false, scores: {} },
+  srs: {},
+  confidence: {},
+  feynman: {},
+  sessions: [],
 }
 
 function load(): ProgressData {
@@ -118,6 +139,26 @@ export function nextUp(data: ProgressData, n = 3): LearningModule[] {
   ).slice(0, n)
 }
 
+export interface DueCard {
+  cardId: string
+  lessonId: string
+  qIndex: number
+}
+
+/** Cards due today (or overdue), oldest due first. */
+export function dueCards(data: ProgressData, today: string): DueCard[] {
+  return Object.entries(data.srs)
+    .filter(([, card]) => isDue(card, today))
+    .map(([cardId, card]) => {
+      // cardId format: lesson:<lessonId>:q<index>
+      const lessonId = cardId.slice('lesson:'.length, cardId.lastIndexOf(':q'))
+      const qIndex = Number(cardId.slice(cardId.lastIndexOf(':q') + 2))
+      return { cardId, lessonId, qIndex, due: card.due }
+    })
+    .filter((c) => Number.isFinite(c.qIndex) && c.lessonId.length > 0)
+    .sort((a, b) => (a.due < b.due ? -1 : 1))
+}
+
 export function currentPhase(data: ProgressData): PhaseStat {
   const stats = phaseStats(data)
   return stats.find((s) => s.doneEssentialHours < s.essentialHours) ?? stats[stats.length - 1]
@@ -129,11 +170,15 @@ interface ProgressContextValue {
   data: ProgressData
   setStatus: (id: string, status: ModuleStatus) => void
   cycleStatus: (id: string) => void
-  recordQuiz: (id: string, score: number, total: number) => void
+  recordQuiz: (id: string, score: number, total: number, perQuestion?: boolean[]) => void
   setWeeklyHours: (h: number) => void
   logStudyDay: () => void
   recordAssessment: (scores: Partial<Record<Domain, number>>) => void
   applyAssessmentCredit: () => void
+  gradeCard: (cardId: string, gotIt: boolean) => void
+  setConfidence: (moduleId: string, level: Confidence) => void
+  saveFeynman: (lessonId: string, text: string) => void
+  logSession: (moduleId: string | 'review', minutes: number) => void
   resetAll: () => void
 }
 
@@ -166,10 +211,45 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
             cur === 'not-started' ? 'in-progress' : cur === 'in-progress' ? 'completed' : 'not-started'
           return touch({ ...d, moduleStatus: { ...d.moduleStatus, [id]: next } })
         }),
-      recordQuiz: (id, score, total) =>
-        setData((d) => touch({ ...d, quiz: { ...d.quiz, [id]: { score, total, at: new Date().toISOString() } } })),
+      recordQuiz: (id, score, total, perQuestion) =>
+        setData((d) => {
+          const touched = touch({ ...d, quiz: { ...d.quiz, [id]: { score, total, at: new Date().toISOString() } } })
+          if (!id.startsWith('lesson:') || !perQuestion) return touched
+          const now = new Date()
+          const srs = { ...touched.srs }
+          perQuestion.forEach((gotIt, i) => {
+            const cardId = `${id}:q${i}`
+            srs[cardId] = review(srs[cardId] ?? newCard(now), gotIt, now)
+          })
+          return { ...touched, srs }
+        }),
       setWeeklyHours: (h) => setData((d) => ({ ...d, weeklyHours: h })),
       logStudyDay: () => setData((d) => touch(d)),
+      gradeCard: (cardId, gotIt) =>
+        setData((d) => {
+          const card = d.srs[cardId]
+          if (!card) return d
+          const now = new Date()
+          return touch({ ...d, srs: { ...d.srs, [cardId]: review(card, gotIt, now) } })
+        }),
+      setConfidence: (moduleId, level) => setData((d) => touch({ ...d, confidence: { ...d.confidence, [moduleId]: level } })),
+      saveFeynman: (lessonId, text) =>
+        setData((d) =>
+          touch({
+            ...d,
+            feynman: {
+              ...d.feynman,
+              [lessonId]: [...(d.feynman[lessonId] ?? []), { text, at: new Date().toISOString() }],
+            },
+          }),
+        ),
+      logSession: (moduleId, minutes) =>
+        setData((d) =>
+          touch({
+            ...d,
+            sessions: [...d.sessions, { moduleId, minutes, at: new Date().toISOString() }],
+          }),
+        ),
       recordAssessment: (scores) =>
         setData((d) => touch({ ...d, assessment: { ...d.assessment, done: true, scores } })),
       applyAssessmentCredit: () =>

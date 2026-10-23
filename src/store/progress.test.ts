@@ -3,6 +3,19 @@ import { isUnlocked, phaseStats, statusOf, streak, totals, todayStr } from './pr
 import type { ProgressData } from './progress'
 import { MODULES } from '../content/modules'
 
+const base = (over: Partial<ProgressData> = {}): ProgressData => ({
+  moduleStatus: {},
+  activity: [],
+  quiz: {},
+  weeklyHours: 10,
+  assessment: { done: false, applied: false, scores: {} },
+  srs: {},
+  confidence: {},
+  feynman: {},
+  sessions: [],
+  ...over,
+})
+
 const day = (offsetFromToday: number) => {
   const d = new Date()
   d.setDate(d.getDate() + offsetFromToday)
@@ -34,13 +47,7 @@ describe('streak', () => {
 })
 
 describe('statusOf / isUnlocked', () => {
-  const data: ProgressData = {
-    moduleStatus: { 'p1-python-core': 'completed', 'p1-env-packages': 'in-progress' },
-    activity: [],
-    quiz: {},
-    weeklyHours: 10,
-    assessment: { done: false, applied: false, scores: {} },
-  }
+  const data = base({ moduleStatus: { 'p1-python-core': 'completed', 'p1-env-packages': 'in-progress' } })
 
   it('defaults to not-started', () => {
     expect(statusOf(data, 'p1-sql')).toBe('not-started')
@@ -65,13 +72,7 @@ describe('statusOf / isUnlocked', () => {
 
 describe('totals / phaseStats', () => {
   it('computes zero-progress totals consistently with the curriculum data', () => {
-    const fresh: ProgressData = {
-      moduleStatus: {},
-      activity: [],
-      quiz: {},
-      weeklyHours: 10,
-      assessment: { done: false, applied: false, scores: {} },
-    }
+    const fresh = base()
     const t = totals(fresh)
     expect(t.modulesTotal).toBe(MODULES.length)
     expect(t.hoursTotal).toBe(MODULES.reduce((s, m) => s + m.hours, 0))
@@ -82,19 +83,13 @@ describe('totals / phaseStats', () => {
 
   it('credits only completed modules in done hours', () => {
     const py = MODULES.find((m) => m.id === 'p1-python-core')!
-    const data: ProgressData = {
-      moduleStatus: { 'p1-python-core': 'completed', 'p1-env-packages': 'in-progress' },
-      activity: [],
-      quiz: {},
-      weeklyHours: 10,
-      assessment: { done: false, applied: false, scores: {} },
-    }
+    const data = base({ moduleStatus: { 'p1-python-core': 'completed', 'p1-env-packages': 'in-progress' } })
     expect(totals(data).hoursDone).toBe(py.hours)
     expect(totals(data).modulesDone).toBe(1)
   })
 
   it('covers every phase with matching module counts', () => {
-    const stats = phaseStats({ moduleStatus: {}, activity: [], quiz: {}, weeklyHours: 10, assessment: { done: false, applied: false, scores: {} } })
+    const stats = phaseStats(base())
     expect(stats).toHaveLength(8)
     expect(stats.reduce((s, p) => s + p.modules.length, 0)).toBe(MODULES.length)
     for (const s of stats) {

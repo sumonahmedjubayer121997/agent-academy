@@ -7,6 +7,13 @@ export const LESSONS: Lesson[] = [
     title: 'The Agent Loop',
     minutes: 35,
     tagline: 'Every agent framework is this one loop wearing a costume.',
+    pre: {
+      q: 'Before we start — from Phase 4: when a model "calls a function", who actually executes it?',
+      options: ['The model, inside its own sandbox', 'My runtime — the model only returns a structured request'],
+      answer: 1,
+      explain:
+        'The model emits intent (name + arguments); your code validates and executes it. Keep that separation in mind — the whole lesson builds on it.',
+    },
     simple: [
       'An AI agent is a program that repeatedly asks a large language model "what should I do next?" and actually does it. That is almost the whole idea. The model cannot run code, search the web, or send emails by itself — it can only write text. So your program gives the model a list of tools it may ask for, plus the current situation, and the model replies with either a final answer or a request to call one of the tools.',
       'Your code executes that tool, attaches the result back into the conversation, and asks the model again. Round and round it goes — until the model produces a final answer, or a limit you set is reached. The loop is the agent. Frameworks like LangGraph wrap this loop with nicer state management, but underneath, this is all they do.',
@@ -22,6 +29,11 @@ export const LESSONS: Lesson[] = [
       'Formally, an agent is a state machine over a message history M and a tool set T = {t₁…tₙ}, each tool described by a JSON schema. Each iteration: send M + tool schemas to the model; the model returns either a tool call (name + arguments) or a final completion. The orchestrator validates arguments, executes the tool, appends the result as a tool-role message (the observation), and loops.',
       'The stopping conditions are engineering decisions, not model decisions: a final answer, a maximum step count, a token/cost budget, or an interrupt (approval gate). Observations are just messages — which means context grows every step, attention cost grows quadratically, and older steps can be summarised or dropped (compaction).',
       'Note what the model never does: it never executes anything. It emits structured requests; your runtime holds the privileges. This separation — decisions in the model, execution in your code — is the security boundary you will defend in Phase 7.',
+    ],
+    deeper: [
+      'Context growth is the loop\'s hidden quadratic tax. Each step re-sends the whole history, and transformer attention over n tokens costs O(n²) time and O(n) memory per layer — so step 40 of a long agent run is dramatically more expensive per token than step 1, before you even count the extra input tokens themselves. This is why serious agent runtimes compact: summarise older tool results, keep structured digests of observations, or move long outputs to external scratch files referenced by path.',
+      'ReAct vs plan-and-execute are the two canonical loop shapes. ReAct (Reason+Act) interleaves thinking and tool calls step by step — flexible, but prone to drift on long tasks. Plan-and-execute produces an explicit plan first, then executes items (sometimes re-planning after each) — more deterministic and easier to resume, at the cost of adaptability. Most production systems are hybrids: a plan skeleton with local ReAct-style flexibility inside each step.',
+      'Formally, the loop defines a Markov decision process where the policy is the model conditioned on the message history, actions are tool calls ∪ {final}, and the reward is implicit in your stopping rules and evaluation harness. You don\'t train this policy — you engineer around it: tool design shapes the action space, prompts shape the policy, and budgets shape the horizon.',
     ],
     numbers: {
       title: 'The cost of autonomy — one run, by the numbers',
@@ -149,6 +161,12 @@ for step in range(max_steps):
     title: 'Embeddings & Similarity',
     minutes: 30,
     tagline: 'Turn meaning into geometry — the most reused idea in applied AI.',
+    pre: {
+      q: 'Warm-up from the math track: what is the dot product of (3, 4) · (4, 3)?',
+      options: ['12', '24', '25'],
+      answer: 1,
+      explain: '3×4 + 4×3 = 24. If that felt slow, the linear algebra module has a refresh — you will use dot products constantly from here on.',
+    },
     simple: [
       'An embedding is a list of numbers (a vector) that represents the meaning of a piece of text. The trick: texts with similar meanings get vectors that point in similar directions. "Cats chase laser pointers" and "Felines pursue blinking lights" are different words, but their vectors end up close together — while "Interest rates rose this quarter" points somewhere entirely different.',
       'Nobody types these numbers by hand. An embedding model (a small neural network) is trained on huge amounts of text so that it produces this geometry. Once you have vectors, "how similar are these two texts?" becomes arithmetic you already know: multiply and add.',
@@ -164,6 +182,11 @@ for step in range(max_steps):
       'An embedding model f: text → ℝᵈ maps sequences to d-dimensional vectors (384–3,072 dims are typical). Training objectives (contrastive losses, masked-language objectives) shape the space so semantically related inputs land near each other; normalising vectors to unit length makes dot product equal cosine similarity.',
       'Cosine similarity cos(a, b) = a·b / (|a||b|) measures the angle between vectors: 1 = same direction, 0 = unrelated (orthogonal), −1 = opposite. Cosine ignores magnitude — useful because a long document is not "more about its topic" than a short one; length is not meaning.',
       'Search over millions of vectors uses approximate nearest neighbour indexes (HNSW and friends) that trade a little recall for orders-of-magnitude speed-up — the machinery behind every vector database you will meet in Phase 5.',
+    ],
+    deeper: [
+      'Embedding models are trained with contrastive objectives: pull annotated paraphrase pairs together, push random (negative) pairs apart — InfoNCE loss is the common formulation. The quality of a retrieval system is largely decided by how well the embedding model\'s training distribution matches your documents; a model trained on web paragraphs may underperform on legal text or code without domain-tuned alternatives.',
+      'HNSW (Hierarchical Navigable Small World) indexes build layered proximity graphs: upper layers are sparse "highways" for long jumps, lower layers dense for precision. Search descends greedily layer by layer — O(log n) hops in practice, at the cost of memory-heavy graphs and no exact guarantees. That is the concrete meaning of "approximate" nearest neighbour, and why vector DBs expose an ef_search dial trading recall for latency.',
+      'Why cosine rather than dot product or Euclidean? With unit-normalised vectors, all three give identical rankings — the choice is really about raw vectors, where magnitude encodes length/token-count signal you usually do not want ranking your results. The professional habit: normalise once at ingest, then think purely in angles.',
     ],
     numbers: {
       title: 'Cosine similarity by hand — 2 dimensions',

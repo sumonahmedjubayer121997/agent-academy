@@ -1,15 +1,23 @@
 import { Link } from 'react-router-dom'
-import { ArrowRight, CheckCircle2, ClipboardCheck, Flame, GraduationCap, Trophy } from 'lucide-react'
-import { currentPhase, nextUp, phaseStats, streak, totals, useProgress } from '../store/progress'
+import { ArrowRight, CheckCircle2, ClipboardCheck, Flame, GraduationCap, Layers, Timer, Trophy } from 'lucide-react'
+import { MODULES } from '../content/modules'
+import { currentPhase, dueCards, nextUp, phaseStats, streak, todayStr, totals, useProgress, type Confidence } from '../store/progress'
 import { Card, ProgressBar, SectionHead, Stat, StatusBadge } from '../components/ui'
 
+const CONF_LEVELS: { key: Confidence; label: string }[] = [
+  { key: 'sure', label: 'Sure' },
+  { key: 'shaky', label: 'Shaky' },
+  { key: 'lost', label: 'Lost' },
+]
+
 export default function Dashboard() {
-  const { data, logStudyDay } = useProgress()
+  const { data, logStudyDay, logSession } = useProgress()
   const t = totals(data)
   const stats = phaseStats(data)
   const cur = currentPhase(data)
   const upcoming = nextUp(data, 3)
   const days = streak(data.activity)
+  const due = dueCards(data, todayStr())
   const quizList = Object.entries(data.quiz).sort((a, b) => b[1].at.localeCompare(a[1].at))
   const quizAvg = quizList.length
     ? Math.round((quizList.reduce((s, [, q]) => s + q.score / q.total, 0) / quizList.length) * 100)
@@ -17,6 +25,17 @@ export default function Dashboard() {
   const inProgress = stats
     .flatMap((s) => s.modules)
     .filter((m) => data.moduleStatus[m.id] === 'in-progress')
+
+  // Calibration: confidence before quiz vs actual accuracy, per module.
+  const calibration = CONF_LEVELS.map(({ key, label }) => {
+    const rows = MODULES.filter(
+      (m) => data.confidence[m.id] === key && m.lessonId && data.quiz[`lesson:${m.lessonId}`],
+    ).map((m) => data.quiz[`lesson:${m.lessonId}`])
+    const avg = rows.length
+      ? Math.round((rows.reduce((s, q) => s + q.score / q.total, 0) / rows.length) * 100)
+      : null
+    return { key, label, avg, n: rows.length }
+  }).filter((c) => c.n > 0)
 
   return (
     <div className="py-10">
@@ -58,9 +77,117 @@ export default function Dashboard() {
         />
       </div>
 
-      <div className="mt-10 grid gap-6 lg:grid-cols-3">
-        {/* Current phase */}
-        <Card className="p-6 lg:col-span-2">
+      {/* Reviews due + calibration */}
+      <div className="mt-10 grid gap-6 lg:grid-cols-2">
+        <Card className={`p-6 ${due.length > 0 ? 'border-accent/40' : ''}`}>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <span className="rounded-xl bg-accent-soft p-2.5 text-accent">
+                <Layers size={18} />
+              </span>
+              <div>
+                <h3 className="font-semibold tracking-tight">Spaced review</h3>
+                <p className="text-xs text-ink-faint">from your lesson quizzes — mixed & scheduled</p>
+              </div>
+            </div>
+            {due.length > 0 ? (
+              <Link
+                to="/review"
+                className="rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-accent-ink shadow-soft transition-all hover:bg-accent-hover"
+              >
+                Review {due.length} {due.length === 1 ? 'card' : 'cards'} (~{Math.max(1, Math.round(due.length * 0.75))} min)
+              </Link>
+            ) : (
+              <span className="text-sm text-ok">All caught up ✓</span>
+            )}
+          </div>
+          {Object.keys(data.srs).length === 0 && (
+            <p className="mt-3 text-sm text-ink-soft">
+              No cards yet — complete a{' '}
+              <Link to="/learn/agent-loop" className="text-accent hover:underline">
+                lesson quiz
+              </Link>{' '}
+              to seed your first deck.
+            </p>
+          )}
+        </Card>
+
+        <Card className="p-6">
+          <div className="flex items-center gap-3">
+            <span className="rounded-xl bg-accent-soft p-2.5 text-accent">
+              <Timer size={18} />
+            </span>
+            <h3 className="font-semibold tracking-tight">Log a study session</h3>
+          </div>
+          <form
+            className="mt-3 flex flex-wrap items-end gap-2"
+            onSubmit={(e) => {
+              e.preventDefault()
+              const fd = new FormData(e.currentTarget)
+              const moduleId = String(fd.get('module') ?? '')
+              const minutes = Number(fd.get('minutes') ?? 0)
+              if (moduleId && minutes > 0) {
+                logSession(moduleId, minutes)
+                e.currentTarget.reset()
+              }
+            }}
+          >
+            <label className="text-xs text-ink-faint">
+              Module
+              <select
+                name="module"
+                className="mt-1 block w-52 rounded-lg border border-line bg-surface px-2.5 py-1.5 text-sm text-ink"
+              >
+                {MODULES.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    P{m.phase} · {m.title}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="text-xs text-ink-faint">
+              Minutes
+              <input
+                name="minutes"
+                type="number"
+                min={5}
+                max={480}
+                step={5}
+                defaultValue={25}
+                className="mt-1 block w-24 rounded-lg border border-line bg-surface px-2.5 py-1.5 text-sm text-ink"
+              />
+            </label>
+            <button
+              type="submit"
+              className="rounded-xl border border-line-strong bg-surface px-3.5 py-2 text-sm font-medium transition-all hover:bg-raised"
+            >
+              Log
+            </button>
+          </form>
+          {calibration.length > 0 && (
+            <div className="mt-4 border-t border-line pt-3">
+              <p className="text-xs font-semibold uppercase tracking-wide text-ink-faint">
+                Calibration (confidence vs accuracy)
+              </p>
+              <div className="mt-2 space-y-1.5 text-sm">
+                {calibration.map((c) => (
+                  <div key={c.key} className="flex items-center justify-between">
+                    <span className="text-ink-soft">
+                      “{c.label}” × {c.n}
+                    </span>
+                    <span className={`font-semibold ${c.avg !== null && c.avg < 70 ? 'text-bad' : 'text-ok'}`}>
+                      {c.avg}% actual
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </Card>
+      </div>
+
+      {/* Current phase */}
+      <Card className="mt-6 p-6 lg:col-span-2">
           <div className="flex items-center gap-3">
             <span className="rounded-xl bg-accent-soft p-2.5 text-accent">
               <GraduationCap size={20} />
@@ -195,7 +322,6 @@ export default function Dashboard() {
             )}
           </Card>
         </div>
-      </div>
 
       {/* All phases */}
       <section className="mt-10">

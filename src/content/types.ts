@@ -65,9 +65,13 @@ export interface Lesson {
   title: string
   minutes: number
   tagline: string
+  /** Cold-recall question from prerequisite material, shown before section 1. */
+  pre?: QuizQ
   simple: string[]
   intuition: { analogy: string; paragraphs: string[] }
   technical: string[]
+  /** Optional university-level layer, collapsed under "Go deeper" after the technical section. */
+  deeper?: string[]
   numbers?: { title: string; rows: [string, string][]; takeaway: string }
   demo?: 'agent-loop' | 'vector-sim'
   walkthrough: { lang: string; code: string; notes: [string, string][] }
