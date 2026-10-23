@@ -2,6 +2,8 @@
 
 [![CI](https://github.com/sumonahmedjubayer121997/agent-academy/actions/workflows/ci.yml/badge.svg)](https://github.com/sumonahmedjubayer121997/agent-academy/actions/workflows/ci.yml)
 
+**Live:** https://agent-academy-peach.vercel.app
+
 An interactive learning platform: a personalised, project-driven roadmap from React/ML foundations
 to production AI agent engineering. Built with Vite + React 18 + TypeScript + Tailwind CSS.
 **No paid APIs required** — everything works offline; progress is stored locally in your browser.
