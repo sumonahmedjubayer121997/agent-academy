@@ -49,15 +49,39 @@ function Section({
   )
 }
 
-function LessonQuiz({ quiz, quizId }: { quiz: QuizQ[]; quizId: string }) {
-  const { recordQuiz } = useProgress()
+function LessonQuiz({ quiz, quizId, moduleId }: { quiz: QuizQ[]; quizId: string; moduleId: string }) {
+  const { recordQuiz, setConfidence } = useProgress()
   const [answers, setAnswers] = useState<Record<number, number>>({})
   const [submitted, setSubmitted] = useState(false)
+  const [confidence, setLocalConfidence] = useState<string | null>(null)
   const score = quiz.reduce((s, q, i) => s + (answers[i] === q.answer ? 1 : 0), 0)
   const allAnswered = Object.keys(answers).length === quiz.length
 
   return (
     <div className="space-y-6">
+      {!submitted && (
+        <div>
+          <p className="text-sm font-medium">Before you start — how confident are you in this material?</p>
+          <div className="mt-2 flex gap-2">
+            {(['sure', 'shaky', 'lost'] as const).map((c) => (
+              <button
+                key={c}
+                onClick={() => {
+                  setLocalConfidence(c)
+                  setConfidence(moduleId, c)
+                }}
+                className={`rounded-lg border px-3.5 py-1.5 text-sm capitalize transition-all ${
+                  confidence === c
+                    ? 'border-accent bg-accent text-accent-ink'
+                    : 'border-line-strong text-ink-soft hover:bg-raised'
+                }`}
+              >
+                {c}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
       {quiz.map((q, i) => {
         const chosen = answers[i]
         return (
@@ -116,7 +140,7 @@ function LessonQuiz({ quiz, quizId }: { quiz: QuizQ[]; quizId: string }) {
           disabled={!allAnswered}
           onClick={() => {
             setSubmitted(true)
-            recordQuiz(quizId, score, quiz.length)
+            recordQuiz(quizId, score, quiz.length, quiz.map((q, i) => answers[i] === q.answer))
           }}
         >
           {allAnswered ? 'Check answers' : `Answer all ${quiz.length} questions`}
@@ -129,6 +153,44 @@ function LessonQuiz({ quiz, quizId }: { quiz: QuizQ[]; quizId: string }) {
         </p>
       )}
     </div>
+  )
+}
+
+function PreQuestion({ q }: { q: NonNullable<import('../content/types').Lesson['pre']> }) {
+  const [picked, setPicked] = useState<number | null>(null)
+  return (
+    <Card className="border-accent/25 bg-accent-soft p-6">
+      <p className="text-xs font-semibold uppercase tracking-widest text-accent">
+        Warm-up · retrieval before reading
+      </p>
+      <p className="mt-2 font-medium leading-relaxed">{q.q}</p>
+      <div className="mt-3 grid gap-2 sm:grid-cols-2">
+        {q.options.map((opt, oi) => (
+          <button
+            key={oi}
+            disabled={picked !== null}
+            onClick={() => setPicked(oi)}
+            className={`rounded-xl border px-4 py-2.5 text-left text-sm transition-all ${
+              picked === null
+                ? 'border-line bg-surface hover:border-accent/50'
+                : oi === q.answer
+                  ? 'border-ok bg-ok/10'
+                  : picked === oi
+                    ? 'border-bad bg-bad/10'
+                    : 'border-line bg-surface opacity-60'
+            }`}
+          >
+            {opt}
+          </button>
+        ))}
+      </div>
+      {picked !== null && (
+        <p className="mt-3 text-sm leading-relaxed text-ink-soft">
+          <span className="font-semibold">{picked === q.answer ? 'Right — ' : 'Good attempt — '}</span>
+          {q.explain}
+        </p>
+      )}
+    </Card>
   )
 }
 
@@ -177,6 +239,8 @@ export default function LessonPage() {
       </header>
 
       <div className="mt-8 space-y-6">
+        {lesson.pre && <PreQuestion q={lesson.pre} />}
+
         <Section n={1} icon={BookOpen} title="Simple explanation">
           {lesson.simple.map((p, i) => (
             <p key={i} className="mb-3 leading-relaxed text-ink-soft last:mb-0">
@@ -199,6 +263,20 @@ export default function LessonPage() {
               {p}
             </p>
           ))}
+          {lesson.deeper && (
+            <details className="group mt-5 rounded-xl border border-line">
+              <summary className="cursor-pointer select-none px-4 py-3 text-sm font-semibold text-accent">
+                Go deeper — university-level layer (optional)
+              </summary>
+              <div className="border-t border-line px-4 py-4">
+                {lesson.deeper.map((p, i) => (
+                  <p key={i} className="mb-3 text-sm leading-relaxed text-ink-soft last:mb-0">
+                    {p}
+                  </p>
+                ))}
+              </div>
+            </details>
+          )}
         </Section>
 
         {lesson.numbers && (
@@ -255,7 +333,7 @@ export default function LessonPage() {
         </Section>
 
         <Section n={lesson.demo && lesson.numbers ? 8 : 7} icon={HelpCircle} title="Knowledge check">
-          <LessonQuiz quiz={lesson.quiz} quizId={`lesson:${lesson.id}`} />
+          <LessonQuiz quiz={lesson.quiz} quizId={`lesson:${lesson.id}`} moduleId={lesson.moduleId} />
         </Section>
 
         <Section n={lesson.demo && lesson.numbers ? 9 : 8} icon={Building2} title="Where you'll meet this in the real world">
