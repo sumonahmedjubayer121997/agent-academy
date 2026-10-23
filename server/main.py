@@ -1,10 +1,14 @@
 """Agent Academy API — the Phase-4+ backend.
 
-Run:  uvicorn main:app --reload --port 8000   (from server/)
+Run:  .venv/bin/python -m uvicorn server.main:app --reload --port 8000   (repo root)
 Default provider is "fake" (deterministic, free, honestly labelled in /health).
 Real models: set LLM_PROVIDER=openai|ollama + credentials in .env (see .env.example).
 """
 from __future__ import annotations
+
+import json
+import logging
+import time
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -14,14 +18,40 @@ from . import config
 from .critique import critique_explanation, Critique
 from .llm import get_provider
 from .llm.base import ProviderError
+from .ratelimit import RateLimitMiddleware
+
+logger = logging.getLogger("agent-academy")
+
+
+def log_event(name: str, **fields: object) -> None:
+    """Structured (JSON-lines) event logging — grep-able, dashboard-ready."""
+    logger.info(json.dumps({"event": name, **fields}, default=str))
+
+
 app = FastAPI(title="Agent Academy API", version="0.1.0")
 
+app.add_middleware(RateLimitMiddleware)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=config.ALLOWED_ORIGINS,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.middleware("http")
+async def log_requests(request, call_next):  # type: ignore[no-untyped-def]
+    start = time.monotonic()
+    response = await call_next(request)
+    if request.url.path.startswith("/api"):
+        log_event(
+            "request",
+            path=request.url.path,
+            method=request.method,
+            status=response.status_code,
+            ms=round((time.monotonic() - start) * 1000),
+        )
+    return response
 
 
 @app.get("/health")
@@ -95,6 +125,7 @@ def agent_start(req: AgentRequest) -> dict:
     except ProviderError as e:
         raise HTTPException(status_code=502, detail=f"LLM provider unavailable: {e}") from e
     RUNS[state.run_id] = state
+    log_event("agent_run", run_id=state.run_id, status=state.status, steps=state.used_steps)
     return _run_view(state)
 
 
