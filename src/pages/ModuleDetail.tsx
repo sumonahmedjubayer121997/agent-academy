@@ -23,6 +23,7 @@ import { MODULES } from '../content/modules'
 import { PHASES } from '../content/phases'
 import { RESOURCES } from '../content/resources'
 import { trackForModule, trackSpecFor } from '../content/tracks'
+import { masteryGate } from '../lib/mastery'
 import FocusTimer from '../components/FocusTimer'
 import { Badge, Button, Card, ProgressBar, StatusBadge } from '../components/ui'
 import {
@@ -53,6 +54,7 @@ export default function ModuleDetail() {
   const m = MODULES.find((x) => x.id === moduleId)
 
   const [newQuestion, setNewQuestion] = useState('')
+  const [masterPrompt, setMasterPrompt] = useState<string[] | null>(null)
   const [evidenceLabel, setEvidenceLabel] = useState('')
   const [evidenceUrl, setEvidenceUrl] = useState('')
   const [customMinutes, setCustomMinutes] = useState(25)
@@ -204,7 +206,16 @@ export default function ModuleDetail() {
               {MASTERY_STAGES.map((st) => (
                 <button
                   key={st.id}
-                  onClick={() => setStage(m.id, st.id)}
+                  onClick={() => {
+                    if (st.id === 'mastered') {
+                      const gate = masteryGate({ completion: m.completion, record: rec })
+                      if (!gate.ready) {
+                        setMasterPrompt(gate.missing)
+                        return
+                      }
+                    }
+                    setStage(m.id, st.id)
+                  }}
                   title={st.description}
                   className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all sm:text-sm ${
                     stage === st.id
@@ -249,6 +260,51 @@ export default function ModuleDetail() {
             </div>
           </div>
         </div>
+
+        {/* Mastered promotion gate — evidence first, explicit self-assessment as the only override */}
+        {masterPrompt !== null && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Mastery evidence check"
+            onClick={() => setMasterPrompt(null)}
+          >
+            <Card className="max-w-md p-6">
+              <div onClick={(e) => e.stopPropagation()}>
+                <p className="flex items-center gap-2 font-semibold tracking-tight">
+                  <Sparkles size={16} className="text-accent" /> Mastered means demonstrated — not
+                  declared
+                </p>
+                <p className="mt-2 text-sm leading-relaxed text-ink-soft">
+                  Before marking <b>{m.title}</b> as Mastered, close these gaps:
+                </p>
+                <ul className="mt-2 space-y-1.5 text-sm text-ink-soft">
+                  {masterPrompt.map((miss) => (
+                    <li key={miss} className="flex gap-2">
+                      <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
+                      {miss}
+                    </li>
+                  ))}
+                </ul>
+                <div className="mt-5 flex flex-wrap justify-end gap-2">
+                  <Button variant="secondary" size="sm" onClick={() => setMasterPrompt(null)}>
+                    Add evidence first
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={() => {
+                      setStage(m.id, 'mastered')
+                      setMasterPrompt(null)
+                    }}
+                  >
+                    Mark as self-assessed anyway
+                  </Button>
+                </div>
+              </div>
+            </Card>
+          </div>
+        )}
 
         {/* Honest Mastery Guard */}
         {stage === 'mastered' && !masteryVerified && (
