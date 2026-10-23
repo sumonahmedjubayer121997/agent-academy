@@ -2,6 +2,7 @@ import { Link, useParams } from 'react-router-dom'
 import { AlertTriangle, ArrowLeft, BookOpen, CheckCircle2, Clock, Package, Target } from 'lucide-react'
 import { MODULES } from '../content/modules'
 import { PHASES } from '../content/phases'
+import { EDGE_WHY } from '../content/edges'
 import { isUnlocked, statusOf, useProgress } from '../store/progress'
 import { Badge, Button, Card, StatusBadge } from '../components/ui'
 
@@ -129,15 +130,28 @@ export default function ModuleDetail() {
               {prereqs.length === 0 ? (
                 <p className="text-ink-soft">No prerequisites — start anytime.</p>
               ) : (
-                <div className="flex flex-wrap gap-1.5">
-                  {prereqs.map((p) => (
-                    <Link key={p.id} to={`/roadmap/${p.id}`}>
-                      <Badge tone={statusOf(data, p.id) === 'completed' ? 'ok' : 'neutral'}>
-                        {statusOf(data, p.id) === 'completed' ? '✓ ' : ''}
-                        {p.title}
-                      </Badge>
-                    </Link>
-                  ))}
+                <div className="space-y-2">
+                  {prereqs.map((p) => {
+                    const why = EDGE_WHY[`${p.id}->${m.id}`]
+                    return (
+                      <div key={p.id} className="rounded-xl border border-line px-3 py-2">
+                        <Link to={`/roadmap/${p.id}`} className="inline-flex items-center gap-1.5">
+                          <Badge tone={statusOf(data, p.id) === 'completed' ? 'ok' : 'neutral'}>
+                            {statusOf(data, p.id) === 'completed' ? '✓ ' : ''}
+                            {p.title}
+                          </Badge>
+                        </Link>
+                        {why && (
+                          <details className="mt-1.5">
+                            <summary className="cursor-pointer select-none text-xs font-medium text-accent">
+                              why does this require it?
+                            </summary>
+                            <p className="mt-1 pl-1 text-xs leading-relaxed text-ink-soft">{why}</p>
+                          </details>
+                        )}
+                      </div>
+                    )
+                  })}
                 </div>
               )}
             </div>

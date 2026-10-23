@@ -1,6 +1,8 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { ExternalLink } from 'lucide-react'
 import { RESOURCES } from '../content/resources'
+import { GLOSSARY } from '../content/glossary'
 import { PHASES } from '../content/phases'
 import { Badge, Card, SectionHead } from '../components/ui'
 
@@ -73,6 +75,25 @@ export default function Resources() {
         and OpenAI's at developers.openai.com (both updated here). Deep links inside lessons are
         re-verified whenever content is updated. No fabricated courses or certificates.
       </p>
+
+      <section className="mt-14">
+        <SectionHead
+          eyebrow="Glossary"
+          title="The vocabulary of agent engineering"
+          sub="Terms defined in two lines, each linked to the module that teaches it properly. If you can define every term cold, you speak the field."
+        />
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {GLOSSARY.map((g) => (
+            <Card key={g.term} className="p-4 transition-all hover:-translate-y-0.5">
+              <p className="font-semibold tracking-tight">{g.term}</p>
+              <p className="mt-1.5 text-sm leading-relaxed text-ink-soft">{g.def}</p>
+              <Link to={`/roadmap/${g.moduleId}`} className="mt-2 inline-block text-xs text-accent hover:underline">
+                taught in this module →
+              </Link>
+            </Card>
+          ))}
+        </div>
+      </section>
     </div>
   )
 }
