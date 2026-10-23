@@ -91,11 +91,14 @@ export default function RoadmapGraph({ filterTrack = 'all' }: RoadmapGraphProps)
   }, [data, geom])
 
   return (
-    <div
-      className="overflow-x-auto rounded-2xl border border-line bg-surface shadow-soft"
-      role="img"
-      aria-label="Interactive learning roadmap graph"
-    >
+    <div className="overflow-x-auto rounded-2xl border border-line bg-surface shadow-soft">
+      {/* The graph is interactive, so no role="img" here — that would hide the
+          labelled node buttons from assistive technology. The sr-only line gives
+          context; the Curriculum page is the full text alternative. */}
+      <span className="sr-only">
+        Interactive roadmap: 8 phase columns of module buttons connected by prerequisite lines. A
+        full text version is on the Curriculum page.
+      </span>
       <svg
         width={geom.width}
         height={geom.height}
@@ -199,7 +202,12 @@ export default function RoadmapGraph({ filterTrack = 'all' }: RoadmapGraphProps)
               role="button"
               tabIndex={0}
               aria-label={title}
-              onKeyDown={(e) => e.key === 'Enter' && navigate(`/roadmap/${m.id}`)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault()
+                  navigate(`/roadmap/${m.id}`)
+                }
+              }}
             >
               <title>{title}</title>
               <g className="rm-node">

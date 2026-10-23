@@ -6,6 +6,7 @@ import { cardsForModule } from '../content/cards'
 import type { SequenceMode } from '../content/tracks'
 import type { LearningModule, Phase } from '../content/types'
 import { isDue, newCard, review, reviewWithGrade, type RecallGrade, type SrsCard } from '../lib/srs'
+import { addDays, dayStr } from '../lib/date'
 import { saveIdbSnapshot } from '../lib/backupDb'
 
 export type ModuleStatus = 'not-started' | 'in-progress' | 'completed'
@@ -479,18 +480,18 @@ export function totals(data: ProgressData) {
   }
 }
 
-export function streak(activity: string[]): number {
+export function streak(activity: string[], today: string = todayStr()): number {
   const days = new Set(activity)
-  const oneDay = 86_400_000
-  let cursor = new Date()
-  const fmt = (d: Date) =>
-    `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+  // Calendar-date arithmetic (Date setters) — immune to DST shifts.
+  let [y, mo, d] = today.split('-').map(Number)
+  let cursor = new Date(y, mo - 1, d, 12) // noon: safely inside the local day
+  const has = (date: Date) => days.has(dayStr(date))
   // A streak survives if today has no activity yet but yesterday does.
-  if (!days.has(fmt(cursor))) cursor = new Date(cursor.getTime() - oneDay)
+  if (!has(cursor)) cursor = addDays(cursor, -1)
   let n = 0
-  while (days.has(fmt(cursor))) {
+  while (has(cursor)) {
     n++
-    cursor = new Date(cursor.getTime() - oneDay)
+    cursor = addDays(cursor, -1)
   }
   return n
 }

@@ -65,6 +65,17 @@ recommend reasons, backup round-trip) → commit as V2.3. Do not deploy main+wav
 
 ## 5. The v2 plan
 
+> **STATUS 2026-10-23 (late): PLAN CLOSED.** V2.1 ✓ (validation/import/snapshots — wave; quota
+> errors surfaced on save remain a nice-to-have), **V2.2 ✓ complete** (five stages + the Mastered
+> evidence gate: promotion without checked criteria + evidence now requires an explicit
+> "self-assessed anyway" override, with the missing items named — `src/lib/mastery.ts`, tested),
+> V2.3 ✓ (wave reviewed, fixed, landed as PR #10), **V2.4 ✓ hardening done** (Space key + no
+> `role="img"` on the roadmap graph with sr-only context; canonical DST-safe date helpers in
+> `src/lib/date.ts`; streak rewritten with calendar arithmetic + DST-boundary tests). V2.5's
+> recommender + gap map shipped with the wave. Remaining items are optional polish tracked in §7/§8
+> (assistant endpoint, ⌘K, assessment explanations, Pyodide) — none block using the platform.
+> The next phase of work is the content flywheel and Phase 1 study.
+
 - **V2.0 Verify & fix (this commit):** audit scorecard, README 60-fix, `vercel.json` rewrites, this document.
 - **V2.1 Data safety (P0):** `schemaVersion`, validated load with per-field fallback + recovery copy,
   import with preview diff, last-5 snapshots, quota-error surfaced. Acceptance: corrupted storage
