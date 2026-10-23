@@ -53,6 +53,56 @@ export interface AskCitation {
   route: string
 }
 
+export interface AgentRunView {
+  runId: string
+  status: string
+  trace: unknown[]
+  steps: number
+  provider?: string | null
+  pendingAction?: string | null
+}
+
+export async function agentStart(
+  goal: string,
+): Promise<{ ok: true; data: AgentRunView } | { ok: false; error: string }> {
+  try {
+    const r = await fetch(`${BASE}/api/agent`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ goal }),
+      signal: AbortSignal.timeout(60000),
+    })
+    if (!r.ok) {
+      const detail = await r.json().catch(() => ({ detail: r.statusText }))
+      return { ok: false, error: String(detail.detail ?? 'request failed') }
+    }
+    return { ok: true, data: (await r.json()) as AgentRunView }
+  } catch {
+    return { ok: false, error: 'Backend unreachable — start the server (server/README.md) for live agents.' }
+  }
+}
+
+export async function agentDecide(
+  runId: string,
+  approved: boolean,
+): Promise<{ ok: true; data: AgentRunView } | { ok: false; error: string }> {
+  try {
+    const r = await fetch(`${BASE}/api/agent/decide`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ runId, approved }),
+      signal: AbortSignal.timeout(60000),
+    })
+    if (!r.ok) {
+      const detail = await r.json().catch(() => ({ detail: r.statusText }))
+      return { ok: false, error: String(detail.detail ?? 'request failed') }
+    }
+    return { ok: true, data: (await r.json()) as AgentRunView }
+  } catch {
+    return { ok: false, error: 'Backend unreachable.' }
+  }
+}
+
 export interface AskResult {
   answer: string
   citations: AskCitation[]

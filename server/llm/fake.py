@@ -52,8 +52,9 @@ class FakeProvider:
         lowered = user.lower()
         if "error" in lowered and lowered.count("error") >= 2:
             return json.dumps({"thought": "Tools keep failing; stopping gracefully.", "tool_call": None, "final": "Stopped: repeated tool failures (fake provider)."})
-        if "draft" in lowered and "ready" in lowered:
-            return json.dumps({"thought": "Draft done; send_email is irreversible.", "tool_call": {"name": "send_email", "args": {"to": "me@example.com", "subject": "Report"}}, "final": None})
+        if "history:" in lowered and "tool error" not in lowered:
+            # At least one successful observation exists — wrap up like a good demo citizen.
+            return json.dumps({"thought": "I have a result; reporting back.", "tool_call": None, "final": "Done (fake provider): task completed using the available tool results."})
         if "send_email" in lowered:
-            return json.dumps({"thought": "Continuing after approval.", "tool_call": None, "final": "Done: email sent (fake provider)."})
+            return json.dumps({"thought": "Draft done; send_email is irreversible.", "tool_call": {"name": "send_email", "args": {"to": "me@example.com", "subject": "Report"}}, "final": None})
         return json.dumps({"thought": "Gathering information first.", "tool_call": {"name": "calculator", "args": {"expression": "2+2"}}, "final": None})
