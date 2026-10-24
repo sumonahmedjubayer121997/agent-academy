@@ -1,4 +1,6 @@
 import { LESSONS } from '../content/roadmaps/ai-agents'
+import { sequenceModeOf } from '../store/progress'
+import { assessmentOf } from '../store/progress'
 import { MODULES } from '../content/roadmaps/ai-agents'
 import { PROJECTS } from '../content/roadmaps/ai-agents'
 import {
@@ -76,7 +78,7 @@ export function getRecommendations(
   const dailyMinutes = options.dailyMinutes ?? Math.max(30, Math.round((data.weeklyHours * 60) / 5))
   const filterTrack = options.filterTrack ?? 'all'
   const limit = options.limit ?? 3
-  const mode: SequenceMode = data.sequenceMode ?? 'agent-fast-track'
+  const mode: string = sequenceModeOf(data, 'ai-agents')
 
   // Identify active projects (started milestones or non-planning autonomy)
   const activeProjectModuleIds = new Set<string>()
@@ -223,8 +225,8 @@ export function getRecommendations(
     }
 
     // Rule 7: Diagnostic gap alignment
-    if (data.assessment.done) {
-      const s = data.assessment.scores
+    if (assessmentOf(data, 'ai-agents').done) {
+      const s = assessmentOf(data, 'ai-agents').scores
       if (m.phase === 1 && (s.python ?? 3) <= 1) {
         score += 12
         reasons.push('Addresses the Python & Software gap flagged in your diagnostic assessment.')

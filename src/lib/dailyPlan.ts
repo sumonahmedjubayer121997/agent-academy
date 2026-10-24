@@ -1,4 +1,5 @@
 import { MODULES } from '../content/roadmaps/ai-agents'
+import { roadmapSlugOfModule } from '../store/progress'
 import {
   dueCards,
   moduleRecordOf,
@@ -68,7 +69,7 @@ export function generateDailyPlan(
           ? 'Spaced repetition queue — retrieve before learning new material'
           : 'Review key concepts or seed flashcards from your current module',
       moduleId: completedOrShaky?.id ?? primaryMod.id,
-      route: due.length > 0 ? '/review' : `/roadmap/${completedOrShaky?.id ?? primaryMod.id}`,
+      ...(due.length === 0 && completedOrShaky ? { target: { slug: roadmapSlugOfModule(completedOrShaky.id), moduleId: completedOrShaky.id } } : primaryMod ? { target: { slug: roadmapSlugOfModule(primaryMod.id), moduleId: primaryMod.id } } : {}),
       minutes: reviseMin,
       done: false,
     },
@@ -78,7 +79,7 @@ export function generateDailyPlan(
       title: `Learn concept: ${primaryMod.title}`,
       subtitle: `Focus objective: ${nextObjective}`,
       moduleId: primaryMod.id,
-      route: primaryMod.lessonId ? `/learn/${primaryMod.lessonId}` : `/roadmap/${primaryMod.id}`,
+      target: { slug: roadmapSlugOfModule(primaryMod.id), moduleId: primaryMod.id },
       minutes: learnMin,
       done: false,
     },
@@ -88,7 +89,7 @@ export function generateDailyPlan(
       title: `Hands-on exercise: ${primaryMod.title}`,
       subtitle: `Practice target: ${nextCompletion}`,
       moduleId: primaryMod.id,
-      route: `/roadmap/${primaryMod.id}`,
+      target: { slug: roadmapSlugOfModule(primaryMod.id), moduleId: primaryMod.id },
       minutes: practiseMin,
       done: false,
     },
@@ -98,7 +99,7 @@ export function generateDailyPlan(
       title: 'Document what I learned & open questions',
       subtitle: `Log a 3-line entry in your Learning Journal for ${primaryMod.title}`,
       moduleId: primaryMod.id,
-      route: `/journal?module=${primaryMod.id}`,
+      target: { slug: roadmapSlugOfModule(primaryMod.id), moduleId: primaryMod.id },
       minutes: reflectMin,
       done: false,
     },

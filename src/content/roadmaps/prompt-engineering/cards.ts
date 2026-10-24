@@ -16,7 +16,9 @@ export interface DeckCard {
   lessonId?: string
 }
 
-/** One flashcard per essential module — the minimum viable review deck. */
+/** One flashcard per essential module — the minimum viable review deck.
+ * Card ids are prefixed with the roadmap slug so decks can never collide
+ * (legacy AI Agents ids stay unprefixed and are read as that roadmap). */
 const MODULE_FLASHCARDS: Record<string, { q: string; a: string }[]> = {
   'pe-mental-model': [
     {
@@ -210,7 +212,7 @@ function buildCurriculumDeck(): DeckCard[] {
     if (!mod) continue
     cards.forEach((c, i) => {
       deck.push({
-        cardId: `fc:${moduleId}:${i}`,
+        cardId: `prompt-engineering/fc:${moduleId}:${i}`,
         moduleId: mod.id,
         moduleTitle: mod.title,
         phase: mod.phase,
@@ -228,7 +230,7 @@ function buildCurriculumDeck(): DeckCard[] {
     const toMod = modMap.get(toId)
     if (!fromMod || !toMod) continue
     deck.push({
-      cardId: `edge:${edgeKey}`,
+      cardId: `prompt-engineering/edge:${edgeKey}`,
       moduleId: toMod.id,
       moduleTitle: toMod.title,
       phase: toMod.phase,
@@ -250,7 +252,7 @@ function buildCurriculumDeck(): DeckCard[] {
     const modId = domainModuleMap[q.domain] ?? 'pe-mental-model'
     const mod = modMap.get(modId)!
     deck.push({
-      cardId: `assess:${q.domain}:q${idx}`,
+      cardId: `prompt-engineering/assess:${q.domain}:q${idx}`,
       moduleId: mod.id,
       moduleTitle: mod.title,
       phase: mod.phase,

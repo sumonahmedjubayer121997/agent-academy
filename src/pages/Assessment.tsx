@@ -2,6 +2,8 @@ import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { CheckCircle2, ClipboardCheck, Info } from 'lucide-react'
 import { ASSESSMENT, DOMAIN_CREDIT, DOMAIN_LABELS, type Domain } from '../content/roadmaps/ai-agents'
+import { useActiveRoadmap } from '../store/activeRoadmap'
+import { assessmentOf } from '../store/progress'
 import { MODULES } from '../content/roadmaps/ai-agents'
 import { useProgress } from '../store/progress'
 import { Badge, Button, Card, ProgressBar, SectionHead } from '../components/ui'
@@ -35,7 +37,8 @@ export default function Assessment() {
   }, [answers])
 
   const allAnswered = Object.keys(answers).length === ASSESSMENT.length
-  const showStored = data.assessment.done && !retaking && !submitted
+  const stored = assessmentOf(data, useActiveRoadmap().META.slug)
+  const showStored = stored.done && !retaking && !submitted
 
   if (showStored) {
     return (
@@ -45,7 +48,7 @@ export default function Assessment() {
           title="Your diagnostic results"
           sub="Retake it any time — scores update, and prior-knowledge credit is always yours to apply or ignore."
         />
-        <ResultsView scores={data.assessment.scores} applied={data.assessment.applied} />
+        <ResultsView scores={stored.scores} applied={stored.applied} />
         <Card className="mt-6 p-6">
           <Button
             variant="secondary"

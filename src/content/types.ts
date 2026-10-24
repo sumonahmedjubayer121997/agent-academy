@@ -105,3 +105,66 @@ export interface RoadmapStats {
   lessons: number
   hours: number
 }
+
+/** Structural shape of a card in a roadmap review deck. */
+export interface DeckCardSpec {
+  cardId: string
+  moduleId: string
+  moduleTitle: string
+  phase: number
+  kind: 'mcq' | 'flashcard'
+  prompt: string
+  answer: string
+  options?: string[]
+  correctOption?: number
+  lessonId?: string
+}
+
+/** Track spec as the engine consumes it (roadmap-local TrackId unions widen to string). */
+export interface TrackSpecCommon {
+  id: string
+  code: 'A' | 'B' | 'C'
+  title: string
+  shortTitle: string
+  tagline: string
+  description: string
+  topics: string[]
+}
+
+/** Practice project as the engine consumes it. */
+export interface PracticeProjectSpec {
+  id: string
+  phase: number
+  title: string
+  hours: number
+  difficulty: string
+  brief: string
+  stack: string[]
+  modules: string[]
+  steps: string[]
+  doneWhen: string
+}
+
+/**
+ * The explicit content contract every roadmap bundle must satisfy.
+ * Optional parts (LESSONS) let a roadmap ship before lessons are authored.
+ */
+export interface RoadmapBundle {
+  META: RoadmapMeta
+  PHASES: Phase[]
+  MODULES: LearningModule[]
+  LESSONS?: Lesson[]
+  EDGE_WHY: Record<string, string>
+  TRACKS: TrackSpecCommon[]
+  trackForModule(moduleId: string): string
+  trackSpecFor(trackId: string): TrackSpecCommon
+  waveForModule(moduleId: string): 1 | 2 | 3 | 4
+  downstreamUnlockCount(moduleId: string, allModules?: LearningModule[]): number
+  ASSESSMENT: Array<QuizQ & { domain: string }>
+  DOMAIN_LABELS: Record<string, string>
+  DOMAIN_CREDIT: Record<string, { full: string[]; partial: string[] }>
+  CURRICULUM_DECK: DeckCardSpec[]
+  cardsForModule(moduleId: string): DeckCardSpec[]
+  PROJECTS: ProjectSpec[]
+  PRACTICE_PROJECTS: PracticeProjectSpec[]
+}

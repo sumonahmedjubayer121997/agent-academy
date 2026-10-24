@@ -1,4 +1,5 @@
 import { GLOSSARY } from '../content/glossary'
+import { sequenceModeOf } from '../store/progress'
 import { LESSONS } from '../content/roadmaps/ai-agents'
 import { MODULES } from '../content/roadmaps/ai-agents'
 import { PROJECTS } from '../content/roadmaps/ai-agents'
@@ -377,7 +378,7 @@ export function answerPersonalAssistantQuery(
     const recs = getRecommendations(data, { limit: 3 })
     const due = dueCards(data, todayStr())
     const savedFacts: string[] = [
-      `Sequence mode: ${data.sequenceMode ?? 'agent-fast-track'} · Weekly target: ${data.weeklyHours}h/wk.`,
+      `Sequence mode: ${sequenceModeOf(data, 'ai-agents')} · Weekly target: ${data.weeklyHours}h/wk.`,
       `Due spaced-repetition cards today: ${due.length}.`,
       `Active modules in Learning/Practising: ${t.modulesLearning + t.modulesPractising}.`,
     ]

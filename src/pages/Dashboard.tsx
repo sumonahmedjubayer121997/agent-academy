@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { assessmentOf } from '../store/progress'
 import { Link } from 'react-router-dom'
 import {
   AlertTriangle,
@@ -825,9 +826,9 @@ export default function Dashboard() {
               </span>
               <h3 className="font-semibold tracking-tight">Diagnostic assessment</h3>
             </div>
-            {data.assessment.done ? (
+            {assessmentOf(data, 'ai-agents').done ? (
               <div className="mt-3 space-y-2">
-                {Object.entries(data.assessment.scores).map(([d, s]) => (
+                {Object.entries(assessmentOf(data, 'ai-agents').scores).map(([d, s]) => (
                   <div key={d} className="flex items-center justify-between text-sm">
                     <span className="capitalize text-ink-soft">{d}</span>
                     <span className="font-semibold">{s}/3</span>

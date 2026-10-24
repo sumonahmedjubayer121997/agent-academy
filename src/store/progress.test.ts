@@ -21,7 +21,7 @@ const base = (over: Partial<ProgressData> = {}): ProgressData => ({
   activity: [],
   quiz: {},
   weeklyHours: 10,
-  assessment: { done: false, applied: false, scores: {} },
+  assessments: { 'ai-agents': { done: false, applied: false, scores: {} } },
   srs: {},
   confidence: {},
   feynman: {},

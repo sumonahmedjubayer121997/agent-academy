@@ -1,4 +1,6 @@
 import { useMemo, useRef, useState } from 'react'
+import { useActiveRoadmap } from '../store/activeRoadmap'
+import { sequenceModeOf } from '../store/progress'
 import { Link } from 'react-router-dom'
 import {
   ArrowDown,
@@ -58,7 +60,7 @@ export default function Planner() {
   const today = todayStr()
   const t = totals(data)
   const hours = data.weeklyHours
-  const seqMode = data.sequenceMode ?? 'agent-fast-track'
+  const seqMode = sequenceModeOf(data, useActiveRoadmap().META.slug)
 
   // Daily study plan
   const todayPlan = useMemo(
@@ -284,9 +286,9 @@ export default function Planner() {
               </div>
 
               <div className="flex items-center gap-1">
-                {block.route && !block.done && !block.skipped && (
+                {block.target && !block.done && !block.skipped && (
                   <Link
-                    to={block.route}
+                    to={`/r/${block.target.slug}/roadmap/${block.target.moduleId}`}
                     className="mr-1 rounded-lg bg-accent-soft px-2.5 py-1 text-xs font-semibold text-accent hover:bg-accent hover:text-accent-ink"
                   >
                     Open →
