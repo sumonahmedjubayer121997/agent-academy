@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useActiveRoadmap } from '../store/activeRoadmap'
 import { assessmentOf } from '../store/progress'
 import { Link } from 'react-router-dom'
 import {
@@ -20,10 +21,6 @@ import {
   TrendingUp,
   Trophy,
 } from 'lucide-react'
-import { LESSONS } from '../content/roadmaps/ai-agents'
-import { MODULES } from '../content/roadmaps/ai-agents'
-import { PROJECTS } from '../content/roadmaps/ai-agents'
-import { TRACKS, trackForModule, waveForModule } from '../content/roadmaps/ai-agents'
 import {
   currentPhase,
   dueCards,
@@ -51,16 +48,17 @@ const CONF_LEVELS: { key: Confidence; label: string }[] = [
 
 import { usePageMeta } from '../hooks/usePageMeta'
 export default function Dashboard() {
+  const { LESSONS = [], MODULES, PHASES, PROJECTS, TRACKS, trackForModule, waveForModule } = useActiveRoadmap()
   usePageMeta('Today', 'Your daily plan, streak, and honest progress analytics.')
   const { data, logStudyDay, logSession, saveDailyPlan, toggleDailyBlock } = useProgress()
   const [reportWindow, setReportWindow] = useState<'7d' | '30d'>('7d')
   const [expandedRecIdx, setExpandedRecIdx] = useState<number>(0)
 
   const today = todayStr()
-  const t = totals(data)
-  const stats = phaseStats(data)
-  const cur = currentPhase(data)
-  const upcoming = nextUp(data, 3)
+  const t = totals(data, MODULES)
+  const stats = phaseStats(data, MODULES, PHASES)
+  const cur = currentPhase(data, MODULES, PHASES)
+  const upcoming = nextUp(data, 3, MODULES)
   const days = streak(data.activity)
   const due = dueCards(data, today)
 

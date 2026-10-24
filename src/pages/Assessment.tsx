@@ -1,14 +1,12 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { CheckCircle2, ClipboardCheck, Info } from 'lucide-react'
-import { ASSESSMENT, DOMAIN_CREDIT, DOMAIN_LABELS, type Domain } from '../content/roadmaps/ai-agents'
 import { useActiveRoadmap } from '../store/activeRoadmap'
 import { assessmentOf } from '../store/progress'
-import { MODULES } from '../content/roadmaps/ai-agents'
 import { useProgress } from '../store/progress'
 import { Badge, Button, Card, ProgressBar, SectionHead } from '../components/ui'
 
-function recommendation(scores: Partial<Record<Domain, number>>): string {
+function recommendation(scores: Record<string, number>): string {
   const py = scores.python ?? 0
   const math = scores.math ?? 0
   const ml = scores.ml ?? 0
@@ -22,6 +20,7 @@ function recommendation(scores: Partial<Record<Domain, number>>): string {
 
 import { usePageMeta } from '../hooks/usePageMeta'
 export default function Assessment() {
+  const { ASSESSMENT, DOMAIN_CREDIT, DOMAIN_LABELS, MODULES } = useActiveRoadmap()
   usePageMeta('Diagnostic assessment', 'Find your real gaps across five domains and credit what you already know.')
   const { data, recordAssessment, applyAssessmentCredit } = useProgress()
   const [answers, setAnswers] = useState<Record<number, number>>({})
@@ -29,7 +28,7 @@ export default function Assessment() {
   const [retaking, setRetaking] = useState(false)
 
   const scores = useMemo(() => {
-    const byDomain: Partial<Record<Domain, number>> = {}
+    const byDomain: Record<string, number> = {}
     ASSESSMENT.forEach((q, i) => {
       byDomain[q.domain] = (byDomain[q.domain] ?? 0) + (answers[i] === q.answer ? 1 : 0)
     })
@@ -136,7 +135,7 @@ export default function Assessment() {
     )
   }
 
-  const creditModules = (Object.keys(DOMAIN_CREDIT) as Domain[]).flatMap((d) => [
+  const creditModules = Object.keys(DOMAIN_CREDIT).flatMap((d) => [
     ...DOMAIN_CREDIT[d].full.map((id) => ({ id, when: 'full' as const })),
     ...DOMAIN_CREDIT[d].partial.map((id) => ({ id, when: 'partial' as const })),
   ])
@@ -184,14 +183,15 @@ function ResultsView({
   scores,
   applied,
 }: {
-  scores: Partial<Record<Domain, number>>
+  scores: Record<string, number>
   applied: boolean
 }) {
+  const { DOMAIN_LABELS } = useActiveRoadmap()
   return (
     <>
       <Card className="p-6">
         <div className="space-y-4">
-          {(Object.keys(DOMAIN_LABELS) as Domain[]).map((d) => {
+          {Object.keys(DOMAIN_LABELS).map((d) => {
             const s = scores[d] ?? 0
             return (
               <div key={d}>

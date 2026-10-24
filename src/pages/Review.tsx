@@ -1,4 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
+import type { DeckCard } from '../content/roadmaps/ai-agents'
+import { cardRoadmapOf } from '../lib/cards'
+import { useActiveRoadmap } from '../store/activeRoadmap'
 import { Link } from 'react-router-dom'
 import {
   ArrowRight,
@@ -11,9 +14,6 @@ import {
   Trash2,
   XCircle,
 } from 'lucide-react'
-import { CURRICULUM_DECK, type DeckCard } from '../content/roadmaps/ai-agents'
-import { LESSONS } from '../content/roadmaps/ai-agents'
-import { MODULES } from '../content/roadmaps/ai-agents'
 import { dueCards, stageOf, todayStr, useProgress } from '../store/progress'
 import type { RecallGrade } from '../lib/srs'
 import { Badge, Button, Card, ProgressBar, SectionHead } from '../components/ui'
@@ -27,6 +27,8 @@ import { Badge, Button, Card, ProgressBar, SectionHead } from '../components/ui'
  */
 import { usePageMeta } from '../hooks/usePageMeta'
 export default function Review() {
+  const { CURRICULUM_DECK, LESSONS = [], MODULES, META } = useActiveRoadmap()
+  const activeSlug = META.slug
   usePageMeta('Review', 'Spaced-repetition review of your due cards.')
   const { data, gradeCard, logSession, seedModuleCards, addCustomCard, deleteCustomCard } =
     useProgress()
@@ -78,9 +80,12 @@ export default function Review() {
       .map((d) => cardCatalog.get(d.cardId))
       .filter((x): x is DeckCard => Boolean(x))
   }, [data, cardCatalog])
+  // Scoped by default: only cards from the active roadmap's deck are queued
+  // (AI Agents cards are unprefixed; other decks prefix ids with their slug).
 
   // Snapshot the active session queue so grading cards does not mutate array indices mid-flight
-  const [sessionQueue, setSessionQueue] = useState<DeckCard[]>(() => dueNow)
+  const scopedDue = useMemo(() => dueNow.filter((c) => cardRoadmapOf(c.cardId) === activeSlug), [dueNow, activeSlug])
+  const [sessionQueue, setSessionQueue] = useState<DeckCard[]>(() => scopedDue)
   const [sessionMode, setSessionMode] = useState<'due' | 'drill'>('due')
   const [i, setI] = useState(0)
   const [selected, setSelected] = useState<number | null>(null)
@@ -97,14 +102,14 @@ export default function Review() {
 
   // If the page loaded with an empty queue and cards were just seeded (while not mid-session), load them
   useEffect(() => {
-    if (sessionQueue.length === 0 && !done && dueNow.length > 0) {
-      setSessionQueue(dueNow)
+    if (sessionQueue.length === 0 && !done && scopedDue.length > 0) {
+      setSessionQueue(scopedDue)
       setI(0)
       setSelected(null)
       setFlashcardRevealed(false)
       setResults([])
     }
-  }, [dueNow, sessionQueue.length, done])
+  }, [scopedDue, sessionQueue.length, done])
 
   const startWeakSpotDrill = () => {
     // Score all catalog cards by weakness: high lapses, low ease, shaky/lost module, or active module

@@ -1,5 +1,6 @@
-import { MODULES } from '../content/roadmaps/ai-agents'
 import { roadmapSlugOfModule } from '../store/progress'
+import { BUNDLES } from '../content/roadmaps/registry'
+import type { RoadmapBundle } from '../content/roadmaps/registry'
 import {
   dueCards,
   moduleRecordOf,
@@ -11,7 +12,7 @@ import {
 } from '../store/progress'
 import { getRecommendations } from './recommend'
 
-const modById = new Map(MODULES.map((m) => [m.id, m]))
+const modById = new Map(BUNDLES['ai-agents'].MODULES.map((m) => [m.id, m]))
 
 /**
  * Generates a realistic, proportional 4-block daily study plan (Revise, Learn, Practise, Reflect)
@@ -22,7 +23,9 @@ export function generateDailyPlan(
   data: ProgressData,
   date: string = todayStr(),
   budgetMinutes = 90,
+  bundle: RoadmapBundle = BUNDLES['ai-agents'],
 ): DailyPlanRecord {
+  const { MODULES } = bundle
   const safeBudget = Math.max(15, Math.min(360, Math.round(budgetMinutes)))
   const reviseMin = Math.max(5, Math.round((safeBudget * 15) / 90 / 5) * 5)
   const reflectMin = Math.max(5, Math.round((safeBudget * 15) / 90 / 5) * 5)
@@ -116,10 +119,11 @@ export function getOrCreateDailyPlan(
   data: ProgressData,
   date: string = todayStr(),
   defaultBudget = 90,
+  bundle: RoadmapBundle = BUNDLES['ai-agents'],
 ): DailyPlanRecord {
   const existing = data.dailyPlans?.[date]
   if (existing && existing.blocks.length > 0) return existing
-  return generateDailyPlan(data, date, defaultBudget)
+  return generateDailyPlan(data, date, defaultBudget, bundle)
 }
 
 /** Find unfinished non-skipped blocks from the most recent previous daily plan so they can be rolled over without guilt. */

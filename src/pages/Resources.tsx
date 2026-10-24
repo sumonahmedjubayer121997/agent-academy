@@ -1,13 +1,14 @@
 import { useState } from 'react'
+import { useActiveRoadmap } from '../store/activeRoadmap'
 import { Link } from 'react-router-dom'
 import { ExternalLink } from 'lucide-react'
 import { RESOURCES } from '../content/resources'
 import { GLOSSARY } from '../content/glossary'
-import { PHASES } from '../content/roadmaps/ai-agents'
 import { Badge, Card, SectionHead } from '../components/ui'
 
 import { usePageMeta } from '../hooks/usePageMeta'
 export default function Resources() {
+  const { PHASES } = useActiveRoadmap()
   usePageMeta('Resources & glossary', 'Curated, verified resources and the glossary of agent engineering.')
   const [filter, setFilter] = useState<number | 'all'>('all')
   const shown = RESOURCES.filter((r) => filter === 'all' || r.supports.includes(`Phase ${filter}`))

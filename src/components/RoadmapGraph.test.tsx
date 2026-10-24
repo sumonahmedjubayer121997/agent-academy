@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { BUNDLES } from '../content/roadmaps/registry'
 import { fireEvent, render, screen } from '@testing-library/react'
 import { MemoryRouter, useLocation } from 'react-router-dom'
 import RoadmapGraph from './RoadmapGraph'
@@ -17,7 +18,7 @@ describe('RoadmapGraph', () => {
     render(
       <MemoryRouter>
         <ProgressProvider>
-          <RoadmapGraph />
+          <RoadmapGraph bundle={BUNDLES['ai-agents']} />
         </ProgressProvider>
       </MemoryRouter>,
     )
@@ -34,13 +35,13 @@ describe('RoadmapGraph', () => {
     render(
       <MemoryRouter>
         <ProgressProvider>
-          <RoadmapGraph />
+          <RoadmapGraph bundle={BUNDLES['ai-agents']} />
           <LocationProbe />
         </ProgressProvider>
       </MemoryRouter>,
     )
     fireEvent.click(screen.getByRole('button', { name: /Python Core, Idioms & OOP/ }))
-    expect(screen.getByTestId('loc').textContent).toBe('/roadmap/p1-python-core')
+    expect(screen.getByTestId('loc').textContent).toBe('/r/ai-agents/roadmap/p1-python-core')
   })
 })
 

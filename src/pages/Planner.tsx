@@ -16,8 +16,6 @@ import {
   Trash2,
   Upload,
 } from 'lucide-react'
-import { MODULES } from '../content/roadmaps/ai-agents'
-import type { SequenceMode } from '../content/roadmaps/ai-agents'
 import {
   findUnfinishedYesterdayBlocks,
   generateDailyPlan,
@@ -37,6 +35,7 @@ import {
 
 import { usePageMeta } from '../hooks/usePageMeta'
 export default function Planner() {
+  const { MODULES } = useActiveRoadmap()
   usePageMeta('Planner & settings', 'Weekly hours, pace forecasts, export and backup.')
   const {
     data,
@@ -58,7 +57,7 @@ export default function Planner() {
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const today = todayStr()
-  const t = totals(data)
+  const t = totals(data, MODULES)
   const hours = data.weeklyHours
   const seqMode = sequenceModeOf(data, useActiveRoadmap().META.slug)
 
@@ -388,7 +387,7 @@ export default function Planner() {
                   label: 'ML & Data Science First',
                   sub: 'Prioritise Track B math & ML',
                 },
-              ] as { id: SequenceMode; label: string; sub: string }[]
+              ] as { id: string; label: string; sub: string }[]
             ).map((opt) => (
               <button
                 key={opt.id}

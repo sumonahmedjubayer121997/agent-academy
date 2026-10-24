@@ -1,6 +1,4 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
-import { MODULES } from '../content/roadmaps/ai-agents'
-import { PHASES } from '../content/roadmaps/ai-agents'
 import { BUNDLES } from '../content/roadmaps/registry'
 import { useActiveRoadmap } from './activeRoadmap'
 import type { LearningModule, Phase } from '../content/types'
@@ -557,9 +555,13 @@ export interface PhaseStat {
   doneEssentialHours: number
 }
 
-export function phaseStats(data: ProgressData): PhaseStat[] {
-  return PHASES.map((phase) => {
-    const modules = MODULES.filter((m) => m.phase === phase.n)
+export function phaseStats(
+  data: ProgressData,
+  allModules: LearningModule[] = BUNDLES['ai-agents'].MODULES,
+  phases: Phase[] = BUNDLES['ai-agents'].PHASES,
+): PhaseStat[] {
+  return phases.map((phase) => {
+    const modules = allModules.filter((m) => m.phase === phase.n)
     const done = (m: LearningModule) => (statusOf(data, m.id) === 'completed' ? m.hours : 0)
     return {
       phase,
@@ -575,7 +577,13 @@ export function phaseStats(data: ProgressData): PhaseStat[] {
   })
 }
 
-export function totals(data: ProgressData) {
+
+export function totals(
+  data: ProgressData,
+  mods: LearningModule[] = BUNDLES['ai-agents'].MODULES,
+) {
+  const MODULE_LIST = mods
+  const MODULES = MODULE_LIST
   const doneHours = MODULES.reduce((s, m) => s + (statusOf(data, m.id) === 'completed' ? m.hours : 0), 0)
   const essentialMods = MODULES.filter((m) => m.essential)
   const doneEssentialHours = essentialMods.reduce(
@@ -625,8 +633,12 @@ export function streak(activity: string[], today: string = todayStr()): number {
   return n
 }
 
-export function nextUp(data: ProgressData, n = 3): LearningModule[] {
-  return MODULES.filter(
+export function nextUp(
+  data: ProgressData,
+  n = 3,
+  mods: LearningModule[] = BUNDLES['ai-agents'].MODULES,
+): LearningModule[] {
+  return mods.filter(
     (m) => m.essential && statusOf(data, m.id) !== 'completed' && isUnlocked(data, m),
   ).slice(0, n)
 }
@@ -654,8 +666,12 @@ export function dueCards(data: ProgressData, today: string): DueCard[] {
     .sort((a, b) => (a.due < b.due ? -1 : a.due > b.due ? 1 : 0))
 }
 
-export function currentPhase(data: ProgressData): PhaseStat {
-  const stats = phaseStats(data)
+export function currentPhase(
+  data: ProgressData,
+  modules: LearningModule[] = BUNDLES['ai-agents'].MODULES,
+  phases: Phase[] = BUNDLES['ai-agents'].PHASES,
+): PhaseStat {
+  const stats = phaseStats(data, modules, phases)
   return stats.find((s) => s.doneEssentialHours < s.essentialHours) ?? stats[stats.length - 1]
 }
 

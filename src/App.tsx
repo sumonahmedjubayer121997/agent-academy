@@ -1,9 +1,10 @@
 import { useEffect } from 'react'
-import { BrowserRouter, Routes, Route, useLocation, Link } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, useLocation, useNavigate, Link, Navigate, useParams } from 'react-router-dom'
 import Navbar from './components/Navbar'
 import { ProgressProvider } from './store/progress'
 import { ActiveRoadmapProvider } from './store/activeRoadmap'
 import { usePageMeta } from './hooks/usePageMeta'
+import { BUNDLES } from './content/roadmaps/registry'
 import Landing from './pages/Landing'
 import Dashboard from './pages/Dashboard'
 import Roadmap from './pages/Roadmap'
@@ -39,6 +40,20 @@ function NotFound() {
   )
 }
 
+/** /m/:moduleId resolves the roadmap from the id — shared links self-heal. */
+function ModuleShortLink() {
+  const { moduleId } = useParams()
+  const navigate = useNavigate()
+  useEffect(() => {
+    const slug =
+      moduleId && BUNDLES['prompt-engineering'].MODULES.some((m) => m.id === moduleId)
+        ? 'prompt-engineering'
+        : 'ai-agents'
+    navigate(`/r/${slug}/roadmap/${moduleId}`, { replace: true })
+  }, [moduleId, navigate])
+  return null
+}
+
 function Footer() {
   return (
     <footer className="mt-20 border-t border-line py-8">
@@ -54,34 +69,61 @@ export default function App() {
   return (
     <BrowserRouter>
       <ActiveRoadmapProvider>
-      <ProgressProvider>
-        <ScrollToTop />
-        <div className="flex min-h-screen flex-col">
-          <Navbar />
-          <main className="mx-auto w-full max-w-6xl flex-1 px-4">
-            <Routes>
-              <Route path="/" element={<Landing />} />
-              <Route path="/roadmaps" element={<Roadmaps />} />
-              <Route path="/roadmaps/:slug" element={<RoadmapDetail />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/roadmap" element={<Roadmap />} />
-              <Route path="/roadmap/:moduleId" element={<ModuleDetail />} />
-              <Route path="/curriculum" element={<Curriculum />} />
-              <Route path="/learn/:lessonId" element={<LessonPage />} />
-              <Route path="/projects" element={<Projects />} />
-              <Route path="/playground" element={<Playground />} />
-              <Route path="/resources" element={<Resources />} />
-              <Route path="/assess" element={<Assessment />} />
-              <Route path="/review" element={<Review />} />
-              <Route path="/journal" element={<Journal />} />
-              <Route path="/planner" element={<Planner />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </main>
-          <Footer />
-        </div>
-      </ProgressProvider>
+        <ProgressProvider>
+          <ScrollToTop />
+          <div className="flex min-h-screen flex-col">
+            <Navbar />
+            <main className="mx-auto w-full max-w-6xl flex-1 px-4">
+              <Routes>
+                {/* Global routes */}
+                <Route path="/" element={<Landing />} />
+                <Route path="/roadmaps" element={<Roadmaps />} />
+                <Route path="/roadmaps/:slug" element={<RoadmapDetail />} />
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/journal" element={<Journal />} />
+                <Route path="/playground" element={<Playground />} />
+                <Route path="/resources" element={<Resources />} />
+
+                {/* Canonical per-roadmap workspace */}
+                <Route path="/r/:slug/curriculum" element={<Curriculum />} />
+                <Route path="/r/:slug/roadmap" element={<Roadmap />} />
+                <Route path="/r/:slug/roadmap/:moduleId" element={<ModuleDetail />} />
+                <Route path="/r/:slug/learn/:lessonId" element={<LessonPage />} />
+                <Route path="/r/:slug/review" element={<Review />} />
+                <Route path="/r/:slug/projects" element={<Projects />} />
+                <Route path="/r/:slug/planner" element={<Planner />} />
+                <Route path="/r/:slug/assess" element={<Assessment />} />
+
+                {/* Self-healing module links */}
+                <Route path="/m/:moduleId" element={<ModuleShortLink />} />
+
+                {/* Legacy paths redirect to the canonical tree (AI Agents is the first roadmap) */}
+                <Route path="/curriculum" element={<Navigate replace to="/r/ai-agents/curriculum" />} />
+                <Route path="/roadmap" element={<Navigate replace to="/r/ai-agents/roadmap" />} />
+                <Route path="/roadmap/:moduleId" element={<LegacyModuleRedirect />} />
+                <Route path="/learn/:lessonId" element={<LegacyLessonRedirect />} />
+                <Route path="/projects" element={<Navigate replace to="/r/ai-agents/projects" />} />
+                <Route path="/review" element={<Navigate replace to="/r/ai-agents/review" />} />
+                <Route path="/assess" element={<Navigate replace to="/r/ai-agents/assess" />} />
+                <Route path="/planner" element={<Navigate replace to="/r/ai-agents/planner" />} />
+
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </main>
+            <Footer />
+          </div>
+        </ProgressProvider>
       </ActiveRoadmapProvider>
     </BrowserRouter>
   )
+}
+
+function LegacyModuleRedirect() {
+  const { moduleId } = useParams()
+  return <Navigate replace to={`/r/ai-agents/roadmap/${moduleId ?? ''}`} />
+}
+
+function LegacyLessonRedirect() {
+  const { lessonId } = useParams()
+  return <Navigate replace to={`/r/ai-agents/learn/${lessonId ?? ''}`} />
 }

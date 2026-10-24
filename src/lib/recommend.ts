@@ -1,18 +1,9 @@
-import { LESSONS } from '../content/roadmaps/ai-agents'
 import { sequenceModeOf } from '../store/progress'
+import { BUNDLES } from '../content/roadmaps/registry'
+import type { RoadmapBundle } from '../content/roadmaps/registry'
 import { assessmentOf } from '../store/progress'
-import { MODULES } from '../content/roadmaps/ai-agents'
-import { PROJECTS } from '../content/roadmaps/ai-agents'
-import {
-  downstreamUnlockCount,
-  trackForModule,
-  trackSpecFor,
-  waveForModule,
-  type SequenceMode,
-  type TrackId,
-  type TrackSpec,
-} from '../content/roadmaps/ai-agents'
-import type { LearningModule } from '../content/types'
+import type { SequenceMode, TrackId } from '../content/roadmaps/ai-agents'
+import type { LearningModule, TrackSpecCommon } from '../content/types'
 import {
   isUnlocked,
   moduleMinutesLogged,
@@ -52,19 +43,21 @@ export interface TopicRecommendation {
   expectedOutcome: string
   practicalExercise: string
   masteryProof: string
-  track: TrackSpec
+  track: TrackSpecCommon
   unlocksCount: number
   score: number
 }
 
 export interface RecommendationOptions {
+  /** Content bundle to reason over — defaults to AI Agents; pages pass the active roadmap. */
+  bundle?: RoadmapBundle
   dailyMinutes?: number
   filterTrack?: TrackId | 'all'
   limit?: number
 }
 
-const modById = new Map(MODULES.map((m) => [m.id, m]))
-const lessonByModId = new Map(LESSONS.map((l) => [l.moduleId, l]))
+const modById = new Map(BUNDLES['ai-agents'].MODULES.map((m) => [m.id, m]))
+const lessonByModId = new Map((BUNDLES['ai-agents'].LESSONS ?? []).map((l) => [l.moduleId, l]))
 
 /**
  * Transparent, rule-based recommendation engine.
@@ -75,6 +68,9 @@ export function getRecommendations(
   data: ProgressData,
   options: RecommendationOptions = {},
 ): TopicRecommendation[] {
+  const {
+    MODULES, LESSONS, PROJECTS, downstreamUnlockCount, trackForModule, trackSpecFor, waveForModule,
+  } = options.bundle ?? BUNDLES['ai-agents']
   const dailyMinutes = options.dailyMinutes ?? Math.max(30, Math.round((data.weeklyHours * 60) / 5))
   const filterTrack = options.filterTrack ?? 'all'
   const limit = options.limit ?? 3

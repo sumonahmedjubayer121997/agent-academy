@@ -88,6 +88,8 @@ export type RoadmapLevel = 'Beginner-friendly' | 'Intermediate' | 'Advanced'
 export interface RoadmapMeta {
   slug: string
   title: string
+  /** Compact switcher label, e.g. "Automation" for "AI Automation (n8n, Kafka)". */
+  shortTitle?: string
   tagline: string
   description: string
   level: RoadmapLevel

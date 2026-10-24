@@ -1,8 +1,7 @@
 import { useState } from 'react'
+import { useActiveRoadmap } from '../store/activeRoadmap'
 import { Link } from 'react-router-dom'
 import { BookOpen, Clock, Lock, Search, Sparkles } from 'lucide-react'
-import { MODULES, PHASES } from '../content/roadmaps/ai-agents'
-import { TRACKS, trackForModule, type TrackId } from '../content/roadmaps/ai-agents'
 import { ask } from '../lib/api'
 import {
   answerPersonalAssistantQuery,
@@ -170,12 +169,13 @@ const STAGE_SYMBOL: Record<MasteryStage, string> = {
 
 import { usePageMeta } from '../hooks/usePageMeta'
 export default function Curriculum() {
+  const { MODULES, PHASES, TRACKS, trackForModule } = useActiveRoadmap()
   usePageMeta('Curriculum', 'All phases and modules of the AI Agents roadmap, with tracks and progress.')
   const { data, cycleStage } = useProgress()
-  const stats = phaseStats(data)
+  const stats = phaseStats(data, MODULES, PHASES)
 
   const [search, setSearch] = useState('')
-  const [trackFilter, setTrackFilter] = useState<TrackId | 'all'>('all')
+  const [trackFilter, setTrackFilter] = useState<string>('all')
   const [stageFilter, setStageFilter] = useState<'all' | 'active' | 'unstarted' | 'done'>('all')
 
   return (

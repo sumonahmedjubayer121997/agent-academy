@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useActiveRoadmap } from '../store/activeRoadmap'
 import { Link, useParams } from 'react-router-dom'
 import { usePageMeta } from '../hooks/usePageMeta'
 import {
@@ -18,12 +19,7 @@ import {
   Target,
   Trash2,
 } from 'lucide-react'
-import { cardsForModule } from '../content/roadmaps/ai-agents'
-import { EDGE_WHY } from '../content/roadmaps/ai-agents'
-import { MODULES } from '../content/roadmaps/ai-agents'
-import { PHASES } from '../content/roadmaps/ai-agents'
 import { RESOURCES } from '../content/resources'
-import { trackForModule, trackSpecFor } from '../content/roadmaps/ai-agents'
 import { masteryGate } from '../lib/mastery'
 import FocusTimer from '../components/FocusTimer'
 import { Badge, Button, Card, ProgressBar, StatusBadge } from '../components/ui'
@@ -39,6 +35,7 @@ import {
 } from '../store/progress'
 
 export default function ModuleDetail() {
+  const { cardsForModule, EDGE_WHY, MODULES, PHASES, trackForModule, trackSpecFor } = useActiveRoadmap()
   const { moduleId } = useParams()
   const {
     data,
