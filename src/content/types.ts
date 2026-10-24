@@ -80,3 +80,28 @@ export interface Lesson {
   realWorld: string[]
   further: { label: string; url: string; note: string }[]
 }
+
+export type RoadmapStatus = 'live' | 'coming-soon'
+export type RoadmapLevel = 'Beginner-friendly' | 'Intermediate' | 'Advanced'
+
+/** Catalog card + detail page metadata. A coming-soon roadmap is valid with only this (plus plannedPhases). */
+export interface RoadmapMeta {
+  slug: string
+  title: string
+  tagline: string
+  description: string
+  level: RoadmapLevel
+  status: RoadmapStatus
+  /** lucide icon name; pages map it to a component */
+  icon: string
+  /** Coming-soon skeletons only — outline shown on the detail page. Hours/counts are set at authoring time, never here. */
+  plannedPhases?: Array<{ title: string; blurb: string }>
+}
+
+/** Live-roadmap stats for catalog cards, computed from authored content — never hand-written. */
+export interface RoadmapStats {
+  phases: number
+  modules: number
+  lessons: number
+  hours: number
+}

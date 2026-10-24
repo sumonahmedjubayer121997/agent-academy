@@ -6,6 +6,7 @@ import {
   CalendarClock,
   ChevronDown,
   ClipboardCheck,
+  Compass,
   FolderGit2,
   Gauge,
   Layers,
@@ -30,6 +31,7 @@ const PRIMARY_LINKS = [
 ]
 
 const MORE_LINKS = [
+  { to: '/roadmaps', label: 'All roadmaps', icon: Compass },
   { to: '/roadmap', label: 'Roadmap map', icon: Map },
   { to: '/planner', label: 'Planner & settings', icon: CalendarClock },
   { to: '/playground', label: 'Playground', icon: Bot },

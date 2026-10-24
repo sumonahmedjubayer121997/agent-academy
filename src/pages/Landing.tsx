@@ -3,6 +3,7 @@ import { ArrowRight, ClipboardCheck, Map, ShieldCheck, Sparkles, Target } from '
 import { MODULES, } from '../content/modules'
 import { PHASES } from '../content/phases'
 import { PROJECTS } from '../content/projects'
+import { ROADMAPS } from '../content/roadmaps/registry'
 import { phaseStats, totals, useProgress } from '../store/progress'
 import LoopVisual from '../components/demos/LoopVisual'
 import { Card, ProgressBar } from '../components/ui'
@@ -105,6 +106,34 @@ export default function Landing() {
               <h3 className="font-semibold tracking-tight">{title}</h3>
               <p className="mt-2 text-sm leading-relaxed text-ink-soft">{body}</p>
             </Card>
+          ))}
+        </div>
+      </section>
+
+      {/* Roadmap catalog teaser */}
+      <section className="py-14">
+        <div className="mb-6 flex items-end justify-between">
+          <h2 className="text-2xl font-semibold tracking-tight">One live roadmap, four on the way</h2>
+          <Link to="/roadmaps" className="inline-flex items-center gap-1 text-sm font-medium text-accent hover:underline">
+            All roadmaps <ArrowRight size={14} />
+          </Link>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {ROADMAPS.filter((r) => r.status === 'coming-soon').map((r) => (
+            <Link
+              key={r.slug}
+              to={`/roadmaps/${r.slug}`}
+              className="group rounded-xl border border-line bg-surface p-4 transition-colors hover:border-line-strong"
+            >
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-sm font-semibold tracking-tight group-hover:text-accent">{r.title}</p>
+                <span className="shrink-0 rounded-full border border-line px-2 py-0.5 text-[10px] font-medium text-ink-faint">
+                  soon
+                </span>
+              </div>
+              <p className="mt-1 text-xs leading-relaxed text-ink-soft">{r.tagline}</p>
+              <p className="mt-2 text-[11px] text-ink-faint">{r.plannedPhases?.length ?? 0} phases planned</p>
+            </Link>
           ))}
         </div>
       </section>

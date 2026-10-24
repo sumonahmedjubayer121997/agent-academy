@@ -15,6 +15,7 @@ import Assessment from './pages/Assessment'
 import Planner from './pages/Planner'
 import Review from './pages/Review'
 import Journal from './pages/Journal'
+import Roadmaps, { RoadmapDetail } from './pages/Roadmaps'
 
 function ScrollToTop() {
   const { pathname } = useLocation()
@@ -56,6 +57,8 @@ export default function App() {
           <main className="mx-auto w-full max-w-6xl flex-1 px-4">
             <Routes>
               <Route path="/" element={<Landing />} />
+              <Route path="/roadmaps" element={<Roadmaps />} />
+              <Route path="/roadmaps/:slug" element={<RoadmapDetail />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/roadmap" element={<Roadmap />} />
               <Route path="/roadmap/:moduleId" element={<ModuleDetail />} />
