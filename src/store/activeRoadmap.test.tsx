@@ -23,17 +23,26 @@ describe('active roadmap context', () => {
     )
   })
 
-  it('falls back to the default bundle for unknown or not-yet-live /r/ slugs', () => {
-    for (const entry of ['/r/prompt-engineering', '/r/nope']) {
-      const { unmount } = render(
-        <MemoryRouter initialEntries={[entry]}>
-          <ActiveRoadmapProvider>
-            <Probe />
-          </ActiveRoadmapProvider>
-        </MemoryRouter>,
-      )
-      expect(screen.getByTestId('probe').textContent).toContain('ai-agents:')
-      unmount()
-    }
+  it('resolves a registered bundle slug and falls back for unknown /r/ slugs', () => {
+    // prompt-engineering has a registered bundle — it resolves even while its routes land later
+    const { unmount } = render(
+      <MemoryRouter initialEntries={['/r/prompt-engineering/curriculum']}>
+        <ActiveRoadmapProvider>
+          <Probe />
+        </ActiveRoadmapProvider>
+      </MemoryRouter>,
+    )
+    expect(screen.getByTestId('probe').textContent).toContain('prompt-engineering:')
+    unmount()
+    // unknown slugs fall back to the default bundle
+    const second = render(
+      <MemoryRouter initialEntries={['/r/nope']}>
+        <ActiveRoadmapProvider>
+          <Probe />
+        </ActiveRoadmapProvider>
+      </MemoryRouter>,
+    )
+    expect(screen.getByTestId('probe').textContent).toContain('ai-agents:')
+    second.unmount()
   })
 })
