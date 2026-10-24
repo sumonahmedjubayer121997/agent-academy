@@ -2,6 +2,8 @@ import { useEffect } from 'react'
 import { BrowserRouter, Routes, Route, useLocation, Link } from 'react-router-dom'
 import Navbar from './components/Navbar'
 import { ProgressProvider } from './store/progress'
+import { ActiveRoadmapProvider } from './store/activeRoadmap'
+import { usePageMeta } from './hooks/usePageMeta'
 import Landing from './pages/Landing'
 import Dashboard from './pages/Dashboard'
 import Roadmap from './pages/Roadmap'
@@ -15,6 +17,7 @@ import Assessment from './pages/Assessment'
 import Planner from './pages/Planner'
 import Review from './pages/Review'
 import Journal from './pages/Journal'
+import Roadmaps, { RoadmapDetail } from './pages/Roadmaps'
 
 function ScrollToTop() {
   const { pathname } = useLocation()
@@ -23,6 +26,7 @@ function ScrollToTop() {
 }
 
 function NotFound() {
+  usePageMeta('Page not found')
   return (
     <div className="py-24 text-center">
       <p className="text-4xl font-semibold tracking-tight">Page not found</p>
@@ -49,6 +53,7 @@ function Footer() {
 export default function App() {
   return (
     <BrowserRouter>
+      <ActiveRoadmapProvider>
       <ProgressProvider>
         <ScrollToTop />
         <div className="flex min-h-screen flex-col">
@@ -56,6 +61,8 @@ export default function App() {
           <main className="mx-auto w-full max-w-6xl flex-1 px-4">
             <Routes>
               <Route path="/" element={<Landing />} />
+              <Route path="/roadmaps" element={<Roadmaps />} />
+              <Route path="/roadmaps/:slug" element={<RoadmapDetail />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/roadmap" element={<Roadmap />} />
               <Route path="/roadmap/:moduleId" element={<ModuleDetail />} />
@@ -74,6 +81,7 @@ export default function App() {
           <Footer />
         </div>
       </ProgressProvider>
+      </ActiveRoadmapProvider>
     </BrowserRouter>
   )
 }

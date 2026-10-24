@@ -1,4 +1,4 @@
-import type { QuizQ } from './types'
+import type { QuizQ } from '../../types'
 
 export type Domain = 'python' | 'math' | 'ml' | 'dl' | 'agents'
 

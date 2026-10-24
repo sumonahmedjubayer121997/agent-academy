@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
+import { usePageMeta } from '../hooks/usePageMeta'
 import {
   ArrowLeft,
   BookOpen,
@@ -15,7 +16,7 @@ import {
   PencilLine,
   Play,
 } from 'lucide-react'
-import { LESSONS } from '../content/lessons'
+import { LESSONS } from '../content/roadmaps/ai-agents'
 import type { QuizQ } from '../content/types'
 import { statusOf, useProgress } from '../store/progress'
 import { Badge, Button, Card } from '../components/ui'
@@ -330,6 +331,7 @@ export default function LessonPage() {
   const { lessonId } = useParams()
   const { data, setStatus } = useProgress()
   const lesson = LESSONS.find((l) => l.id === lessonId)
+  usePageMeta(lesson ? lesson.title : 'Lesson not found', lesson?.tagline)
 
   if (!lesson) {
     return (

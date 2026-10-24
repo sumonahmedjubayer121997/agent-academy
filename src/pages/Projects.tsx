@@ -9,9 +9,9 @@ import {
   ShieldCheck,
   Sparkles,
 } from 'lucide-react'
-import { MODULES } from '../content/modules'
-import { PROJECTS } from '../content/projects'
-import { PRACTICE_PROJECTS, type PracticeProject } from '../content/practiceProjects'
+import { MODULES } from '../content/roadmaps/ai-agents'
+import { PROJECTS } from '../content/roadmaps/ai-agents'
+import { PRACTICE_PROJECTS, type PracticeProject } from '../content/roadmaps/ai-agents'
 import { Badge, Button, Card, ProgressBar, SectionHead, StatusBadge } from '../components/ui'
 import {
   emptyProjectRecord,
@@ -167,7 +167,9 @@ function PracticeProjectsSection() {
   )
 }
 
+import { usePageMeta } from '../hooks/usePageMeta'
 export default function Projects() {
+  usePageMeta('Projects & portfolio', 'Five flagship portfolio projects plus 40 step-by-step practice builds.')
   const { data, updateProject, toggleProjectMilestone, setStage } = useProgress()
   const [expandedLog, setExpandedLog] = useState<Record<string, boolean>>({
     [PROJECTS[0].id]: true,

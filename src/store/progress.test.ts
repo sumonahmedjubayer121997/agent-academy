@@ -13,7 +13,7 @@ import {
   validateAndMigrateProgress,
 } from './progress'
 import type { ProgressData } from './progress'
-import { MODULES } from '../content/modules'
+import { MODULES } from '../content/roadmaps/ai-agents'
 import { answerPersonalAssistantQuery } from '../lib/localSearch'
 
 const base = (over: Partial<ProgressData> = {}): ProgressData => ({

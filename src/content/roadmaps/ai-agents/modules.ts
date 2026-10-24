@@ -1,4 +1,4 @@
-import type { LearningModule } from './types'
+import type { LearningModule } from '../../types'
 
 // Modules are listed in dependency (topological) order — prerequisites always appear earlier.
 export const MODULES: LearningModule[] = [

@@ -14,8 +14,8 @@ import {
   Trash2,
   Upload,
 } from 'lucide-react'
-import { MODULES } from '../content/modules'
-import type { SequenceMode } from '../content/tracks'
+import { MODULES } from '../content/roadmaps/ai-agents'
+import type { SequenceMode } from '../content/roadmaps/ai-agents'
 import {
   findUnfinishedYesterdayBlocks,
   generateDailyPlan,
@@ -33,7 +33,9 @@ import {
   useProgress,
 } from '../store/progress'
 
+import { usePageMeta } from '../hooks/usePageMeta'
 export default function Planner() {
+  usePageMeta('Planner & settings', 'Weekly hours, pace forecasts, export and backup.')
   const {
     data,
     setWeeklyHours,

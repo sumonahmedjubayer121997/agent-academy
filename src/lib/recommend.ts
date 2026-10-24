@@ -1,6 +1,6 @@
-import { LESSONS } from '../content/lessons'
-import { MODULES } from '../content/modules'
-import { PROJECTS } from '../content/projects'
+import { LESSONS } from '../content/roadmaps/ai-agents'
+import { MODULES } from '../content/roadmaps/ai-agents'
+import { PROJECTS } from '../content/roadmaps/ai-agents'
 import {
   downstreamUnlockCount,
   trackForModule,
@@ -9,7 +9,7 @@ import {
   type SequenceMode,
   type TrackId,
   type TrackSpec,
-} from '../content/tracks'
+} from '../content/roadmaps/ai-agents'
 import type { LearningModule } from '../content/types'
 import {
   isUnlocked,

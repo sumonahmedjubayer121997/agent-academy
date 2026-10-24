@@ -1,9 +1,9 @@
 import { ASSESSMENT } from './assessment'
 import { EDGE_WHY } from './edges'
-import { GLOSSARY } from './glossary'
+import { GLOSSARY } from '../../glossary'
 import { LESSONS } from './lessons'
 import { MODULES } from './modules'
-import type { QuizQ } from './types'
+import type { QuizQ } from '../../types'
 
 export interface DeckCard {
   cardId: string

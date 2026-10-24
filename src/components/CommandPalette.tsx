@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { CornerDownLeft, Search } from 'lucide-react'
-import { MODULES } from '../content/modules'
-import { PRACTICE_PROJECTS } from '../content/practiceProjects'
+import { MODULES } from '../content/roadmaps/ai-agents'
+import { PRACTICE_PROJECTS } from '../content/roadmaps/ai-agents'
 import { GLOSSARY } from '../content/glossary'
 
 interface PaletteItem {
@@ -15,6 +15,7 @@ interface PaletteItem {
 
 const STATIC_ITEMS: PaletteItem[] = [
   { id: 'nav-dash', label: 'Today / Dashboard', hint: 'page', route: '/dashboard', keywords: 'today dashboard home continue plan' },
+  { id: 'nav-roadmaps', label: 'All roadmaps', hint: 'page', route: '/roadmaps', keywords: 'roadmaps catalog ai programming automation chatbot prompt engineering coming soon' },
   { id: 'nav-learn', label: 'Curriculum', hint: 'page', route: '/curriculum', keywords: 'learn curriculum modules phases ask roadmap' },
   { id: 'nav-roadmap', label: 'Roadmap map', hint: 'page', route: '/roadmap', keywords: 'roadmap graph tracks bottlenecks' },
   { id: 'nav-review', label: 'Review cards', hint: 'page', route: '/review', keywords: 'review srs flashcards spaced due drill' },

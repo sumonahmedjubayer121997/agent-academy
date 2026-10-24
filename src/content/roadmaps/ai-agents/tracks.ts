@@ -1,5 +1,5 @@
 import { MODULES } from './modules'
-import type { LearningModule } from './types'
+import type { LearningModule } from '../../types'
 
 export type TrackId = 'ai-agents' | 'ml-ds' | 'core-eng'
 export type SequenceMode = 'agent-fast-track' | 'phase-order' | 'ml-first'

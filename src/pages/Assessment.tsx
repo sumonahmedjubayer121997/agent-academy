@@ -1,8 +1,8 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { CheckCircle2, ClipboardCheck, Info } from 'lucide-react'
-import { ASSESSMENT, DOMAIN_CREDIT, DOMAIN_LABELS, type Domain } from '../content/assessment'
-import { MODULES } from '../content/modules'
+import { ASSESSMENT, DOMAIN_CREDIT, DOMAIN_LABELS, type Domain } from '../content/roadmaps/ai-agents'
+import { MODULES } from '../content/roadmaps/ai-agents'
 import { useProgress } from '../store/progress'
 import { Badge, Button, Card, ProgressBar, SectionHead } from '../components/ui'
 
@@ -18,7 +18,9 @@ function recommendation(scores: Partial<Record<Domain, number>>): string {
   return 'Strong across classical areas. You could open Phase 4 (LLM APIs) early for motivation, then circle back to close any remaining Phase 1–3 gaps.'
 }
 
+import { usePageMeta } from '../hooks/usePageMeta'
 export default function Assessment() {
+  usePageMeta('Diagnostic assessment', 'Find your real gaps across five domains and credit what you already know.')
   const { data, recordAssessment, applyAssessmentCredit } = useProgress()
   const [answers, setAnswers] = useState<Record<number, number>>({})
   const [submitted, setSubmitted] = useState(false)

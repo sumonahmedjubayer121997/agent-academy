@@ -1,14 +1,14 @@
 import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { cardsForModule } from '../content/cards'
-import { MODULES } from '../content/modules'
-import { PHASES } from '../content/phases'
+import { cardsForModule } from '../content/roadmaps/ai-agents'
+import { MODULES } from '../content/roadmaps/ai-agents'
+import { PHASES } from '../content/roadmaps/ai-agents'
 import {
   downstreamUnlockCount,
   trackForModule,
   trackSpecFor,
   type TrackId,
-} from '../content/tracks'
+} from '../content/roadmaps/ai-agents'
 import { isDue } from '../lib/srs'
 import {
   isUnlocked,

@@ -19,10 +19,10 @@ import {
   TrendingUp,
   Trophy,
 } from 'lucide-react'
-import { LESSONS } from '../content/lessons'
-import { MODULES } from '../content/modules'
-import { PROJECTS } from '../content/projects'
-import { TRACKS, trackForModule, waveForModule } from '../content/tracks'
+import { LESSONS } from '../content/roadmaps/ai-agents'
+import { MODULES } from '../content/roadmaps/ai-agents'
+import { PROJECTS } from '../content/roadmaps/ai-agents'
+import { TRACKS, trackForModule, waveForModule } from '../content/roadmaps/ai-agents'
 import {
   currentPhase,
   dueCards,
@@ -48,7 +48,9 @@ const CONF_LEVELS: { key: Confidence; label: string }[] = [
   { key: 'lost', label: 'Lost' },
 ]
 
+import { usePageMeta } from '../hooks/usePageMeta'
 export default function Dashboard() {
+  usePageMeta('Today', 'Your daily plan, streak, and honest progress analytics.')
   const { data, logStudyDay, logSession, saveDailyPlan, toggleDailyBlock } = useProgress()
   const [reportWindow, setReportWindow] = useState<'7d' | '30d'>('7d')
   const [expandedRecIdx, setExpandedRecIdx] = useState<number>(0)

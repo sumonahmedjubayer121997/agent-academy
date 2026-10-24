@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
+import { usePageMeta } from '../hooks/usePageMeta'
 import {
   AlertTriangle,
   ArrowLeft,
@@ -17,12 +18,12 @@ import {
   Target,
   Trash2,
 } from 'lucide-react'
-import { cardsForModule } from '../content/cards'
-import { EDGE_WHY } from '../content/edges'
-import { MODULES } from '../content/modules'
-import { PHASES } from '../content/phases'
+import { cardsForModule } from '../content/roadmaps/ai-agents'
+import { EDGE_WHY } from '../content/roadmaps/ai-agents'
+import { MODULES } from '../content/roadmaps/ai-agents'
+import { PHASES } from '../content/roadmaps/ai-agents'
 import { RESOURCES } from '../content/resources'
-import { trackForModule, trackSpecFor } from '../content/tracks'
+import { trackForModule, trackSpecFor } from '../content/roadmaps/ai-agents'
 import { masteryGate } from '../lib/mastery'
 import FocusTimer from '../components/FocusTimer'
 import { Badge, Button, Card, ProgressBar, StatusBadge } from '../components/ui'
@@ -52,6 +53,7 @@ export default function ModuleDetail() {
   } = useProgress()
 
   const m = MODULES.find((x) => x.id === moduleId)
+  usePageMeta(m ? `${m.title} — module` : 'Module not found', m?.why)
 
   const [newQuestion, setNewQuestion] = useState('')
   const [masterPrompt, setMasterPrompt] = useState<string[] | null>(null)

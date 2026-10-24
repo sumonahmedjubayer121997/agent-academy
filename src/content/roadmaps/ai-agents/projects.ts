@@ -1,4 +1,4 @@
-import type { ProjectSpec } from './types'
+import type { ProjectSpec } from '../../types'
 
 export const PROJECTS: ProjectSpec[] = [
   {

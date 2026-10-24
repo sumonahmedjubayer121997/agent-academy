@@ -1,4 +1,4 @@
-import { MODULES } from '../content/modules'
+import { MODULES } from '../content/roadmaps/ai-agents'
 import {
   dueCards,
   moduleRecordOf,
