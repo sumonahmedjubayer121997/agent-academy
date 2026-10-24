@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { BUNDLES, ROADMAPS, getRoadmap } from './registry'
 import { MODULES } from './ai-agents'
+import { MODULES as PE_MODULES, PHASES as PE_PHASES, PRACTICE_PROJECTS as PE_PP } from './prompt-engineering'
 
 describe('roadmap registry', () => {
   it('lists five roadmaps with unique slugs', () => {
@@ -17,11 +18,26 @@ describe('roadmap registry', () => {
     expect(stats && stats.phases).toBeGreaterThan(0)
   })
 
-  it('coming-soon roadmaps have a planned phase outline but no invented stats', () => {
+  it('coming-soon roadmaps either have a planned outline or bundle-backed stats — never invented numbers', () => {
     for (const r of ROADMAPS.filter((x) => x.status === 'coming-soon')) {
-      expect((r.plannedPhases ?? []).length).toBeGreaterThanOrEqual(5)
-      expect(r.stats).toBeUndefined()
+      if (BUNDLES[r.slug]) {
+        // curriculum authored: stats must match the bundle exactly, no planned skeleton
+        expect(r.stats?.modules).toBe(BUNDLES[r.slug].MODULES.length)
+        expect(r.stats?.phases).toBe(BUNDLES[r.slug].PHASES.length)
+        expect(r.plannedPhases).toBeUndefined()
+      } else {
+        expect((r.plannedPhases ?? []).length).toBeGreaterThanOrEqual(5)
+        expect(r.stats).toBeUndefined()
+      }
     }
+  })
+
+  it('prompt-engineering curriculum is registered with authored stats', () => {
+    const pe = getRoadmap('prompt-engineering')
+    expect(pe?.stats?.modules).toBe(PE_MODULES.length)
+    expect(pe?.stats?.phases).toBe(PE_PHASES.length)
+    expect(pe?.stats?.hours).toBeGreaterThan(0)
+    expect(BUNDLES['prompt-engineering'].PRACTICE_PROJECTS.length).toBe(PE_PP.length)
   })
 
   it('exposes a bundle for every live roadmap and resolves slugs', () => {

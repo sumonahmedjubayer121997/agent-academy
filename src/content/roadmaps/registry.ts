@@ -1,11 +1,18 @@
 import type { RoadmapMeta, RoadmapStats } from '../types'
 import * as aiAgents from './ai-agents'
+import * as promptEngineering from './prompt-engineering'
 
 export type RoadmapBundle = typeof aiAgents
 
-/** Content bundles for live roadmaps. A roadmap goes live by flipping its meta status AND being added here. */
+/**
+ * Content bundles by slug. A roadmap becomes fully live (app routes, progress
+ * tracking) by flipping its meta status to 'live' AND being present here —
+ * 'coming-soon' roadmaps with a bundle show their authored curriculum on the
+ * detail page while app integration lands.
+ */
 export const BUNDLES: Record<string, RoadmapBundle> = {
   'ai-agents': aiAgents,
+  'prompt-engineering': promptEngineering as unknown as RoadmapBundle,
 }
 
 export interface RoadmapRegistryEntry extends RoadmapMeta {
@@ -20,28 +27,21 @@ const aiAgentsStats: RoadmapStats = {
   hours: aiAgents.MODULES.reduce((sum, m) => sum + m.hours, 0),
 }
 
+const promptEngineeringStats: RoadmapStats = {
+  phases: promptEngineering.PHASES.length,
+  modules: promptEngineering.MODULES.length,
+  lessons: 0,
+  hours: promptEngineering.MODULES.reduce((sum, m) => sum + m.hours, 0),
+}
+
 export const ROADMAPS: RoadmapRegistryEntry[] = [
   {
     ...aiAgents.META,
     stats: aiAgentsStats,
   },
   {
-    slug: 'prompt-engineering',
-    title: 'Prompt Engineering',
-    tagline: 'Design prompts like an engineer, not a vibesmith',
-    description:
-      'From first principles to eval-driven prompt design: structured output, context engineering, systematic testing, and defending against injection. The most direct path from zero to a complete roadmap.',
-    level: 'Beginner-friendly',
-    status: 'coming-soon',
-    icon: 'Sparkles',
-    plannedPhases: [
-      { title: 'Prompting fundamentals', blurb: 'Instructions, roles, delimiters, and how models actually read your prompt.' },
-      { title: 'Structured output & schemas', blurb: 'JSON mode, function calling, and validating model output in code.' },
-      { title: 'Few-shot & context engineering', blurb: 'Examples, ordering, and budgeting what the model sees.' },
-      { title: 'Eval-driven prompting', blurb: 'Write the test before the prompt; measure, not vibe-check.' },
-      { title: 'Prompt security & injection defense', blurb: 'Attacks, leaks, and system-prompt hardening.' },
-      { title: 'Domain playbooks', blurb: 'Reusable prompt patterns for search, summarisation, extraction, and agents.' },
-    ],
+    ...promptEngineering.META,
+    stats: promptEngineeringStats,
   },
   {
     slug: 'ai-programming',
