@@ -48,7 +48,9 @@ const CONF_LEVELS: { key: Confidence; label: string }[] = [
   { key: 'lost', label: 'Lost' },
 ]
 
+import { usePageMeta } from '../hooks/usePageMeta'
 export default function Dashboard() {
+  usePageMeta('Today', 'Your daily plan, streak, and honest progress analytics.')
   const { data, logStudyDay, logSession, saveDailyPlan, toggleDailyBlock } = useProgress()
   const [reportWindow, setReportWindow] = useState<'7d' | '30d'>('7d')
   const [expandedRecIdx, setExpandedRecIdx] = useState<number>(0)

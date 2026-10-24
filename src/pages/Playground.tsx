@@ -153,7 +153,9 @@ function TraceEntry({ t }: { t: Trace }) {
 
 /* ── Page ────────────────────────────────────────────────────────────── */
 
+import { usePageMeta } from '../hooks/usePageMeta'
 export default function Playground() {
+  usePageMeta('Agent playground', 'Step through the agent loop in a clearly-labelled simulation, or run it live against a local backend.')
   const [scenarioId, setScenarioId] = useState(SCENARIOS[0].id)
   const scenario = SCENARIOS.find((s) => s.id === scenarioId)!
   const [visible, setVisible] = useState<Trace[]>([])

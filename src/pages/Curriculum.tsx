@@ -168,7 +168,9 @@ const STAGE_SYMBOL: Record<MasteryStage, string> = {
   mastered: '✓',
 }
 
+import { usePageMeta } from '../hooks/usePageMeta'
 export default function Curriculum() {
+  usePageMeta('Curriculum', 'All phases and modules of the AI Agents roadmap, with tracks and progress.')
   const { data, cycleStage } = useProgress()
   const stats = phaseStats(data)
 

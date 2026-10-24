@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
+import { usePageMeta } from '../hooks/usePageMeta'
 import {
   AlertTriangle,
   ArrowLeft,
@@ -52,6 +53,7 @@ export default function ModuleDetail() {
   } = useProgress()
 
   const m = MODULES.find((x) => x.id === moduleId)
+  usePageMeta(m ? `${m.title} — module` : 'Module not found', m?.why)
 
   const [newQuestion, setNewQuestion] = useState('')
   const [masterPrompt, setMasterPrompt] = useState<string[] | null>(null)

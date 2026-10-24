@@ -167,7 +167,9 @@ function PracticeProjectsSection() {
   )
 }
 
+import { usePageMeta } from '../hooks/usePageMeta'
 export default function Projects() {
+  usePageMeta('Projects & portfolio', 'Five flagship portfolio projects plus 40 step-by-step practice builds.')
   const { data, updateProject, toggleProjectMilestone, setStage } = useProgress()
   const [expandedLog, setExpandedLog] = useState<Record<string, boolean>>({
     [PROJECTS[0].id]: true,

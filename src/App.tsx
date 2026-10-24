@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, useLocation, Link } from 'react-router-do
 import Navbar from './components/Navbar'
 import { ProgressProvider } from './store/progress'
 import { ActiveRoadmapProvider } from './store/activeRoadmap'
+import { usePageMeta } from './hooks/usePageMeta'
 import Landing from './pages/Landing'
 import Dashboard from './pages/Dashboard'
 import Roadmap from './pages/Roadmap'
@@ -25,6 +26,7 @@ function ScrollToTop() {
 }
 
 function NotFound() {
+  usePageMeta('Page not found')
   return (
     <div className="py-24 text-center">
       <p className="text-4xl font-semibold tracking-tight">Page not found</p>

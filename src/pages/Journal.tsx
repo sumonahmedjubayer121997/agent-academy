@@ -15,7 +15,9 @@ import { trackForModule, trackSpecFor } from '../content/roadmaps/ai-agents'
 import { Badge, Button, Card, SectionHead } from '../components/ui'
 import { todayStr, useProgress } from '../store/progress'
 
+import { usePageMeta } from '../hooks/usePageMeta'
 export default function Journal() {
+  usePageMeta('Journal', 'Study journal — entries, questions, and reflections.')
   const [searchParams] = useSearchParams()
   const initialMod = searchParams.get('module') ?? MODULES[0].id
 

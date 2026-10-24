@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://agent-academy-peach.vercel.app/</loc><changefreq>weekly</changefreq></url>
+  <url><loc>https://agent-academy-peach.vercel.app/roadmaps</loc><changefreq>weekly</changefreq></url>
+  <url><loc>https://agent-academy-peach.vercel.app/roadmaps/prompt-engineering</loc></url>
+  <url><loc>https://agent-academy-peach.vercel.app/roadmaps/ai-programming</loc></url>
+  <url><loc>https://agent-academy-peach.vercel.app/roadmaps/ai-automation</loc></url>
+  <url><loc>https://agent-academy-peach.vercel.app/roadmaps/chatbot-dev</loc></url>
+  <url><loc>https://agent-academy-peach.vercel.app/curriculum</loc></url>
+  <url><loc>https://agent-academy-peach.vercel.app/roadmap</loc></url>
+  <url><loc>https://agent-academy-peach.vercel.app/projects</loc></url>
+  <url><loc>https://agent-academy-peach.vercel.app/resources</loc></url>
+  <url><loc>https://agent-academy-peach.vercel.app/assess</loc></url>
+  <url><loc>https://agent-academy-peach.vercel.app/playground</loc></url>
+  <url><loc>https://agent-academy-peach.vercel.app/review</loc></url>
+  <url><loc>https://agent-academy-peach.vercel.app/journal</loc></url>
+  <url><loc>https://agent-academy-peach.vercel.app/planner</loc></url>
+  <url><loc>https://agent-academy-peach.vercel.app/dashboard</loc></url>
+</urlset>

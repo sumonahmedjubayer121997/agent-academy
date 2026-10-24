@@ -33,7 +33,9 @@ import {
   useProgress,
 } from '../store/progress'
 
+import { usePageMeta } from '../hooks/usePageMeta'
 export default function Planner() {
+  usePageMeta('Planner & settings', 'Weekly hours, pace forecasts, export and backup.')
   const {
     data,
     setWeeklyHours,

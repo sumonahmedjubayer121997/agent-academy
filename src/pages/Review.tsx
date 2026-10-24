@@ -25,7 +25,9 @@ import { Badge, Button, Card, ProgressBar, SectionHead } from '../components/ui'
  * - Supports both objective MCQs (`lesson:`, `assess:`) and active-recall flashcards
  *   (`module:`, `glossary:`, `edge:`, `custom:`) with 4-grade SM-2 scheduling.
  */
+import { usePageMeta } from '../hooks/usePageMeta'
 export default function Review() {
+  usePageMeta('Review', 'Spaced-repetition review of your due cards.')
   const { data, gradeCard, logSession, seedModuleCards, addCustomCard, deleteCustomCard } =
     useProgress()
 

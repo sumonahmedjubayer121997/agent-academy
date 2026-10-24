@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
+import { usePageMeta } from '../hooks/usePageMeta'
 import {
   ArrowLeft,
   BookOpen,
@@ -330,6 +331,7 @@ export default function LessonPage() {
   const { lessonId } = useParams()
   const { data, setStatus } = useProgress()
   const lesson = LESSONS.find((l) => l.id === lessonId)
+  usePageMeta(lesson ? lesson.title : 'Lesson not found', lesson?.tagline)
 
   if (!lesson) {
     return (

@@ -17,7 +17,9 @@ import {
   useProgress,
 } from '../store/progress'
 
+import { usePageMeta } from '../hooks/usePageMeta'
 export default function Roadmap() {
+  usePageMeta('Roadmap map', 'The full dependency graph of the AI Agents curriculum.')
   const { data } = useProgress()
   const [filter, setFilter] = useState<NonNullable<RoadmapGraphProps['filterTrack']>>('all')
 

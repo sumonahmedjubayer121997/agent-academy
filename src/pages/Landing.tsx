@@ -8,7 +8,9 @@ import { phaseStats, totals, useProgress } from '../store/progress'
 import LoopVisual from '../components/demos/LoopVisual'
 import { Card, ProgressBar } from '../components/ui'
 
+import { usePageMeta } from '../hooks/usePageMeta'
 export default function Landing() {
+  usePageMeta('Become an AI Agent Engineer', 'A structured, project-driven path from React developer to production AI Agent Engineer — diagnostic-first, 60 modules, portfolio checkpoints.')
   const { data } = useProgress()
   const t = totals(data)
   const stats = phaseStats(data)
