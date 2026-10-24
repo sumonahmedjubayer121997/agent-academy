@@ -11,9 +11,9 @@ import {
   Trash2,
   XCircle,
 } from 'lucide-react'
-import { CURRICULUM_DECK, type DeckCard } from '../content/cards'
-import { LESSONS } from '../content/lessons'
-import { MODULES } from '../content/modules'
+import { CURRICULUM_DECK, type DeckCard } from '../content/roadmaps/ai-agents'
+import { LESSONS } from '../content/roadmaps/ai-agents'
+import { MODULES } from '../content/roadmaps/ai-agents'
 import { dueCards, stageOf, todayStr, useProgress } from '../store/progress'
 import type { RecallGrade } from '../lib/srs'
 import { Badge, Button, Card, ProgressBar, SectionHead } from '../components/ui'

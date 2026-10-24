@@ -3,12 +3,12 @@ import { Link } from 'react-router-dom'
 import { AlertCircle, ArrowRight, Layers, Sparkles } from 'lucide-react'
 import RoadmapGraph, { type RoadmapGraphProps } from '../components/RoadmapGraph'
 import { Badge, Card, ProgressBar, SectionHead } from '../components/ui'
-import { MODULES } from '../content/modules'
+import { MODULES } from '../content/roadmaps/ai-agents'
 import {
   downstreamUnlockCount,
   TRACKS,
   trackForModule,
-} from '../content/tracks'
+} from '../content/roadmaps/ai-agents'
 import {
   isUnlocked,
   moduleRecordOf,

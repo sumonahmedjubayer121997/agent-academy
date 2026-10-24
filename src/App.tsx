@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { BrowserRouter, Routes, Route, useLocation, Link } from 'react-router-dom'
 import Navbar from './components/Navbar'
 import { ProgressProvider } from './store/progress'
+import { ActiveRoadmapProvider } from './store/activeRoadmap'
 import Landing from './pages/Landing'
 import Dashboard from './pages/Dashboard'
 import Roadmap from './pages/Roadmap'
@@ -50,6 +51,7 @@ function Footer() {
 export default function App() {
   return (
     <BrowserRouter>
+      <ActiveRoadmapProvider>
       <ProgressProvider>
         <ScrollToTop />
         <div className="flex min-h-screen flex-col">
@@ -77,6 +79,7 @@ export default function App() {
           <Footer />
         </div>
       </ProgressProvider>
+      </ActiveRoadmapProvider>
     </BrowserRouter>
   )
 }

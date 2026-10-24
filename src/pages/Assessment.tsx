@@ -1,8 +1,8 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { CheckCircle2, ClipboardCheck, Info } from 'lucide-react'
-import { ASSESSMENT, DOMAIN_CREDIT, DOMAIN_LABELS, type Domain } from '../content/assessment'
-import { MODULES } from '../content/modules'
+import { ASSESSMENT, DOMAIN_CREDIT, DOMAIN_LABELS, type Domain } from '../content/roadmaps/ai-agents'
+import { MODULES } from '../content/roadmaps/ai-agents'
 import { useProgress } from '../store/progress'
 import { Badge, Button, Card, ProgressBar, SectionHead } from '../components/ui'
 

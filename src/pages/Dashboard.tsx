@@ -19,10 +19,10 @@ import {
   TrendingUp,
   Trophy,
 } from 'lucide-react'
-import { LESSONS } from '../content/lessons'
-import { MODULES } from '../content/modules'
-import { PROJECTS } from '../content/projects'
-import { TRACKS, trackForModule, waveForModule } from '../content/tracks'
+import { LESSONS } from '../content/roadmaps/ai-agents'
+import { MODULES } from '../content/roadmaps/ai-agents'
+import { PROJECTS } from '../content/roadmaps/ai-agents'
+import { TRACKS, trackForModule, waveForModule } from '../content/roadmaps/ai-agents'
 import {
   currentPhase,
   dueCards,

@@ -1,9 +1,9 @@
 import { GLOSSARY } from '../content/glossary'
-import { LESSONS } from '../content/lessons'
-import { MODULES } from '../content/modules'
-import { PROJECTS } from '../content/projects'
+import { LESSONS } from '../content/roadmaps/ai-agents'
+import { MODULES } from '../content/roadmaps/ai-agents'
+import { PROJECTS } from '../content/roadmaps/ai-agents'
 import { RESOURCES } from '../content/resources'
-import { TRACKS, trackForModule } from '../content/tracks'
+import { TRACKS, trackForModule } from '../content/roadmaps/ai-agents'
 import {
   dueCards,
   moduleMinutesLogged,

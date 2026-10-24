@@ -4,7 +4,7 @@ import { MemoryRouter, useLocation } from 'react-router-dom'
 import RoadmapGraph from './RoadmapGraph'
 import VectorSim from './demos/VectorSim'
 import { ProgressProvider } from '../store/progress'
-import { MODULES } from '../content/modules'
+import { MODULES } from '../content/roadmaps/ai-agents'
 
 function LocationProbe() {
   const l = useLocation()

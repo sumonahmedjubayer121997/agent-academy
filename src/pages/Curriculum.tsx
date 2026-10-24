@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { BookOpen, Clock, Lock, Search, Sparkles } from 'lucide-react'
-import { MODULES } from '../content/modules'
-import { TRACKS, trackForModule, type TrackId } from '../content/tracks'
+import { MODULES } from '../content/roadmaps/ai-agents'
+import { TRACKS, trackForModule, type TrackId } from '../content/roadmaps/ai-agents'
 import { ask } from '../lib/api'
 import {
   answerPersonalAssistantQuery,

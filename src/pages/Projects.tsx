@@ -9,9 +9,9 @@ import {
   ShieldCheck,
   Sparkles,
 } from 'lucide-react'
-import { MODULES } from '../content/modules'
-import { PROJECTS } from '../content/projects'
-import { PRACTICE_PROJECTS, type PracticeProject } from '../content/practiceProjects'
+import { MODULES } from '../content/roadmaps/ai-agents'
+import { PROJECTS } from '../content/roadmaps/ai-agents'
+import { PRACTICE_PROJECTS, type PracticeProject } from '../content/roadmaps/ai-agents'
 import { Badge, Button, Card, ProgressBar, SectionHead, StatusBadge } from '../components/ui'
 import {
   emptyProjectRecord,

@@ -17,12 +17,12 @@ import {
   Target,
   Trash2,
 } from 'lucide-react'
-import { cardsForModule } from '../content/cards'
-import { EDGE_WHY } from '../content/edges'
-import { MODULES } from '../content/modules'
-import { PHASES } from '../content/phases'
+import { cardsForModule } from '../content/roadmaps/ai-agents'
+import { EDGE_WHY } from '../content/roadmaps/ai-agents'
+import { MODULES } from '../content/roadmaps/ai-agents'
+import { PHASES } from '../content/roadmaps/ai-agents'
 import { RESOURCES } from '../content/resources'
-import { trackForModule, trackSpecFor } from '../content/tracks'
+import { trackForModule, trackSpecFor } from '../content/roadmaps/ai-agents'
 import { masteryGate } from '../lib/mastery'
 import FocusTimer from '../components/FocusTimer'
 import { Badge, Button, Card, ProgressBar, StatusBadge } from '../components/ui'

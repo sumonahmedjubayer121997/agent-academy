@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { ExternalLink } from 'lucide-react'
 import { RESOURCES } from '../content/resources'
 import { GLOSSARY } from '../content/glossary'
-import { PHASES } from '../content/phases'
+import { PHASES } from '../content/roadmaps/ai-agents'
 import { Badge, Card, SectionHead } from '../components/ui'
 
 export default function Resources() {

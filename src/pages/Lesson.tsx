@@ -15,7 +15,7 @@ import {
   PencilLine,
   Play,
 } from 'lucide-react'
-import { LESSONS } from '../content/lessons'
+import { LESSONS } from '../content/roadmaps/ai-agents'
 import type { QuizQ } from '../content/types'
 import { statusOf, useProgress } from '../store/progress'
 import { Badge, Button, Card } from '../components/ui'

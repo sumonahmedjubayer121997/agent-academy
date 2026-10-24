@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { CornerDownLeft, Search } from 'lucide-react'
-import { MODULES } from '../content/modules'
-import { PRACTICE_PROJECTS } from '../content/practiceProjects'
+import { MODULES } from '../content/roadmaps/ai-agents'
+import { PRACTICE_PROJECTS } from '../content/roadmaps/ai-agents'
 import { GLOSSARY } from '../content/glossary'
 
 interface PaletteItem {
