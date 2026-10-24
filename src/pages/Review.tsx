@@ -156,6 +156,19 @@ export default function Review() {
     }
   }
 
+  // Advance past a card without grading it (used when deleting a custom card mid-session).
+  const advanceWithoutGrade = () => {
+    if (!current) return
+    if (i + 1 >= sessionQueue.length) {
+      setDone(true)
+    } else {
+      setI(i + 1)
+      setSelected(null)
+      setFlashcardRevealed(false)
+      setScratchAnswer('')
+    }
+  }
+
   const handleCreateCustomCard = (e: React.FormEvent) => {
     e.preventDefault()
     if (customPrompt.trim().length < 5 || customAnswer.trim().length < 3) return
@@ -241,7 +254,7 @@ export default function Review() {
           <Card className="p-6">
             <h3 className="font-semibold tracking-tight">Seed recall cards by module</h3>
             <p className="mt-1 text-sm text-ink-soft">
-              All 44 curriculum modules have active-recall cards ready. Seed any module you are
+              All {MODULES.length} curriculum modules have active-recall cards ready. Seed any module you are
               currently studying into your SM-2 queue:
             </p>
             <div className="mt-4 flex flex-wrap gap-2">
@@ -380,7 +393,7 @@ export default function Review() {
             <button
               onClick={() => {
                 deleteCustomCard(current.cardId)
-                finishCard(true)
+                advanceWithoutGrade()
               }}
               className="inline-flex items-center gap-1 text-xs text-bad hover:underline"
               title="Delete custom flashcard"

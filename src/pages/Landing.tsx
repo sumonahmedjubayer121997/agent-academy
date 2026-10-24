@@ -134,7 +134,11 @@ export default function Landing() {
                 </span>
               </div>
               <p className="mt-1 text-xs leading-relaxed text-ink-soft">{r.tagline}</p>
-              <p className="mt-2 text-[11px] text-ink-faint">{r.plannedPhases?.length ?? 0} phases planned</p>
+              <p className="mt-2 text-[11px] text-ink-faint">
+                {r.stats
+                  ? `${r.stats.phases} phases · ${r.stats.modules} modules`
+                  : `${r.plannedPhases?.length ?? 0} phases planned`}
+              </p>
             </Link>
           ))}
         </div>
@@ -143,7 +147,7 @@ export default function Landing() {
       {/* Phase strip */}
       <section className="py-14">
         <div className="mb-6 flex items-end justify-between">
-          <h2 className="text-2xl font-semibold tracking-tight">The eight phases</h2>
+          <h2 className="text-2xl font-semibold tracking-tight">The {PHASES.length} phases</h2>
           <Link to="/curriculum" className="inline-flex items-center gap-1 text-sm font-medium text-accent hover:underline">
             Full curriculum <ArrowRight size={14} />
           </Link>

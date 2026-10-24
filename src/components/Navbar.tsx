@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { NavLink, Link, useLocation } from 'react-router-dom'
 import {
   BookOpen,
@@ -70,6 +70,24 @@ export default function Navbar() {
   useEffect(() => setOpen(false), [pathname])
   useEffect(() => setMoreOpen(false), [pathname])
 
+  // Close the More dropdown on outside click or Escape
+  const moreRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (!moreOpen) return
+    const onDown = (e: MouseEvent) => {
+      if (moreRef.current && !moreRef.current.contains(e.target as Node)) setMoreOpen(false)
+    }
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMoreOpen(false)
+    }
+    document.addEventListener('mousedown', onDown)
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('mousedown', onDown)
+      document.removeEventListener('keydown', onKey)
+    }
+  }, [moreOpen])
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
@@ -105,7 +123,7 @@ export default function Navbar() {
               {label}
             </NavLink>
           ))}
-          <div className="relative">
+          <div className="relative" ref={moreRef}>
             <button
               onClick={() => setMoreOpen((v) => !v)}
               aria-haspopup="menu"

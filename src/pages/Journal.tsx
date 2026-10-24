@@ -105,16 +105,16 @@ export default function Journal() {
       <div className="grid gap-8 lg:grid-cols-[1.15fr_1fr]">
         {/* New Journal Entry Form */}
         <Card className="p-6">
-          <div className="flex items-center justify-between">
-            <h2 className="flex items-center gap-2 font-semibold tracking-tight">
-              <NotebookPen size={17} className="text-accent" /> Log today's reflection
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h2 className="flex min-w-0 items-center gap-2 font-semibold tracking-tight">
+              <NotebookPen size={17} className="shrink-0 text-accent" /> Log today's reflection
             </h2>
             <input
               type="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
               aria-label="Journal entry date"
-              className="rounded-lg border border-line bg-surface px-2.5 py-1 text-xs text-ink"
+              className="shrink-0 rounded-lg border border-line bg-surface px-2.5 py-1 text-xs text-ink"
             />
           </div>
 

@@ -10,7 +10,7 @@
   --line-strong: #d8d2c6;
   --ink: #26231e;
   --ink-soft: #57534a;
-  --ink-faint: #8a8478;
+  --ink-faint: #726c60;
   --accent: #c2410c;
   --accent-hover: #9a3412;
   --accent-soft: rgba(194, 65, 12, 0.08);
@@ -27,7 +27,7 @@
   --line-strong: #3b3730;
   --ink: #ece8e0;
   --ink-soft: #b5afa4;
-  --ink-faint: #7e786d;
+  --ink-faint: #8f897d;
   --accent: #e07a40;
   --accent-hover: #ec8b55;
   --accent-soft: rgba(224, 122, 64, 0.12);
@@ -42,7 +42,6 @@ html {
 
 body {
   @apply bg-base text-ink antialiased;
-  font-feature-settings: 'cv11', 'ss01';
 }
 
 :focus-visible {

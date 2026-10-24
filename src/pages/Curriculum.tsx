@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { BookOpen, Clock, Lock, Search, Sparkles } from 'lucide-react'
-import { MODULES } from '../content/roadmaps/ai-agents'
+import { MODULES, PHASES } from '../content/roadmaps/ai-agents'
 import { TRACKS, trackForModule, type TrackId } from '../content/roadmaps/ai-agents'
 import { ask } from '../lib/api'
 import {
@@ -182,7 +182,7 @@ export default function Curriculum() {
     <div className="py-10">
       <SectionHead
         eyebrow="Curriculum & personal AI assistant"
-        title="Eight phases, forty-four modules, three career tracks"
+        title={`${PHASES.length} phases, ${MODULES.length} modules, ${TRACKS.length} career tracks`}
         sub="Click a module title for interactive objectives, completion criteria, notes, and evidence links. The status button on the left cycles Not started → Learning → Practising → Confident → Mastered."
       />
 

@@ -74,7 +74,7 @@ export default function Roadmap() {
       <div className="mb-4 flex flex-wrap items-center gap-2">
         {(
           [
-            { id: 'all', label: 'All 44 Modules' },
+            { id: 'all', label: `All ${MODULES.length} Modules` },
             { id: 'ai-agents', label: 'Track A · AI & Agents' },
             { id: 'ml-ds', label: 'Track B · ML & Data Science' },
             { id: 'core-eng', label: 'Track C · Core Engineering' },
