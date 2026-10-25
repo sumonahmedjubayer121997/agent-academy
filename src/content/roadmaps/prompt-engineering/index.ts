@@ -2,6 +2,7 @@
 export * from './meta'
 export * from './phases'
 export * from './modules'
+export * from './lessons'
 export * from './edges'
 export * from './tracks'
 export * from './assessment'

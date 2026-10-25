@@ -25,6 +25,15 @@ GOLDEN: list[tuple[str, tuple[str, ...]]] = [
     ("what do i build in phase 4 project", ("module:p4-project",)),
     ("tokenisation and context windows", ("module:p3-tokens-inference",)),
     ("hybrid retrieval and reranking", ("module:p5-hybrid-retrieval",)),
+    # -- Prompt Engineering (public Beta) --
+    ("what does json mode actually guarantee", ("lesson:json-you-can-trust:", "module:pe-json-mode")),
+    ("feed validation errors back for repair", ("lesson:json-you-can-trust:", "module:pe-validation-repair")),
+    ("how should i budget my context window", ("lesson:what-the-model-sees:", "module:pe-context-budget")),
+    ("why is content in the middle of long prompts retrieved worse", ("lesson:what-the-model-sees:", "module:pe-long-context")),
+    ("what is indirect prompt injection", ("module:pe-injection",)),
+    ("how do i calibrate an llm judge", ("module:pe-metrics",)),
+    ("how many few-shot examples should i use", ("module:pe-few-shot",)),
+    ("how to red team my own prompts", ("module:pe-red-team",)),
 ]
 
 

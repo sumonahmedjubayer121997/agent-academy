@@ -73,7 +73,7 @@ export interface Lesson {
   /** Optional university-level layer, collapsed under "Go deeper" after the technical section. */
   deeper?: string[]
   numbers?: { title: string; rows: [string, string][]; takeaway: string }
-  demo?: 'agent-loop' | 'vector-sim'
+  demo?: 'agent-loop' | 'vector-sim' | 'context-inspector' | 'structured-stepthrough'
   walkthrough: { lang: string; code: string; notes: [string, string][] }
   exercise: { prompt: string; solution: string }
   quiz: QuizQ[]
@@ -81,7 +81,7 @@ export interface Lesson {
   further: { label: string; url: string; note: string }[]
 }
 
-export type RoadmapStatus = 'live' | 'coming-soon'
+export type RoadmapStatus = 'live' | 'beta' | 'coming-soon'
 export type RoadmapLevel = 'Beginner-friendly' | 'Intermediate' | 'Advanced'
 
 /** Catalog card + detail page metadata. A coming-soon roadmap is valid with only this (plus plannedPhases). */

@@ -138,4 +138,80 @@ export const PROJECTS: ProjectSpec[] = [
       'Where does responsibility sit when a poisoned document causes harm — the prompt, the retrieval, or the product?',
     ],
   },
+  {
+    id: 'pe-project-eval-harness',
+    title: 'Prompt Eval & Regression Harness',
+    moduleId: 'pe-regression',
+    proves: 'eval-driven prompt development: golden sets, judges, and CI gates',
+    problem:
+      'Prompts are edited constantly and tested never. You will build the harness that makes every prompt change an experiment: versioned prompts, a golden set, automated scoring with a calibrated judge, and a merge gate that blocks regressions.',
+    users: 'Any developer or team touching prompts who wants to stop shipping vibes.',
+    stack: ['Python or TypeScript', 'LLM API', 'Git', 'CI'],
+    milestones: [
+      'Golden set of 40+ real items with expected outputs, committed as data',
+      'Runner: one command scores any prompt version against the set',
+      'Exact-match metrics where possible; calibrated LLM-judge for fuzzy tasks',
+      'Prompt versions stored as files with changelogs',
+      'Regression gate: CI fails when a score drops below threshold',
+      'Bisect demo: a planted regression is found and reverted using the harness',
+      'README: how to add items, run evals, and read the scoreboard',
+    ],
+    evaluation:
+      'Pass rate per prompt version on the frozen golden set; judge agreement rate against hand labels; CI run gating a planted bad edit.',
+    metrics: ['golden-set size', 'pass rate per version', 'judge agreement rate', 'CI gate threshold', 'regressions caught'],
+    readme: [
+      'Why evals precede optimization',
+      'How to run the suite locally in one command',
+      'How a new prompt version is added and scored',
+      'Judge calibration method and measured agreement',
+      'Known limitations: what the harness cannot catch',
+    ],
+    demo: 'A screencast: a prompt edit passes locally, CI red-gates a regression, bisect finds the edit.',
+    tradeoffs:
+      'Expect to defend: exact-match vs judge per task type, golden-set overfitting prevention (hold-out split), judge failure modes you measured, and why some tasks are human-only.',
+    interview: [
+      'Your eval suite says 96%. Walk me through what the 4% is and what you did about it.',
+      'How did you calibrate the judge, and when do you override it?',
+      'A teammate wants to ship a prompt edit that scores the same but reads better. Ship or block?',
+      'How does the harness behave when the provider ships a new model version?',
+    ],
+  },
+  {
+    id: 'pe-project-context-compression',
+    title: 'Multi-Turn Context Compression Engine',
+    moduleId: 'pe-memory-prompts',
+    proves: 'context engineering under constraint: memory, summarisation, and budget enforcement',
+    problem:
+      'Long conversations blow the context budget and drift: constraints set on turn 2 are forgotten by turn 40. You will build the engine that keeps a multi-turn assistant coherent and cheap: rolling summaries, explicit constraint carry-over, and a hard token budget with graceful degradation.',
+    users: 'Anyone building chat products that must survive more than a dozen turns.',
+    stack: ['Python or TypeScript', 'LLM API', 'pytest or vitest'],
+    milestones: [
+      'Conversation model: full history, rolling summary, active constraint list',
+      'Summariser prompt with a quality checklist (constraints preserved, decisions kept, fluff dropped)',
+      'Budgeter: token accounting per turn; compression triggers before overflow',
+      'Constraint persistence: user rules re-stated explicitly every turn',
+      'A 50-turn adversarial conversation: the turn-3 constraint must still hold at turn 50',
+      'Cost report: tokens with vs without compression over the same conversation',
+      'Failure gallery: what compression loses, documented honestly',
+    ],
+    evaluation:
+      'Constraint retention rate across 50-turn conversations (programmatic checks), p95 per-turn latency, total token spend with vs without compression.',
+    metrics: ['constraint retention at turn 50', 'token spend reduction', 'p95 latency per turn', 'summary quality score', 'failure cases logged'],
+    readme: [
+      'The memory architecture in one diagram',
+      'When the summariser runs and what it must preserve',
+      'Measured retention and savings on the adversarial conversation',
+      'The degradation ladder: what gets dropped first as budget tightens',
+      'Known losses: what this design forgets on purpose',
+    ],
+    demo: 'A live 50-turn session where the turn-3 rule visibly still applies at turn 50, with the token meter staying flat.',
+    tradeoffs:
+      'Be ready to defend: why constraints are re-stated instead of trusted to memory, when full history beats summarisation, what the summariser silently drops, and how you tested for summary drift compounding.',
+    interview: [
+      'The summariser is lossy. How do you decide what it is allowed to forget?',
+      'Walk me through the degradation ladder as the budget shrinks.',
+      'How would you detect summary drift compounding over 200 turns?',
+      'Why re-state constraints every turn instead of relying on the system message?',
+    ],
+  },
 ]

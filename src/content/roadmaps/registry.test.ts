@@ -18,8 +18,8 @@ describe('roadmap registry', () => {
     expect(stats && stats.phases).toBeGreaterThan(0)
   })
 
-  it('coming-soon roadmaps either have a planned outline or bundle-backed stats — never invented numbers', () => {
-    for (const r of ROADMAPS.filter((x) => x.status === 'coming-soon')) {
+  it('non-live roadmaps either have a planned outline or bundle-backed stats — never invented numbers', () => {
+    for (const r of ROADMAPS.filter((x) => x.status !== 'live')) {
       if (BUNDLES[r.slug]) {
         // curriculum authored: stats must match the bundle exactly, no planned skeleton
         expect(r.stats?.modules).toBe(BUNDLES[r.slug].MODULES.length)

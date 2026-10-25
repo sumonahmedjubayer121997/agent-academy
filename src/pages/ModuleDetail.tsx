@@ -35,7 +35,7 @@ import {
 } from '../store/progress'
 
 export default function ModuleDetail() {
-  const { cardsForModule, EDGE_WHY, MODULES, PHASES, trackForModule, trackSpecFor } = useActiveRoadmap()
+  const { cardsForModule, EDGE_WHY, MODULES, PHASES, trackForModule, trackSpecFor, META } = useActiveRoadmap()
   const { moduleId } = useParams()
   const {
     data,
@@ -381,7 +381,7 @@ export default function ModuleDetail() {
                 visualisation → code walkthrough → exercise → knowledge check.
               </p>
             </div>
-            <Link to={`/learn/${m.lessonId}`}>
+            <Link to={`/r/${META.slug}/learn/${m.lessonId}`}>
               <Button>
                 Open lesson <ArrowLeft size={14} className="rotate-180" />
               </Button>

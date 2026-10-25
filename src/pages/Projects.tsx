@@ -133,7 +133,7 @@ function PracticeProjectsSection() {
   return (
     <section className="mt-14" aria-labelledby="practice-projects">
       <SectionHead
-        eyebrow="Practice projects · 40"
+        eyebrow={`Practice projects · ${PRACTICE_PROJECTS.length}`}
         title="The reps between milestones"
         sub="Five step-by-step projects per phase — small, concrete builds that exercise exactly what the phase teaches. The five flagship projects above remain your portfolio pieces; these are how you earn them."
       />
@@ -171,7 +171,7 @@ import type { PracticeProjectSpec } from '../content/types'
 import { usePageMeta } from '../hooks/usePageMeta'
 export default function Projects() {
   const { MODULES, PROJECTS, PRACTICE_PROJECTS } = useActiveRoadmap()
-  usePageMeta('Projects & portfolio', 'Five flagship portfolio projects plus 40 step-by-step practice builds.')
+  usePageMeta('Projects & portfolio', `${PROJECTS.length} flagship portfolio projects plus ${PRACTICE_PROJECTS.length} step-by-step practice builds.`)
   const { data, updateProject, toggleProjectMilestone, setStage } = useProgress()
   const [expandedLog, setExpandedLog] = useState<Record<string, boolean>>({
     [PROJECTS[0].id]: true,
@@ -181,8 +181,8 @@ export default function Projects() {
     <div className="py-10">
       <SectionHead
         eyebrow="Projects & portfolio tracker"
-        title="Five flagship projects that prove engineering"
-        sub="Distinguish between a tutorial you followed and a system you can independently explain, modify, and defend. Check off milestones, attach your GitHub repository and evaluation metrics, log engineering problems & solutions, and rehearse each project's interview questions."
+        title={`${PROJECTS.length} flagship projects that prove engineering`}
+        sub={`Distinguish between a tutorial you followed and a system you can independently explain, modify, and defend. Check off milestones, attach your GitHub repository and evaluation metrics, log engineering problems & solutions, and rehearse each project's interview questions.`}
       />
 
       <div className="space-y-6">

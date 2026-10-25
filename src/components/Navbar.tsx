@@ -82,7 +82,7 @@ function RoadmapSwitcher({ onNavigate }: { onNavigate?: () => void }) {
   const slugs = [
     META.slug,
     ...started.filter((s) => s !== META.slug && BUNDLES[s]),
-    ...ROADMAPS.filter((r) => r.status === 'live').map((r) => r.slug).filter((s) => s !== META.slug && !started.includes(s)),
+    ...ROADMAPS.filter((r) => r.status === 'live' || r.status === 'beta').map((r) => r.slug).filter((s) => s !== META.slug && !started.includes(s)),
   ].filter((s, i, arr) => arr.indexOf(s) === i)
 
   const switchTo = (slug: string) => {

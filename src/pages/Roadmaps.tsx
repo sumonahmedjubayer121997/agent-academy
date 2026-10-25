@@ -20,19 +20,17 @@ const ICONS: Record<string, LucideIcon> = {
   MessagesSquare,
 }
 
-function StatusChip({ status }: { status: 'live' | 'coming-soon' }) {
-  return status === 'live' ? (
-    <Badge tone="ok">Live</Badge>
-  ) : (
-    <Badge>Coming soon</Badge>
-  )
+function StatusChip({ status }: { status: 'live' | 'beta' | 'coming-soon' }) {
+  if (status === 'live') return <Badge tone="ok">Live</Badge>
+  if (status === 'beta') return <Badge tone="accent">Beta</Badge>
+  return <Badge>Coming soon</Badge>
 }
 
 function RoadmapCard({ slug }: { slug: string }) {
   const r = getRoadmap(slug)
   if (!r) return null
   const Icon = ICONS[r.icon] ?? Bot
-  const live = r.status === 'live'
+  const openable = r.status === 'live' || r.status === 'beta'
   return (
     <Card className="group flex flex-col p-5 transition-colors hover:border-line-strong">
       <div className="flex items-start justify-between gap-3">
@@ -56,10 +54,10 @@ function RoadmapCard({ slug }: { slug: string }) {
           )}
         </span>
         <Link
-          to={live ? '/roadmap' : `/roadmaps/${r.slug}`}
+          to={openable ? (r.status === 'live' ? '/roadmap' : `/r/${r.slug}/curriculum`) : `/roadmaps/${r.slug}`}
           className="flex shrink-0 items-center gap-1 text-xs font-semibold text-accent hover:underline"
         >
-          {live ? 'Open roadmap' : r.stats ? 'View curriculum' : 'View plan'}
+          {openable ? 'Open roadmap' : r.stats ? 'View curriculum' : 'View plan'}
           <ArrowRight size={12} className="transition-transform group-hover:translate-x-0.5" />
         </Link>
       </div>
@@ -68,18 +66,18 @@ function RoadmapCard({ slug }: { slug: string }) {
 }
 
 export default function Roadmaps() {
-  usePageMeta('Roadmaps', 'Structured roadmaps for AI skills — AI Agents is live now; Prompt Engineering curriculum is authored, with AI Programming, AI Automation and Chatbot Development coming.')
-  const live = ROADMAPS.filter((r) => r.status === 'live')
+  usePageMeta('Roadmaps', 'Structured roadmaps for AI skills — AI Agents is live and Prompt Engineering is in public Beta, with AI Programming, AI Automation and Chatbot Development coming.')
+  const open = ROADMAPS.filter((r) => r.status === 'live' || r.status === 'beta')
   const soon = ROADMAPS.filter((r) => r.status === 'coming-soon')
   return (
     <div className="py-10">
       <SectionHead
         eyebrow="Roadmaps"
         title="Pick a path, follow it to the end"
-        sub="Every roadmap is a sequence of modules with lessons, spaced review, and portfolio projects. Start the live one today; the rest are being authored."
+        sub="Every roadmap is a sequence of modules with lessons, spaced review, and portfolio projects. Start one today; the rest are being authored."
       />
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {[...live, ...soon].map((r) => (
+        {[...open, ...soon].map((r) => (
           <RoadmapCard key={r.slug} slug={r.slug} />
         ))}
       </div>
@@ -268,6 +266,7 @@ export function RoadmapDetail() {
     )
   }
   if (r.status === 'live') return <Navigate to="/roadmap" replace />
+  if (r.status === 'beta') return <Navigate to={`/r/${r.slug}/curriculum`} replace />
   if (bundle) return <AuthoredCurriculum r={r} bundle={bundle} />
   return <SkeletonDetail r={r} />
 }
