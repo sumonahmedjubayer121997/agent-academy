@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { useActiveRoadmap } from '../store/activeRoadmap'
 import { useNavigate } from 'react-router-dom'
 import { CornerDownLeft, Search } from 'lucide-react'
-import { MODULES } from '../content/roadmaps/ai-agents'
-import { PRACTICE_PROJECTS } from '../content/roadmaps/ai-agents'
+import { BUNDLES } from '../content/roadmaps/registry'
 import { GLOSSARY } from '../content/glossary'
 
 interface PaletteItem {
@@ -27,30 +27,45 @@ const STATIC_ITEMS: PaletteItem[] = [
   { id: 'nav-assess', label: 'Diagnostic assessment', hint: 'page', route: '/assess', keywords: 'assessment diagnostic test' },
 ]
 
-const ALL_ITEMS: PaletteItem[] = [
-  ...STATIC_ITEMS,
-  ...MODULES.map<PaletteItem>((m) => ({
-    id: `mod-${m.id}`,
-    label: m.title,
-    hint: `P${m.phase} module · ${m.hours}h`,
-    route: `/roadmap/${m.id}`,
-    keywords: `${m.title} ${m.why} phase ${m.phase}`,
-  })),
-  ...PRACTICE_PROJECTS.map<PaletteItem>((p) => ({
-    id: `pp-${p.id}`,
-    label: p.title,
-    hint: `P${p.phase} project · ${p.hours}h`,
-    route: '/projects',
-    keywords: `${p.title} ${p.brief}`,
-  })),
-  ...GLOSSARY.map<PaletteItem>((g) => ({
+/** Modules + practice projects from every live bundle; caller order is not roadmap-aware,
+ * so we sort the active roadmap first via the provider context at render time. */
+function moduleAndProjectItems(focus: string): PaletteItem[] {
+  const slugs = Object.keys(BUNDLES).sort((a, b) => (a === focus ? -1 : b === focus ? 1 : 0))
+  const items: PaletteItem[] = []
+  for (const slug of slugs) {
+    const b = BUNDLES[slug]
+    const name = (b.META as { shortTitle?: string }).shortTitle ?? b.META.title
+    for (const m of b.MODULES) {
+      items.push({
+        id: `mod-${slug}-${m.id}`,
+        label: m.title,
+        hint: `${name} · P${m.phase} · ${m.hours}h`,
+        route: `/r/${slug}/roadmap/${m.id}`,
+        keywords: `${m.title} ${m.why} ${name} phase ${m.phase}`,
+      })
+    }
+    for (const pp of b.PRACTICE_PROJECTS) {
+      items.push({
+        id: `pp-${slug}-${pp.id}`,
+        label: pp.title,
+        hint: `${name} · practice · ${pp.hours}h`,
+        route: `/r/${slug}/projects`,
+        keywords: `${pp.title} ${pp.brief} ${name}`,
+      })
+    }
+  }
+  return items
+}
+
+function glossaryItems(): PaletteItem[] {
+  return GLOSSARY.map<PaletteItem>((g) => ({
     id: `gloss-${g.term}`,
     label: g.term,
     hint: 'glossary',
     route: '/resources',
     keywords: `${g.term} ${g.def}`,
-  })),
-]
+  }))
+}
 
 export default function CommandPalette({ open, onClose }: { open: boolean; onClose: () => void }) {
   const navigate = useNavigate()
@@ -59,6 +74,11 @@ export default function CommandPalette({ open, onClose }: { open: boolean; onClo
   const inputRef = useRef<HTMLInputElement>(null)
   const listRef = useRef<HTMLDivElement>(null)
 
+  const focus = useActiveRoadmap().META.slug
+  const ALL_ITEMS = useMemo(
+    () => [...STATIC_ITEMS, ...moduleAndProjectItems(focus), ...glossaryItems()],
+    [focus],
+  )
   const results = useMemo(() => {
     const needle = q.trim().toLowerCase()
     if (!needle) return ALL_ITEMS.slice(0, 12)

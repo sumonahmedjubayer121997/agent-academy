@@ -1,8 +1,8 @@
-import type { RoadmapMeta, RoadmapStats } from '../types'
+import type { RoadmapBundle, RoadmapMeta, RoadmapStats } from '../types'
 import * as aiAgents from './ai-agents'
 import * as promptEngineering from './prompt-engineering'
 
-export type RoadmapBundle = typeof aiAgents
+export type { RoadmapBundle } from '../types'
 
 /**
  * Content bundles by slug. A roadmap becomes fully live (app routes, progress
@@ -12,7 +12,7 @@ export type RoadmapBundle = typeof aiAgents
  */
 export const BUNDLES: Record<string, RoadmapBundle> = {
   'ai-agents': aiAgents,
-  'prompt-engineering': promptEngineering as unknown as RoadmapBundle,
+  'prompt-engineering': promptEngineering,
 }
 
 export interface RoadmapRegistryEntry extends RoadmapMeta {

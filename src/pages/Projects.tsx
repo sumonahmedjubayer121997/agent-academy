@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useActiveRoadmap } from '../store/activeRoadmap'
 import { Link } from 'react-router-dom'
 import {
   CheckCircle2,
@@ -9,9 +10,6 @@ import {
   ShieldCheck,
   Sparkles,
 } from 'lucide-react'
-import { MODULES } from '../content/roadmaps/ai-agents'
-import { PROJECTS } from '../content/roadmaps/ai-agents'
-import { PRACTICE_PROJECTS, type PracticeProject } from '../content/roadmaps/ai-agents'
 import { Badge, Button, Card, ProgressBar, SectionHead, StatusBadge } from '../components/ui'
 import {
   emptyProjectRecord,
@@ -58,8 +56,9 @@ const AUTONOMY_LEVELS: {
   },
 ]
 
-function PracticeProjectRow({ p }: { p: PracticeProject }) {
+function PracticeProjectRow({ p }: { p: PracticeProjectSpec }) {
   const [open, setOpen] = useState(false)
+  const { MODULES, META } = useActiveRoadmap()
   return (
     <div className="border-b border-line last:border-0">
       <button
@@ -112,7 +111,7 @@ function PracticeProjectRow({ p }: { p: PracticeProject }) {
             {p.modules.map((id) => {
               const m = MODULES.find((x) => x.id === id)
               return m ? (
-                <Link key={id} to={`/roadmap/${id}`}>
+                <Link key={id} to={`/r/${META.slug}/roadmap/${id}`}>
                   <Badge>↗ {m.title}</Badge>
                 </Link>
               ) : null
@@ -126,6 +125,7 @@ function PracticeProjectRow({ p }: { p: PracticeProject }) {
 
 function PracticeProjectsSection() {
   const [phase, setPhase] = useState<number | 'all'>('all')
+  const { PRACTICE_PROJECTS, MODULES } = useActiveRoadmap()
   const shown = PRACTICE_PROJECTS.filter((p) => phase === 'all' || p.phase === phase)
   const phaseHours = (n: number) =>
     PRACTICE_PROJECTS.filter((p) => p.phase === n).reduce((s, p) => s + p.hours, 0)
@@ -167,8 +167,10 @@ function PracticeProjectsSection() {
   )
 }
 
+import type { PracticeProjectSpec } from '../content/types'
 import { usePageMeta } from '../hooks/usePageMeta'
 export default function Projects() {
+  const { MODULES, PROJECTS, PRACTICE_PROJECTS } = useActiveRoadmap()
   usePageMeta('Projects & portfolio', 'Five flagship portfolio projects plus 40 step-by-step practice builds.')
   const { data, updateProject, toggleProjectMilestone, setStage } = useProgress()
   const [expandedLog, setExpandedLog] = useState<Record<string, boolean>>({

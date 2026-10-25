@@ -1,9 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
-import { MODULES } from '../content/roadmaps/ai-agents'
-import { PHASES } from '../content/roadmaps/ai-agents'
-import { DOMAIN_CREDIT, type Domain } from '../content/roadmaps/ai-agents'
-import { cardsForModule } from '../content/roadmaps/ai-agents'
-import type { SequenceMode } from '../content/roadmaps/ai-agents'
+import { BUNDLES } from '../content/roadmaps/registry'
+import { useActiveRoadmap } from './activeRoadmap'
 import type { LearningModule, Phase } from '../content/types'
 import { isDue, newCard, review, reviewWithGrade, type RecallGrade, type SrsCard } from '../lib/srs'
 import { addDays, dayStr } from '../lib/date'
@@ -73,6 +70,8 @@ export interface StudySession {
   minutes: number
   at: string
   note?: string
+  /** Roadmap this session belongs to ('review' sessions use the active roadmap). */
+  roadmap?: string
 }
 
 export interface EvidenceLink {
@@ -142,6 +141,9 @@ export interface DailyTaskBlock {
   title: string
   subtitle?: string
   moduleId?: string
+  /** New in v3: canonical link target; URLs are built at render time. */
+  target?: { slug: string; moduleId: string }
+  /** Legacy v2 field, accepted on import and migrated to `target`. */
   route?: string
   minutes: number
   done: boolean
@@ -159,34 +161,35 @@ export interface ProgressData {
   activity: string[] // ISO dates (yyyy-mm-dd) on which the learner did something
   quiz: Record<string, QuizResult>
   weeklyHours: number
-  assessment: { done: boolean; applied: boolean; scores: Partial<Record<Domain, number>> }
   srs: Record<string, SrsCard>
   confidence: Record<string, Confidence>
   feynman: Record<string, FeynmanEntry[]>
   sessions: StudySession[]
-  // v2 Personal Learning OS fields (optional in type for backward-compat with v1 test fixtures)
+  // v2 Personal Learning OS fields (optional in type for backward-compat with older fixtures)
   schemaVersion?: number
-  sequenceMode?: SequenceMode
   modules?: Record<string, ModuleRecord>
   customCards?: CustomCard[]
   projects?: Record<string, ProjectRecord>
   journal?: JournalEntry[]
   dailyPlans?: Record<string, DailyPlanRecord>
   lastActiveModuleId?: string
+  // v3 multi-roadmap fields
+  assessments?: Record<string, { done: boolean; applied: boolean; scores: Record<string, number> }>
+  sequenceModes?: Record<string, string>
+  lastActiveByRoadmap?: Record<string, string>
+  startedRoadmaps?: Record<string, string>
 }
 
 const KEY = 'aa-progress-v1'
 export const BACKUP_KEY = 'aa-progress-backup-prev'
 
 export const DEFAULT_DATA: ProgressData = {
-  schemaVersion: 2,
-  sequenceMode: 'agent-fast-track',
+  schemaVersion: 3,
   moduleStatus: {},
   modules: {},
   activity: [],
   quiz: {},
   weeklyHours: 10,
-  assessment: { done: false, applied: false, scores: {} },
   srs: {},
   customCards: [],
   confidence: {},
@@ -195,6 +198,29 @@ export const DEFAULT_DATA: ProgressData = {
   projects: {},
   journal: [],
   dailyPlans: {},
+  assessments: {},
+  sequenceModes: { 'ai-agents': 'agent-fast-track' },
+  lastActiveByRoadmap: {},
+  startedRoadmaps: {},
+}
+
+/** Which roadmap owns a module id — resolves via registered bundles, defaults to ai-agents. */
+export function roadmapSlugOfModule(moduleId: string): string {
+  for (const [slug, bundle] of Object.entries(BUNDLES)) {
+    if (bundle.MODULES.some((m) => m.id === moduleId)) return slug
+  }
+  return 'ai-agents'
+}
+
+export function assessmentOf(
+  data: ProgressData,
+  slug: string,
+): { done: boolean; applied: boolean; scores: Record<string, number> } {
+  return data.assessments?.[slug] ?? { done: false, applied: false, scores: {} }
+}
+
+export function sequenceModeOf(data: ProgressData, slug: string): string {
+  return data.sequenceModes?.[slug] ?? 'agent-fast-track'
 }
 
 export function emptyModuleRecord(stage: MasteryStage = 'not-started'): ModuleRecord {
@@ -247,7 +273,7 @@ export function validateAndMigrateProgress(
   }
   const obj = raw as Record<string, unknown>
 
-  if (typeof obj.schemaVersion === 'number' && obj.schemaVersion > 2) {
+  if (typeof obj.schemaVersion === 'number' && obj.schemaVersion > 3) {
     return {
       ok: false,
       error: `This export was written by a newer app version (schema ${obj.schemaVersion}); upgrade before importing.`,
@@ -319,28 +345,120 @@ export function validateAndMigrateProgress(
       ? obj.weeklyHours
       : DEFAULT_DATA.weeklyHours
 
-  const sequenceMode: SequenceMode =
-    obj.sequenceMode === 'phase-order' || obj.sequenceMode === 'ml-first' || obj.sequenceMode === 'agent-fast-track'
-      ? obj.sequenceMode
-      : 'agent-fast-track'
+  const sequenceModes: Record<string, string> = {}
+  if (obj.sequenceModes && typeof obj.sequenceModes === 'object' && !Array.isArray(obj.sequenceModes)) {
+    for (const [k, v] of Object.entries(obj.sequenceModes as Record<string, unknown>)) {
+      if (typeof v === 'string' && v.length > 0) sequenceModes[k] = v
+    }
+  } else if (typeof obj.sequenceMode === 'string' && obj.sequenceMode.length > 0) {
+    sequenceModes['ai-agents'] = obj.sequenceMode
+  }
+  if (!sequenceModes['ai-agents']) sequenceModes['ai-agents'] = 'agent-fast-track'
+
+  const assessments: Record<string, { done: boolean; applied: boolean; scores: Record<string, number> }> = {}
+  const readScores = (raw: unknown): Record<string, number> => {
+    const out: Record<string, number> = {}
+    if (raw && typeof raw === 'object') {
+      for (const [dk, dv] of Object.entries(raw as Record<string, unknown>)) {
+        if (typeof dv === 'number') out[dk] = dv
+      }
+    }
+    return out
+  }
+  if (obj.assessments && typeof obj.assessments === 'object' && !Array.isArray(obj.assessments)) {
+    for (const [slug, v] of Object.entries(obj.assessments as Record<string, unknown>)) {
+      if (v && typeof v === 'object') {
+        const a = v as Record<string, unknown>
+        assessments[slug] = { done: Boolean(a.done), applied: Boolean(a.applied), scores: readScores(a.scores) }
+      }
+    }
+  } else if (obj.assessment && typeof obj.assessment === 'object' && !Array.isArray(obj.assessment)) {
+    const a = obj.assessment as Record<string, unknown>
+    assessments['ai-agents'] = { done: Boolean(a.done), applied: Boolean(a.applied), scores: readScores(a.scores) }
+  }
+
+  // daily plans: migrate legacy route strings to {slug, moduleId} targets
+  const dailyPlans: Record<string, DailyPlanRecord> = {}
+  if (obj.dailyPlans && typeof obj.dailyPlans === 'object' && !Array.isArray(obj.dailyPlans)) {
+    for (const [dateKey, planRaw] of Object.entries(obj.dailyPlans as Record<string, unknown>)) {
+      if (!planRaw || typeof planRaw !== 'object') continue
+      const pl = planRaw as { budgetMinutes?: unknown; blocks?: unknown }
+      const blocksIn = Array.isArray(pl.blocks) ? (pl.blocks as Array<Record<string, unknown>>) : []
+      const blocks: DailyTaskBlock[] = blocksIn.map((b) => {
+        const rest = { ...b } as Partial<DailyTaskBlock>
+        let tgt = rest.target
+        if (!tgt && typeof rest.route === 'string') {
+          const m = /^\/(?:roadmap|learn)\/([^/?]+)/.exec(rest.route)
+          if (m) tgt = { slug: roadmapSlugOfModule(m[1]), moduleId: m[1] }
+        }
+        delete rest.route
+        const block: DailyTaskBlock = {
+          id: typeof b.id === 'string' ? b.id : `${dateKey}:${Math.random()}`,
+          kind: (['revise', 'learn', 'practise', 'reflect'] as const).includes(b.kind as never)
+            ? (b.kind as DailyTaskBlock['kind'])
+            : 'learn',
+          title: typeof b.title === 'string' ? b.title : '',
+          minutes: typeof b.minutes === 'number' ? b.minutes : 0,
+          done: Boolean(b.done),
+          ...(typeof b.subtitle === 'string' ? { subtitle: b.subtitle } : {}),
+          ...(typeof b.moduleId === 'string' ? { moduleId: b.moduleId } : {}),
+          ...(tgt ? { target: tgt } : {}),
+          ...(b.skipped !== undefined ? { skipped: Boolean(b.skipped) } : {}),
+        }
+        return block
+      })
+      dailyPlans[dateKey] = {
+        date: dateKey,
+        budgetMinutes: typeof pl.budgetMinutes === 'number' ? pl.budgetMinutes : 0,
+        blocks,
+      }
+    }
+  }
+
+  // sessions: backfill roadmap attribution where derivable
+  const sessionsRaw = Array.isArray(obj.sessions) ? (obj.sessions as Array<Record<string, unknown>>) : []
+  const sessions: StudySession[] = sessionsRaw.map((s) => {
+    const moduleId = (typeof s.moduleId === 'string' ? s.moduleId : 'review') as StudySession['moduleId']
+    const roadmap =
+      typeof s.roadmap === 'string'
+        ? s.roadmap
+        : moduleId !== 'review'
+          ? roadmapSlugOfModule(moduleId)
+          : undefined
+    return {
+      moduleId,
+      minutes: typeof s.minutes === 'number' ? s.minutes : 0,
+      at: typeof s.at === 'string' ? s.at : new Date().toISOString(),
+      ...(typeof s.note === 'string' ? { note: s.note } : {}),
+      ...(roadmap ? { roadmap } : {}),
+    }
+  })
+
+  const lastActiveModuleId = typeof obj.lastActiveModuleId === 'string' ? obj.lastActiveModuleId : undefined
+  const lastActiveByRoadmap: Record<string, string> =
+    obj.lastActiveByRoadmap && typeof obj.lastActiveByRoadmap === 'object' && !Array.isArray(obj.lastActiveByRoadmap)
+      ? { ...(obj.lastActiveByRoadmap as Record<string, string>) }
+      : lastActiveModuleId
+        ? { [roadmapSlugOfModule(lastActiveModuleId)]: lastActiveModuleId }
+        : {}
+  const startedRoadmaps: Record<string, string> =
+    obj.startedRoadmaps && typeof obj.startedRoadmaps === 'object' && !Array.isArray(obj.startedRoadmaps)
+      ? { ...(obj.startedRoadmaps as Record<string, string>) }
+      : {}
 
   const merged: ProgressData = {
     ...DEFAULT_DATA,
-    schemaVersion: 2,
-    sequenceMode,
+    schemaVersion: 3,
+    sequenceModes: { ...DEFAULT_DATA.sequenceModes, ...sequenceModes },
+    assessments: { ...DEFAULT_DATA.assessments, ...assessments },
+    startedRoadmaps,
+    lastActiveByRoadmap,
     weeklyHours,
     moduleStatus,
     modules,
     activity: Array.isArray(obj.activity) ? obj.activity.filter((x): x is string => typeof x === 'string') : [],
+    dailyPlans,
     quiz: obj.quiz && typeof obj.quiz === 'object' && !Array.isArray(obj.quiz) ? (obj.quiz as Record<string, QuizResult>) : {},
-    assessment:
-      obj.assessment && typeof obj.assessment === 'object' && !Array.isArray(obj.assessment)
-        ? {
-            done: Boolean((obj.assessment as Record<string, unknown>).done),
-            applied: Boolean((obj.assessment as Record<string, unknown>).applied),
-            scores: ((obj.assessment as Record<string, unknown>).scores as Partial<Record<Domain, number>>) ?? {},
-          }
-        : DEFAULT_DATA.assessment,
     srs: obj.srs && typeof obj.srs === 'object' && !Array.isArray(obj.srs) ? (obj.srs as Record<string, SrsCard>) : {},
     customCards: Array.isArray(obj.customCards) ? (obj.customCards as CustomCard[]) : [],
     confidence:
@@ -351,20 +469,29 @@ export function validateAndMigrateProgress(
       obj.feynman && typeof obj.feynman === 'object' && !Array.isArray(obj.feynman)
         ? (obj.feynman as Record<string, FeynmanEntry[]>)
         : {},
-    sessions: Array.isArray(obj.sessions) ? (obj.sessions as StudySession[]) : [],
+    sessions,
     projects:
       obj.projects && typeof obj.projects === 'object' && !Array.isArray(obj.projects)
         ? (obj.projects as Record<string, ProjectRecord>)
         : {},
     journal: Array.isArray(obj.journal) ? (obj.journal as JournalEntry[]) : [],
-    dailyPlans:
-      obj.dailyPlans && typeof obj.dailyPlans === 'object' && !Array.isArray(obj.dailyPlans)
-        ? (obj.dailyPlans as Record<string, DailyPlanRecord>)
-        : {},
     lastActiveModuleId: typeof obj.lastActiveModuleId === 'string' ? obj.lastActiveModuleId : undefined,
   }
 
   return { ok: true, data: merged }
+}
+
+/** Keep daily plans from the last 60 days only — localStorage quota headroom. */
+function prunePlans(data: ProgressData): ProgressData {
+  const plans = data.dailyPlans
+  if (!plans || Object.keys(plans).length === 0) return data
+  const cutoff = Date.now() - 60 * 24 * 60 * 60 * 1000
+  const kept: Record<string, DailyPlanRecord> = {}
+  for (const [k, v] of Object.entries(plans)) {
+    const t = Date.parse(k)
+    if (Number.isNaN(t) || t >= cutoff) kept[k] = v
+  }
+  return { ...data, dailyPlans: kept }
 }
 
 function load(): ProgressData {
@@ -373,7 +500,7 @@ function load(): ProgressData {
     if (!raw) return DEFAULT_DATA
     const parsed = JSON.parse(raw)
     const validated = validateAndMigrateProgress(parsed)
-    return validated.ok ? validated.data : DEFAULT_DATA
+    return validated.ok ? prunePlans(validated.data) : DEFAULT_DATA
   } catch {
     return DEFAULT_DATA
   }
@@ -428,9 +555,13 @@ export interface PhaseStat {
   doneEssentialHours: number
 }
 
-export function phaseStats(data: ProgressData): PhaseStat[] {
-  return PHASES.map((phase) => {
-    const modules = MODULES.filter((m) => m.phase === phase.n)
+export function phaseStats(
+  data: ProgressData,
+  allModules: LearningModule[] = BUNDLES['ai-agents'].MODULES,
+  phases: Phase[] = BUNDLES['ai-agents'].PHASES,
+): PhaseStat[] {
+  return phases.map((phase) => {
+    const modules = allModules.filter((m) => m.phase === phase.n)
     const done = (m: LearningModule) => (statusOf(data, m.id) === 'completed' ? m.hours : 0)
     return {
       phase,
@@ -446,7 +577,13 @@ export function phaseStats(data: ProgressData): PhaseStat[] {
   })
 }
 
-export function totals(data: ProgressData) {
+
+export function totals(
+  data: ProgressData,
+  mods: LearningModule[] = BUNDLES['ai-agents'].MODULES,
+) {
+  const MODULE_LIST = mods
+  const MODULES = MODULE_LIST
   const doneHours = MODULES.reduce((s, m) => s + (statusOf(data, m.id) === 'completed' ? m.hours : 0), 0)
   const essentialMods = MODULES.filter((m) => m.essential)
   const doneEssentialHours = essentialMods.reduce(
@@ -496,8 +633,12 @@ export function streak(activity: string[], today: string = todayStr()): number {
   return n
 }
 
-export function nextUp(data: ProgressData, n = 3): LearningModule[] {
-  return MODULES.filter(
+export function nextUp(
+  data: ProgressData,
+  n = 3,
+  mods: LearningModule[] = BUNDLES['ai-agents'].MODULES,
+): LearningModule[] {
+  return mods.filter(
     (m) => m.essential && statusOf(data, m.id) !== 'completed' && isUnlocked(data, m),
   ).slice(0, n)
 }
@@ -525,8 +666,12 @@ export function dueCards(data: ProgressData, today: string): DueCard[] {
     .sort((a, b) => (a.due < b.due ? -1 : a.due > b.due ? 1 : 0))
 }
 
-export function currentPhase(data: ProgressData): PhaseStat {
-  const stats = phaseStats(data)
+export function currentPhase(
+  data: ProgressData,
+  modules: LearningModule[] = BUNDLES['ai-agents'].MODULES,
+  phases: Phase[] = BUNDLES['ai-agents'].PHASES,
+): PhaseStat {
+  const stats = phaseStats(data, modules, phases)
   return stats.find((s) => s.doneEssentialHours < s.essentialHours) ?? stats[stats.length - 1]
 }
 
@@ -546,9 +691,9 @@ interface ProgressContextValue {
   deleteCustomCard: (cardId: string) => void
   recordQuiz: (id: string, score: number, total: number, perQuestion?: boolean[]) => void
   setWeeklyHours: (h: number) => void
-  setSequenceMode: (mode: SequenceMode) => void
+  setSequenceMode: (mode: string) => void
   logStudyDay: () => void
-  recordAssessment: (scores: Partial<Record<Domain, number>>) => void
+  recordAssessment: (scores: Record<string, number>) => void
   applyAssessmentCredit: () => void
   gradeCard: (cardId: string, gotIt: boolean | RecallGrade) => void
   setConfidence: (moduleId: string, level: Confidence) => void
@@ -564,6 +709,7 @@ interface ProgressContextValue {
   importProgressJson: (jsonString: string) => { ok: true } | { ok: false; error: string }
   hasPreviousBackup: boolean
   restorePreviousBackup: () => boolean
+  markRoadmapStarted: (slug: string) => void
   resetAll: () => void
 }
 
@@ -580,6 +726,9 @@ function saveBackupToStorage(current: ProgressData) {
 
 export function ProgressProvider({ children }: { children: ReactNode }) {
   const [data, setData] = useState<ProgressData>(load)
+  // The store is roadmap-blind: content-dependent operations use the ACTIVE roadmap bundle.
+  const activeBundle = useActiveRoadmap()
+  const activeSlug = activeBundle.META.slug
   const [hasPreviousBackup, setHasPreviousBackup] = useState<boolean>(() => {
     try {
       return Boolean(localStorage.getItem(BACKUP_KEY))
@@ -596,11 +745,32 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     }
   }, [data])
 
+  // Multi-tab safety: rehydrate when another tab writes the same key.
+  useEffect(() => {
+    const onStorage = (e: StorageEvent) => {
+      if (e.key !== KEY || !e.newValue) return
+      try {
+        const res = validateAndMigrateProgress(JSON.parse(e.newValue))
+        if (res.ok) setData(res.data)
+      } catch {
+        /* ignore malformed external writes */
+      }
+    }
+    window.addEventListener('storage', onStorage)
+    return () => window.removeEventListener('storage', onStorage)
+  }, [])
+
   const value = useMemo<ProgressContextValue>(() => {
     const touch = (d: ProgressData): ProgressData => {
       const t = todayStr()
       return d.activity.includes(t) ? d : { ...d, activity: [...d.activity, t] }
     }
+
+    const withLastActive = (d: ProgressData, id: string): ProgressData => ({
+      ...d,
+      lastActiveModuleId: id,
+      lastActiveByRoadmap: { ...(d.lastActiveByRoadmap ?? {}), [roadmapSlugOfModule(id)]: id },
+    })
 
     const applyStageInternal = (d: ProgressData, id: string, stage: MasteryStage): ProgressData => {
       const prevRec = moduleRecordOf(d, id)
@@ -616,7 +786,7 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
       // Automatically seed module flashcards into SRS when a module enters practising/confident/mastered
       const nextSrs = { ...d.srs }
       if (stage === 'practising' || stage === 'confident' || stage === 'mastered') {
-        const modCards = cardsForModule(id)
+        const modCards = activeBundle.cardsForModule(id)
         const now = new Date()
         for (const c of modCards) {
           if (!nextSrs[c.cardId]) {
@@ -625,8 +795,7 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
         }
       }
       return touch({
-        ...d,
-        lastActiveModuleId: id,
+        ...withLastActive(d, id),
         moduleStatus: { ...d.moduleStatus, [id]: nextLegacy },
         modules: { ...(d.modules ?? {}), [id]: nextRec },
         srs: nextSrs,
@@ -658,8 +827,7 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
           const nextRec: ModuleRecord = { ...prev, ...patch }
           const nextLegacy = stageToLegacyStatus(nextRec.stage)
           return touch({
-            ...d,
-            lastActiveModuleId: id,
+            ...withLastActive(d, id),
             moduleStatus: { ...d.moduleStatus, [id]: nextLegacy },
             modules: { ...(d.modules ?? {}), [id]: nextRec },
           })
@@ -680,8 +848,7 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
             objectivesDone,
           }
           return touch({
-            ...d,
-            lastActiveModuleId: id,
+            ...withLastActive(d, id),
             moduleStatus: { ...d.moduleStatus, [id]: stageToLegacyStatus(nextStage) },
             modules: { ...(d.modules ?? {}), [id]: nextRec },
           })
@@ -706,14 +873,13 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
             completionDone,
           }
           return touch({
-            ...d,
-            lastActiveModuleId: id,
+            ...withLastActive(d, id),
             moduleStatus: { ...d.moduleStatus, [id]: stageToLegacyStatus(nextStage) },
             modules: { ...(d.modules ?? {}), [id]: nextRec },
           })
         }),
       seedModuleCards: (moduleId, dueImmediate = true) => {
-        const modCards = cardsForModule(moduleId)
+        const modCards = activeBundle.cardsForModule(moduleId)
         setData((d) => {
           const nextSrs = { ...d.srs }
           const now = new Date()
@@ -769,7 +935,11 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
           return { ...touched, srs }
         }),
       setWeeklyHours: (h) => setData((d) => ({ ...d, weeklyHours: h })),
-      setSequenceMode: (mode) => setData((d) => ({ ...d, sequenceMode: mode })),
+      setSequenceMode: (mode) =>
+        setData((d) => ({
+          ...d,
+          sequenceModes: { ...(d.sequenceModes ?? {}), [activeSlug]: mode },
+        })),
       logStudyDay: () => setData((d) => touch(d)),
       gradeCard: (cardId, gotItOrGrade) =>
         setData((d) => {
@@ -785,8 +955,7 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
       setConfidence: (moduleId, level) =>
         setData((d) =>
           touch({
-            ...d,
-            lastActiveModuleId: moduleId,
+            ...withLastActive(d, moduleId),
             confidence: { ...d.confidence, [moduleId]: level },
           }),
         ),
@@ -803,12 +972,16 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
       logSession: (moduleId, minutes, note) =>
         setData((d) =>
           touch({
-            ...d,
-            lastActiveModuleId: moduleId !== 'review' ? moduleId : d.lastActiveModuleId,
+            ...(moduleId !== 'review' ? withLastActive(d, moduleId) : d),
             sessions: [
               ...d.sessions,
-              { moduleId, minutes, at: new Date().toISOString(), ...(note ? { note } : {}) },
-            ],
+              {
+                moduleId,
+                minutes,
+                at: new Date().toISOString(),
+                roadmap: moduleId === 'review' ? activeSlug : roadmapSlugOfModule(moduleId),
+                ...(note ? { note } : {}) },
+              ],
           }),
         ),
       updateProject: (projectId, moduleId, patch) =>
@@ -894,6 +1067,7 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
                   minutes: blk.minutes,
                   at: new Date().toISOString(),
                   note: `Daily plan: ${blk.title}`,
+                  roadmap: blk.moduleId ? roadmapSlugOfModule(blk.moduleId) : activeSlug,
                 },
               ],
             })
@@ -901,26 +1075,53 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
           return nextState
         }),
       recordAssessment: (scores) =>
-        setData((d) => touch({ ...d, assessment: { ...d.assessment, done: true, scores } })),
+        setData((d) =>
+          touch({
+            ...d,
+            assessments: {
+              ...(d.assessments ?? {}),
+              [activeSlug]: {
+                ...(d.assessments?.[activeSlug] ?? { done: false, applied: false, scores: {} }),
+                done: true,
+                scores,
+              },
+            },
+          }),
+        ),
       applyAssessmentCredit: () =>
         setData((d) => {
+          const stored = d.assessments?.[activeSlug]
+          if (!stored) return d
+          const credit = activeBundle.DOMAIN_CREDIT
           let nextState = { ...d }
-          for (const domain of Object.keys(DOMAIN_CREDIT) as Domain[]) {
-            const score = d.assessment.scores[domain]
+          for (const domain of Object.keys(credit)) {
+            const score = stored.scores[domain]
             if (score === undefined) continue
             if (score === 3) {
-              DOMAIN_CREDIT[domain].full.forEach((id) => {
+              credit[domain].full.forEach((id) => {
                 nextState = applyStageInternal(nextState, id, 'confident')
               })
             }
             if (score === 2) {
-              DOMAIN_CREDIT[domain].partial.forEach((id) => {
+              credit[domain].partial.forEach((id) => {
                 nextState = applyStageInternal(nextState, id, 'learning')
               })
             }
           }
-          return touch({ ...nextState, assessment: { ...d.assessment, applied: true } })
+          return touch({
+            ...nextState,
+            assessments: {
+              ...(d.assessments ?? {}),
+              [activeSlug]: { ...stored, applied: true },
+            },
+          })
         }),
+      markRoadmapStarted: (slug) =>
+        setData((d) =>
+          d.startedRoadmaps?.[slug]
+            ? d
+            : { ...d, startedRoadmaps: { ...(d.startedRoadmaps ?? {}), [slug]: new Date().toISOString() } },
+        ),
       importProgressJson: (jsonString) => {
         try {
           const parsed = JSON.parse(jsonString)

@@ -1,19 +1,18 @@
 import { Link } from 'react-router-dom'
 import { ArrowRight, ClipboardCheck, Map, ShieldCheck, Sparkles, Target } from 'lucide-react'
-import { MODULES, } from '../content/roadmaps/ai-agents'
-import { PHASES } from '../content/roadmaps/ai-agents'
-import { PROJECTS } from '../content/roadmaps/ai-agents'
-import { ROADMAPS } from '../content/roadmaps/registry'
+import { BUNDLES, ROADMAPS } from '../content/roadmaps/registry'
 import { phaseStats, totals, useProgress } from '../store/progress'
 import LoopVisual from '../components/demos/LoopVisual'
 import { Card, ProgressBar } from '../components/ui'
 
 import { usePageMeta } from '../hooks/usePageMeta'
 export default function Landing() {
+  // The landing page markets the default roadmap explicitly, whatever is active
+  const { MODULES, PHASES, PROJECTS } = BUNDLES['ai-agents']
   usePageMeta('Become an AI Agent Engineer', 'A structured, project-driven path from React developer to production AI Agent Engineer — diagnostic-first, 60 modules, portfolio checkpoints.')
   const { data } = useProgress()
-  const t = totals(data)
-  const stats = phaseStats(data)
+  const t = totals(data, MODULES)
+  const stats = phaseStats(data, MODULES, PHASES)
 
   return (
     <div className="pb-10">
@@ -134,7 +133,11 @@ export default function Landing() {
                 </span>
               </div>
               <p className="mt-1 text-xs leading-relaxed text-ink-soft">{r.tagline}</p>
-              <p className="mt-2 text-[11px] text-ink-faint">{r.plannedPhases?.length ?? 0} phases planned</p>
+              <p className="mt-2 text-[11px] text-ink-faint">
+                {r.stats
+                  ? `${r.stats.phases} phases · ${r.stats.modules} modules`
+                  : `${r.plannedPhases?.length ?? 0} phases planned`}
+              </p>
             </Link>
           ))}
         </div>
@@ -143,7 +146,7 @@ export default function Landing() {
       {/* Phase strip */}
       <section className="py-14">
         <div className="mb-6 flex items-end justify-between">
-          <h2 className="text-2xl font-semibold tracking-tight">The eight phases</h2>
+          <h2 className="text-2xl font-semibold tracking-tight">The {PHASES.length} phases</h2>
           <Link to="/curriculum" className="inline-flex items-center gap-1 text-sm font-medium text-accent hover:underline">
             Full curriculum <ArrowRight size={14} />
           </Link>

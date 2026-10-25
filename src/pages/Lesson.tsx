@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useActiveRoadmap } from '../store/activeRoadmap'
 import { Link, useParams } from 'react-router-dom'
 import { usePageMeta } from '../hooks/usePageMeta'
 import {
@@ -16,7 +17,6 @@ import {
   PencilLine,
   Play,
 } from 'lucide-react'
-import { LESSONS } from '../content/roadmaps/ai-agents'
 import type { QuizQ } from '../content/types'
 import { statusOf, useProgress } from '../store/progress'
 import { Badge, Button, Card } from '../components/ui'
@@ -328,6 +328,7 @@ function FeynmanBox({ lessonId, lessonTitle }: { lessonId: string; lessonTitle: 
 }
 
 export default function LessonPage() {
+  const { LESSONS = [] } = useActiveRoadmap()
   const { lessonId } = useParams()
   const { data, setStatus } = useProgress()
   const lesson = LESSONS.find((l) => l.id === lessonId)

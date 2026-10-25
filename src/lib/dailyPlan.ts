@@ -1,4 +1,6 @@
-import { MODULES } from '../content/roadmaps/ai-agents'
+import { roadmapSlugOfModule } from '../store/progress'
+import { BUNDLES } from '../content/roadmaps/registry'
+import type { RoadmapBundle } from '../content/roadmaps/registry'
 import {
   dueCards,
   moduleRecordOf,
@@ -10,7 +12,7 @@ import {
 } from '../store/progress'
 import { getRecommendations } from './recommend'
 
-const modById = new Map(MODULES.map((m) => [m.id, m]))
+const modById = new Map(BUNDLES['ai-agents'].MODULES.map((m) => [m.id, m]))
 
 /**
  * Generates a realistic, proportional 4-block daily study plan (Revise, Learn, Practise, Reflect)
@@ -21,7 +23,9 @@ export function generateDailyPlan(
   data: ProgressData,
   date: string = todayStr(),
   budgetMinutes = 90,
+  bundle: RoadmapBundle = BUNDLES['ai-agents'],
 ): DailyPlanRecord {
+  const { MODULES } = bundle
   const safeBudget = Math.max(15, Math.min(360, Math.round(budgetMinutes)))
   const reviseMin = Math.max(5, Math.round((safeBudget * 15) / 90 / 5) * 5)
   const reflectMin = Math.max(5, Math.round((safeBudget * 15) / 90 / 5) * 5)
@@ -68,7 +72,7 @@ export function generateDailyPlan(
           ? 'Spaced repetition queue — retrieve before learning new material'
           : 'Review key concepts or seed flashcards from your current module',
       moduleId: completedOrShaky?.id ?? primaryMod.id,
-      route: due.length > 0 ? '/review' : `/roadmap/${completedOrShaky?.id ?? primaryMod.id}`,
+      ...(due.length === 0 && completedOrShaky ? { target: { slug: roadmapSlugOfModule(completedOrShaky.id), moduleId: completedOrShaky.id } } : primaryMod ? { target: { slug: roadmapSlugOfModule(primaryMod.id), moduleId: primaryMod.id } } : {}),
       minutes: reviseMin,
       done: false,
     },
@@ -78,7 +82,7 @@ export function generateDailyPlan(
       title: `Learn concept: ${primaryMod.title}`,
       subtitle: `Focus objective: ${nextObjective}`,
       moduleId: primaryMod.id,
-      route: primaryMod.lessonId ? `/learn/${primaryMod.lessonId}` : `/roadmap/${primaryMod.id}`,
+      target: { slug: roadmapSlugOfModule(primaryMod.id), moduleId: primaryMod.id },
       minutes: learnMin,
       done: false,
     },
@@ -88,7 +92,7 @@ export function generateDailyPlan(
       title: `Hands-on exercise: ${primaryMod.title}`,
       subtitle: `Practice target: ${nextCompletion}`,
       moduleId: primaryMod.id,
-      route: `/roadmap/${primaryMod.id}`,
+      target: { slug: roadmapSlugOfModule(primaryMod.id), moduleId: primaryMod.id },
       minutes: practiseMin,
       done: false,
     },
@@ -98,7 +102,7 @@ export function generateDailyPlan(
       title: 'Document what I learned & open questions',
       subtitle: `Log a 3-line entry in your Learning Journal for ${primaryMod.title}`,
       moduleId: primaryMod.id,
-      route: `/journal?module=${primaryMod.id}`,
+      target: { slug: roadmapSlugOfModule(primaryMod.id), moduleId: primaryMod.id },
       minutes: reflectMin,
       done: false,
     },
@@ -115,10 +119,11 @@ export function getOrCreateDailyPlan(
   data: ProgressData,
   date: string = todayStr(),
   defaultBudget = 90,
+  bundle: RoadmapBundle = BUNDLES['ai-agents'],
 ): DailyPlanRecord {
   const existing = data.dailyPlans?.[date]
   if (existing && existing.blocks.length > 0) return existing
-  return generateDailyPlan(data, date, defaultBudget)
+  return generateDailyPlan(data, date, defaultBudget, bundle)
 }
 
 /** Find unfinished non-skipped blocks from the most recent previous daily plan so they can be rolled over without guilt. */

@@ -1,14 +1,6 @@
 import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { cardsForModule } from '../content/roadmaps/ai-agents'
-import { MODULES } from '../content/roadmaps/ai-agents'
-import { PHASES } from '../content/roadmaps/ai-agents'
-import {
-  downstreamUnlockCount,
-  trackForModule,
-  trackSpecFor,
-  type TrackId,
-} from '../content/roadmaps/ai-agents'
+import type { RoadmapBundle } from '../content/roadmaps/registry'
 import { isDue } from '../lib/srs'
 import {
   isUnlocked,
@@ -29,13 +21,15 @@ const LEFT = 20
 const trunc = (s: string, n = 25) => (s.length > n ? s.slice(0, n - 1) + '…' : s)
 
 export interface RoadmapGraphProps {
-  filterTrack?: TrackId | 'all' | 'bottlenecks' | 'revision'
+  filterTrack?: string | 'all' | 'bottlenecks' | 'revision'
+  bundle: RoadmapBundle
 }
 
-export default function RoadmapGraph({ filterTrack = 'all' }: RoadmapGraphProps) {
+export default function RoadmapGraph({ filterTrack = 'all', bundle }: RoadmapGraphProps) {
   const navigate = useNavigate()
   const { data } = useProgress()
   const today = todayStr()
+  const { MODULES, PHASES, downstreamUnlockCount, trackForModule, trackSpecFor, cardsForModule } = bundle
 
   const geom = useMemo(() => {
     const cols = PHASES.map((phase) => MODULES.filter((m) => m.phase === phase.n))
@@ -198,14 +192,14 @@ export default function RoadmapGraph({ filterTrack = 'all' }: RoadmapGraphProps)
             <g
               key={m.id}
               transform={`translate(${p.x}, ${p.y})`}
-              onClick={() => navigate(`/roadmap/${m.id}`)}
+              onClick={() => navigate(`/r/${bundle.META.slug}/roadmap/${m.id}`)}
               role="button"
               tabIndex={0}
               aria-label={title}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
                   e.preventDefault()
-                  navigate(`/roadmap/${m.id}`)
+                  navigate(`/r/${bundle.META.slug}/roadmap/${m.id}`)
                 }
               }}
             >

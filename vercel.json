@@ -1,4 +1,14 @@
 {
+  "redirects": [
+    { "source": "/curriculum", "destination": "/r/ai-agents/curriculum", "permanent": true },
+    { "source": "/roadmap", "destination": "/r/ai-agents/roadmap", "permanent": true },
+    { "source": "/roadmap/:moduleId", "destination": "/r/ai-agents/roadmap/:moduleId", "permanent": true },
+    { "source": "/learn/:lessonId", "destination": "/r/ai-agents/learn/:lessonId", "permanent": true },
+    { "source": "/projects", "destination": "/r/ai-agents/projects", "permanent": true },
+    { "source": "/review", "destination": "/r/ai-agents/review", "permanent": true },
+    { "source": "/assess", "destination": "/r/ai-agents/assess", "permanent": true },
+    { "source": "/planner", "destination": "/r/ai-agents/planner", "permanent": true }
+  ],
   "rewrites": [
     {
       "source": "/((?!assets/|.*\\..*).*)",

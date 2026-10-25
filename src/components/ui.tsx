@@ -67,10 +67,10 @@ export function Button({ variant = 'primary', size = 'md', className = '', ...re
   return <button className={`${base} ${sizes[size]} ${variants[variant]} ${className}`} {...rest} />
 }
 
-export function ProgressBar({ value, className = '' }: { value: number; className?: string }) {
+export function ProgressBar({ value, className = '', label = 'Progress' }: { value: number; className?: string; label?: string }) {
   const pct = Math.min(100, Math.max(0, Math.round(value)))
   return (
-    <div className={`h-2 w-full overflow-hidden rounded-full bg-raised ${className}`} role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
+    <div className={`h-2 w-full overflow-hidden rounded-full bg-raised ${className}`} role="progressbar" aria-label={label} aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100} aria-valuetext={`${pct}%`}>
       <div
         className="h-full rounded-full bg-accent transition-all duration-500"
         style={{ width: `${pct}%` }}

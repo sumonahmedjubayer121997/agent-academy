@@ -1,14 +1,9 @@
 import { useMemo, useState } from 'react'
+import { useActiveRoadmap } from '../store/activeRoadmap'
 import { Link } from 'react-router-dom'
 import { AlertCircle, ArrowRight, Layers, Sparkles } from 'lucide-react'
 import RoadmapGraph, { type RoadmapGraphProps } from '../components/RoadmapGraph'
 import { Badge, Card, ProgressBar, SectionHead } from '../components/ui'
-import { MODULES } from '../content/roadmaps/ai-agents'
-import {
-  downstreamUnlockCount,
-  TRACKS,
-  trackForModule,
-} from '../content/roadmaps/ai-agents'
 import {
   isUnlocked,
   moduleRecordOf,
@@ -19,6 +14,8 @@ import {
 
 import { usePageMeta } from '../hooks/usePageMeta'
 export default function Roadmap() {
+  const activeBundle = useActiveRoadmap()
+  const { MODULES, downstreamUnlockCount, TRACKS, trackForModule } = activeBundle
   usePageMeta('Roadmap map', 'The full dependency graph of the AI Agents curriculum.')
   const { data } = useProgress()
   const [filter, setFilter] = useState<NonNullable<RoadmapGraphProps['filterTrack']>>('all')
@@ -74,7 +71,7 @@ export default function Roadmap() {
       <div className="mb-4 flex flex-wrap items-center gap-2">
         {(
           [
-            { id: 'all', label: 'All 44 Modules' },
+            { id: 'all', label: `All ${MODULES.length} Modules` },
             { id: 'ai-agents', label: 'Track A · AI & Agents' },
             { id: 'ml-ds', label: 'Track B · ML & Data Science' },
             { id: 'core-eng', label: 'Track C · Core Engineering' },
@@ -96,7 +93,7 @@ export default function Roadmap() {
         ))}
       </div>
 
-      <RoadmapGraph filterTrack={filter} />
+      <RoadmapGraph bundle={activeBundle} filterTrack={filter} />
 
       {/* Legend */}
       <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-ink-faint">

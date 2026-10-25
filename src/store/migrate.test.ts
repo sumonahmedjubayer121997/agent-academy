@@ -9,7 +9,7 @@ describe('validateAndMigrateProgress', () => {
   })
 
   it('rejects a newer schema version with a clear error', () => {
-    const r = validateAndMigrateProgress({ schemaVersion: 3, moduleStatus: {} })
+    const r = validateAndMigrateProgress({ schemaVersion: 4, moduleStatus: {} })
     expect(r.ok).toBe(false)
     if (!r.ok) expect(r.error).toMatch(/newer app version/)
   })
@@ -20,7 +20,7 @@ describe('validateAndMigrateProgress', () => {
     expect(validateAndMigrateProgress({ sessions: {} }).ok).toBe(false)
   })
 
-  it('migrates v1 three-state data to v2 stages without loss', () => {
+  it('migrates v1 three-state data to v3 stages without loss', () => {
     const r = validateAndMigrateProgress({
       moduleStatus: { 'p1-python-core': 'completed', 'p1-sql': 'in-progress' },
       activity: ['2026-10-01', 42, '2026-10-02'],
@@ -28,7 +28,7 @@ describe('validateAndMigrateProgress', () => {
     })
     expect(r.ok).toBe(true)
     if (!r.ok) return
-    expect(r.data.schemaVersion).toBe(2)
+    expect(r.data.schemaVersion).toBe(3)
     expect(r.data.modules?.['p1-python-core']?.stage).toBe('confident')
     expect(r.data.modules?.['p1-sql']?.stage).toBe('learning')
     // non-string activity entries are dropped, real ones kept
@@ -58,5 +58,82 @@ describe('validateAndMigrateProgress', () => {
     const r = validateAndMigrateProgress({ weeklyHours: 999 })
     expect(r.ok).toBe(true)
     if (r.ok) expect(r.data.weeklyHours).toBe(10)
+  })
+
+  it('v2 → v3: single-roadmap fields move under the ai-agents key without loss', () => {
+    const r = validateAndMigrateProgress({
+      schemaVersion: 2,
+      sequenceMode: 'phase-order',
+      assessment: { done: true, applied: false, scores: { python: 3, math: 2 } },
+      lastActiveModuleId: 'p1-python-core',
+      moduleStatus: { 'p1-python-core': 'completed' },
+    })
+    expect(r.ok).toBe(true)
+    if (!r.ok) return
+    expect(r.data.schemaVersion).toBe(3)
+    expect(r.data.sequenceModes?.['ai-agents']).toBe('phase-order')
+    expect(r.data.assessments?.['ai-agents']).toEqual({
+      done: true,
+      applied: false,
+      scores: { python: 3, math: 2 },
+    })
+    expect(r.data.lastActiveModuleId).toBe('p1-python-core')
+    expect(r.data.lastActiveByRoadmap?.['ai-agents']).toBe('p1-python-core')
+  })
+
+  it('v2 → v3: stored plan route strings become {slug, moduleId} targets', () => {
+    const r = validateAndMigrateProgress({
+      schemaVersion: 2,
+      dailyPlans: {
+        '2026-10-20': {
+          date: '2026-10-20',
+          budgetMinutes: 120,
+          blocks: [
+            { id: 'b1', kind: 'learn', title: 'Study', minutes: 40, done: false, moduleId: 'pe-anatomy', route: '/roadmap/pe-anatomy' },
+            { id: 'b2', kind: 'revise', title: 'Review', minutes: 30, done: true, route: '/review' },
+          ],
+        },
+      },
+    })
+    expect(r.ok).toBe(true)
+    if (!r.ok) return
+    const blocks = r.data.dailyPlans?.['2026-10-20']?.blocks
+    expect(blocks?.[0]?.target).toEqual({ slug: 'prompt-engineering', moduleId: 'pe-anatomy' })
+    expect(blocks?.[0]?.route).toBeUndefined()
+    expect(blocks?.[1]?.target).toBeUndefined() // review links stay kind-based
+  })
+
+  it('v3 data round-trips: per-slug assessments and started roadmaps survive untouched', () => {
+    const v3 = {
+      schemaVersion: 3,
+      assessments: {
+        'ai-agents': { done: true, applied: true, scores: { python: 3 } },
+        'prompt-engineering': { done: false, applied: false, scores: {} },
+      },
+      sequenceModes: { 'prompt-engineering': 'builder-fast-track' },
+      startedRoadmaps: { 'ai-agents': '2026-10-01T00:00:00.000Z' },
+    }
+    const r = validateAndMigrateProgress(v3)
+    expect(r.ok).toBe(true)
+    if (!r.ok) return
+    expect(r.data.assessments).toEqual(v3.assessments)
+    expect(r.data.sequenceModes?.['prompt-engineering']).toBe('builder-fast-track')
+    expect(r.data.sequenceModes?.['ai-agents']).toBe('agent-fast-track') // default preserved
+    expect(r.data.startedRoadmaps).toEqual(v3.startedRoadmaps)
+  })
+
+  it('sessions gain roadmap attribution from module ids during migration', () => {
+    const r = validateAndMigrateProgress({
+      sessions: [
+        { moduleId: 'p1-python-core', minutes: 30, at: '2026-10-01T10:00:00.000Z' },
+        { moduleId: 'pe-anatomy', minutes: 20, at: '2026-10-01T11:00:00.000Z' },
+        { moduleId: 'review', minutes: 15, at: '2026-10-01T12:00:00.000Z' },
+      ],
+    })
+    expect(r.ok).toBe(true)
+    if (!r.ok) return
+    expect(r.data.sessions[0]?.roadmap).toBe('ai-agents')
+    expect(r.data.sessions[1]?.roadmap).toBe('prompt-engineering')
+    expect(r.data.sessions[2]?.roadmap).toBeUndefined() // legacy review sessions stay unattributed
   })
 })

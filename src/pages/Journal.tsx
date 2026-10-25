@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { useActiveRoadmap } from '../store/activeRoadmap'
 import { Link, useSearchParams } from 'react-router-dom'
 import {
   BookMarked,
@@ -10,13 +11,12 @@ import {
   Search,
   Trash2,
 } from 'lucide-react'
-import { MODULES } from '../content/roadmaps/ai-agents'
-import { trackForModule, trackSpecFor } from '../content/roadmaps/ai-agents'
 import { Badge, Button, Card, SectionHead } from '../components/ui'
 import { todayStr, useProgress } from '../store/progress'
 
 import { usePageMeta } from '../hooks/usePageMeta'
 export default function Journal() {
+  const { MODULES, trackForModule, trackSpecFor } = useActiveRoadmap()
   usePageMeta('Journal', 'Study journal — entries, questions, and reflections.')
   const [searchParams] = useSearchParams()
   const initialMod = searchParams.get('module') ?? MODULES[0].id
@@ -105,16 +105,16 @@ export default function Journal() {
       <div className="grid gap-8 lg:grid-cols-[1.15fr_1fr]">
         {/* New Journal Entry Form */}
         <Card className="p-6">
-          <div className="flex items-center justify-between">
-            <h2 className="flex items-center gap-2 font-semibold tracking-tight">
-              <NotebookPen size={17} className="text-accent" /> Log today's reflection
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h2 className="flex min-w-0 items-center gap-2 font-semibold tracking-tight">
+              <NotebookPen size={17} className="shrink-0 text-accent" /> Log today's reflection
             </h2>
             <input
               type="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
               aria-label="Journal entry date"
-              className="rounded-lg border border-line bg-surface px-2.5 py-1 text-xs text-ink"
+              className="shrink-0 rounded-lg border border-line bg-surface px-2.5 py-1 text-xs text-ink"
             />
           </div>
 
