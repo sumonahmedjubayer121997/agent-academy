@@ -8,6 +8,6 @@ export const META: RoadmapMeta = {
   description:
     'From first principles to eval-driven prompt design: structured output, context engineering, systematic testing, and defending against injection. Every module ends in something you measured, not something you felt.',
   level: 'Beginner-friendly',
-  status: 'coming-soon',
+  status: 'beta',
   icon: 'Sparkles',
 }

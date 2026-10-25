@@ -11,6 +11,7 @@ export const MODULES: LearningModule[] = [
     id: 'pe-mental-model',
     phase: 1,
     title: 'How a model reads your prompt',
+    lessonId: 'what-the-model-sees',
     why: 'Every prompt failure you will debug — vagueness, drift, hallucination — is easier to fix once you stop thinking of the model as a person and start thinking of it as a next-token predictor reading everything you gave it, literally.',
     objectives: [
       'Explain tokens, the context window, and why wording changes outcomes',
@@ -175,6 +176,7 @@ export const MODULES: LearningModule[] = [
     id: 'pe-json-mode',
     phase: 2,
     title: 'JSON mode & guaranteed syntax',
+    lessonId: 'json-you-can-trust',
     why: 'Hoping for valid JSON and getting valid JSON are different engineering positions. You learn what JSON modes actually guarantee — and what they leave to you.',
     objectives: [
       'Enable and test JSON mode on a real API call',

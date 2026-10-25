@@ -22,6 +22,8 @@ import { statusOf, useProgress } from '../store/progress'
 import { Badge, Button, Card } from '../components/ui'
 import LoopVisual from '../components/demos/LoopVisual'
 import VectorSim from '../components/demos/VectorSim'
+import ContextInspector from '../components/demos/ContextInspector'
+import StructuredStepthrough from '../components/demos/StructuredStepthrough'
 import FocusTimer from '../components/FocusTimer'
 import { critique, health, type CritiqueResult, type HealthInfo } from '../lib/api'
 
@@ -438,7 +440,15 @@ export default function LessonPage() {
 
         {lesson.demo && (
           <Section n={lesson.numbers ? 5 : 4} icon={Play} title="Visualisation — try it yourself">
-            {lesson.demo === 'agent-loop' ? <LoopVisual /> : <VectorSim />}
+            {lesson.demo === 'agent-loop' ? (
+              <LoopVisual />
+            ) : lesson.demo === 'vector-sim' ? (
+              <VectorSim />
+            ) : lesson.demo === 'context-inspector' ? (
+              <ContextInspector />
+            ) : (
+              <StructuredStepthrough />
+            )}
           </Section>
         )}
 

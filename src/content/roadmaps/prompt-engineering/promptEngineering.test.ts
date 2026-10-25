@@ -5,6 +5,7 @@ import { PRACTICE_PROJECTS } from './practiceProjects'
 import { PROJECTS } from './projects'
 import { ASSESSMENT, DOMAIN_LABELS, DOMAIN_CREDIT } from './assessment'
 import { CURRICULUM_DECK, cardsForModule } from './cards'
+import { LESSONS } from './lessons'
 import { EDGE_WHY } from './edges'
 import { TRACKS, trackForModule, waveForModule } from './tracks'
 
@@ -41,10 +42,10 @@ describe('prompt-engineering curriculum integrity', () => {
     }
   })
 
-  it('has 18 practice projects, 3 per phase, referencing real modules, 5+ steps each', () => {
-    expect(PRACTICE_PROJECTS).toHaveLength(18)
+  it('has 30 practice projects, 5 per phase, referencing real modules, 5+ steps each', () => {
+    expect(PRACTICE_PROJECTS).toHaveLength(30)
     for (let n = 1; n <= 6; n++) {
-      expect(PRACTICE_PROJECTS.filter((p) => p.phase === n)).toHaveLength(3)
+      expect(PRACTICE_PROJECTS.filter((p) => p.phase === n)).toHaveLength(5)
     }
     for (const p of PRACTICE_PROJECTS) {
       expect(p.steps.length).toBeGreaterThanOrEqual(5)
@@ -55,8 +56,8 @@ describe('prompt-engineering curriculum integrity', () => {
     }
   })
 
-  it('has 3 portfolio checkpoints with valid moduleIds and full specs', () => {
-    expect(PROJECTS).toHaveLength(3)
+  it('has 5 portfolio checkpoints with valid moduleIds and full specs', () => {
+    expect(PROJECTS).toHaveLength(5)
     for (const p of PROJECTS) {
       expect(ids.has(p.moduleId)).toBe(true)
       expect(p.milestones.length).toBeGreaterThanOrEqual(6)
@@ -96,6 +97,34 @@ describe('prompt-engineering curriculum integrity', () => {
       const [from, to] = key.split('->')
       expect(ids.has(from), `edge from unknown ${from}`).toBe(true)
       expect(ids.has(to), `edge to unknown ${to}`).toBe(true)
+    }
+  })
+
+  it('has 2 exemplar lessons, complete in all nine layers, wired to real modules', () => {
+    expect(LESSONS).toHaveLength(2)
+    const validDemos = ['agent-loop', 'vector-sim', 'context-inspector', 'structured-stepthrough']
+    for (const l of LESSONS) {
+      expect(ids.has(l.moduleId), `lesson ${l.id} on unknown module`).toBe(true)
+      expect(l.simple.length).toBeGreaterThanOrEqual(4)
+      expect(l.intuition.paragraphs.length).toBeGreaterThanOrEqual(2)
+      expect(l.technical.length).toBeGreaterThanOrEqual(4)
+      expect((l.deeper ?? []).length).toBeGreaterThanOrEqual(2)
+      expect(l.walkthrough.code.length).toBeGreaterThan(100)
+      expect(l.walkthrough.notes.length).toBeGreaterThanOrEqual(3)
+      expect(l.exercise.prompt.length).toBeGreaterThan(40)
+      expect(l.exercise.solution.length).toBeGreaterThan(40)
+      expect(l.quiz.length).toBeGreaterThanOrEqual(3)
+      expect(l.realWorld.length).toBeGreaterThanOrEqual(3)
+      expect(l.further.length).toBeGreaterThanOrEqual(3)
+      if (l.demo) expect(validDemos).toContain(l.demo)
+      // the module must point back at the lesson
+      const mod = MODULES.find((m) => m.id === l.moduleId)
+      expect(mod?.lessonId).toBe(l.id)
+      if (l.pre) {
+        expect(l.pre.options).toHaveLength(4)
+        expect(l.pre.answer).toBeGreaterThanOrEqual(0)
+        expect(l.pre.answer).toBeLessThan(4)
+      }
     }
   })
 

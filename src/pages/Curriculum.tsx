@@ -169,7 +169,7 @@ const STAGE_SYMBOL: Record<MasteryStage, string> = {
 
 import { usePageMeta } from '../hooks/usePageMeta'
 export default function Curriculum() {
-  const { MODULES, PHASES, TRACKS, trackForModule } = useActiveRoadmap()
+  const { MODULES, PHASES, TRACKS, trackForModule, META } = useActiveRoadmap()
   usePageMeta('Curriculum', 'All phases and modules of the AI Agents roadmap, with tracks and progress.')
   const { data, cycleStage } = useProgress()
   const stats = phaseStats(data, MODULES, PHASES)
@@ -338,7 +338,7 @@ export default function Curriculum() {
                           )}
                           {m.lessonId && (
                             <Link
-                              to={`/learn/${m.lessonId}`}
+                              to={`/r/${META.slug}/learn/${m.lessonId}`}
                               className="flex items-center gap-1 text-accent hover:underline"
                             >
                               <BookOpen size={11} /> lesson
