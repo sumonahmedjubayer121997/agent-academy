@@ -40,16 +40,30 @@ function NotFound() {
   )
 }
 
+/** Resolve which registered bundle owns a module id (defaults to ai-agents). */
+function slugForModule(moduleId?: string): string {
+  if (!moduleId) return 'ai-agents'
+  for (const [slug, bundle] of Object.entries(BUNDLES)) {
+    if (bundle.MODULES.some((m) => m.id === moduleId)) return slug
+  }
+  return 'ai-agents'
+}
+
+/** Resolve which registered bundle owns a lesson id (defaults to ai-agents). */
+function slugForLesson(lessonId?: string): string {
+  if (!lessonId) return 'ai-agents'
+  for (const [slug, bundle] of Object.entries(BUNDLES)) {
+    if ((bundle.LESSONS ?? []).some((l) => l.id === lessonId)) return slug
+  }
+  return 'ai-agents'
+}
+
 /** /m/:moduleId resolves the roadmap from the id — shared links self-heal. */
 function ModuleShortLink() {
   const { moduleId } = useParams()
   const navigate = useNavigate()
   useEffect(() => {
-    const slug =
-      moduleId && BUNDLES['prompt-engineering'].MODULES.some((m) => m.id === moduleId)
-        ? 'prompt-engineering'
-        : 'ai-agents'
-    navigate(`/r/${slug}/roadmap/${moduleId}`, { replace: true })
+    navigate(`/r/${slugForModule(moduleId)}/roadmap/${moduleId}`, { replace: true })
   }, [moduleId, navigate])
   return null
 }
@@ -94,8 +108,9 @@ export default function App() {
                 <Route path="/r/:slug/planner" element={<Planner />} />
                 <Route path="/r/:slug/assess" element={<Assessment />} />
 
-                {/* Self-healing module links */}
+                {/* Self-healing short links */}
                 <Route path="/m/:moduleId" element={<ModuleShortLink />} />
+                <Route path="/l/:lessonId" element={<LessonShortLink />} />
 
                 {/* Legacy paths redirect to the canonical tree (AI Agents is the first roadmap) */}
                 <Route path="/curriculum" element={<Navigate replace to="/r/ai-agents/curriculum" />} />
@@ -118,12 +133,23 @@ export default function App() {
   )
 }
 
+/** /l/:lessonId — self-healing lesson short link. */
+function LessonShortLink() {
+  const { lessonId } = useParams()
+  const navigate = useNavigate()
+  useEffect(() => {
+    navigate(`/r/${slugForLesson(lessonId)}/learn/${lessonId}`, { replace: true })
+  }, [lessonId, navigate])
+  return null
+}
+
+/** Legacy deep links self-heal: the roadmap is resolved from the id, not pinned. */
 function LegacyModuleRedirect() {
   const { moduleId } = useParams()
-  return <Navigate replace to={`/r/ai-agents/roadmap/${moduleId ?? ''}`} />
+  return <Navigate replace to={`/r/${slugForModule(moduleId)}/roadmap/${moduleId ?? ''}`} />
 }
 
 function LegacyLessonRedirect() {
   const { lessonId } = useParams()
-  return <Navigate replace to={`/r/ai-agents/learn/${lessonId ?? ''}`} />
+  return <Navigate replace to={`/r/${slugForLesson(lessonId)}/learn/${lessonId ?? ''}`} />
 }

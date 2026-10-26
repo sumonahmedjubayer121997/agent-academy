@@ -34,7 +34,7 @@ export function generateDailyPlan(
   const practiseMin = Math.max(5, remaining - learnMin)
 
   const due = dueCards(data, date)
-  const recs = getRecommendations(data, { dailyMinutes: safeBudget, limit: 2 })
+  const recs = getRecommendations(data, { dailyMinutes: safeBudget, limit: 2, bundle })
   const topRec = recs[0]
   const primaryMod =
     topRec?.module ??

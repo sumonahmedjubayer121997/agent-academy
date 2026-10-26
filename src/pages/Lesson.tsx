@@ -330,7 +330,7 @@ function FeynmanBox({ lessonId, lessonTitle }: { lessonId: string; lessonTitle: 
 }
 
 export default function LessonPage() {
-  const { LESSONS = [] } = useActiveRoadmap()
+  const { LESSONS = [], META } = useActiveRoadmap()
   const { lessonId } = useParams()
   const { data, setStatus } = useProgress()
   const lesson = LESSONS.find((l) => l.id === lessonId)
@@ -352,7 +352,7 @@ export default function LessonPage() {
   return (
     <article className="mx-auto max-w-3xl py-10">
       <Link
-        to={`/roadmap/${lesson.moduleId}`}
+        to={`/r/${META.slug}/roadmap/${lesson.moduleId}`}
         className="inline-flex items-center gap-1.5 text-sm text-ink-soft hover:text-accent"
       >
         <ArrowLeft size={14} /> Module page

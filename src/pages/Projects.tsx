@@ -170,7 +170,7 @@ function PracticeProjectsSection() {
 import type { PracticeProjectSpec } from '../content/types'
 import { usePageMeta } from '../hooks/usePageMeta'
 export default function Projects() {
-  const { MODULES, PROJECTS, PRACTICE_PROJECTS } = useActiveRoadmap()
+  const { MODULES, PROJECTS, PRACTICE_PROJECTS, META } = useActiveRoadmap()
   usePageMeta('Projects & portfolio', `${PROJECTS.length} flagship portfolio projects plus ${PRACTICE_PROJECTS.length} step-by-step practice builds.`)
   const { data, updateProject, toggleProjectMilestone, setStage } = useProgress()
   const [expandedLog, setExpandedLog] = useState<Record<string, boolean>>({
@@ -179,7 +179,7 @@ export default function Projects() {
 
   return (
     <div className="py-10">
-      <SectionHead
+      <SectionHead level="h1"
         eyebrow="Projects & portfolio tracker"
         title={`${PROJECTS.length} flagship projects that prove engineering`}
         sub={`Distinguish between a tutorial you followed and a system you can independently explain, modify, and defend. Check off milestones, attach your GitHub repository and evaluation metrics, log engineering problems & solutions, and rehearse each project's interview questions.`}
@@ -214,7 +214,7 @@ export default function Projects() {
                     <div className="flex flex-row flex-wrap items-center gap-x-2 gap-y-1 sm:flex-col sm:items-end sm:gap-1.5">
                       <StatusBadge status={modStage} />
                       <Link
-                        to={`/roadmap/${module.id}`}
+                        to={`/r/${META.slug}/roadmap/${module.id}`}
                         className="text-xs text-ink-faint hover:text-accent hover:underline"
                       >
                         checkpoint: {module.title} →

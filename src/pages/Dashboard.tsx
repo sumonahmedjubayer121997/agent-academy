@@ -48,7 +48,8 @@ const CONF_LEVELS: { key: Confidence; label: string }[] = [
 
 import { usePageMeta } from '../hooks/usePageMeta'
 export default function Dashboard() {
-  const { LESSONS = [], MODULES, PHASES, PROJECTS, TRACKS, trackForModule, waveForModule } = useActiveRoadmap()
+  const activeBundleForRecs = useActiveRoadmap()
+  const { LESSONS = [], MODULES, PHASES, PROJECTS, TRACKS, trackForModule, waveForModule } = activeBundleForRecs
   usePageMeta('Today', 'Your daily plan, streak, and honest progress analytics.')
   const { data, logStudyDay, logSession, saveDailyPlan, toggleDailyBlock } = useProgress()
   const [reportWindow, setReportWindow] = useState<'7d' | '30d'>('7d')
@@ -63,7 +64,7 @@ export default function Dashboard() {
   const due = dueCards(data, today)
 
   // Recommendations (Feature 3)
-  const recommendations = getRecommendations(data, { limit: 3 })
+  const recommendations = getRecommendations(data, { limit: 3, bundle: activeBundleForRecs })
   const topRec = recommendations[0]
 
   // Today's study plan (Feature 4)

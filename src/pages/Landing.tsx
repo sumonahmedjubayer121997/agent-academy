@@ -114,13 +114,16 @@ export default function Landing() {
       {/* Roadmap catalog teaser */}
       <section className="py-14">
         <div className="mb-6 flex items-end justify-between">
-          <h2 className="text-2xl font-semibold tracking-tight">One live roadmap, four on the way</h2>
+          <h2 className="text-2xl font-semibold tracking-tight">
+            {ROADMAPS.filter((r) => r.status === 'live' || r.status === 'beta').length} roadmaps ready to start,{' '}
+            {ROADMAPS.filter((r) => r.status === 'coming-soon').length} on the way
+          </h2>
           <Link to="/roadmaps" className="inline-flex items-center gap-1 text-sm font-medium text-accent hover:underline">
             All roadmaps <ArrowRight size={14} />
           </Link>
         </div>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {ROADMAPS.filter((r) => r.status === 'coming-soon').map((r) => (
+          {ROADMAPS.filter((r) => r.status !== 'live').map((r) => (
             <Link
               key={r.slug}
               to={`/roadmaps/${r.slug}`}
@@ -129,7 +132,7 @@ export default function Landing() {
               <div className="flex items-center justify-between gap-2">
                 <p className="text-sm font-semibold tracking-tight group-hover:text-accent">{r.title}</p>
                 <span className="shrink-0 rounded-full border border-line px-2 py-0.5 text-[10px] font-medium text-ink-faint">
-                  soon
+                  {r.status === 'beta' ? 'beta' : 'soon'}
                 </span>
               </div>
               <p className="mt-1 text-xs leading-relaxed text-ink-soft">{r.tagline}</p>

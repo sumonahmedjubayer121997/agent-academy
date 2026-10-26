@@ -14,6 +14,13 @@ export interface TrackSpec {
   topics: string[]
 }
 
+/** Sequence modes offered by this roadmap — labels are authored data, not engine copy. */
+export const SEQUENCE_MODES: Array<{ id: string; label: string; sub: string }> = [
+  { id: 'agent-fast-track', label: 'AI Agent Fast-Track', sub: 'Core Eng → LLMs/RAG → Agents → ML' },
+  { id: 'phase-order', label: 'Phase 1 → 8 Order', sub: 'Strict phase-by-phase sequence' },
+  { id: 'ml-first', label: 'ML & Data Science First', sub: 'Prioritise Track B math & ML' },
+]
+
 export const TRACKS: TrackSpec[] = [
   {
     id: 'ai-agents',

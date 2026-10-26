@@ -180,7 +180,7 @@ export default function Curriculum() {
 
   return (
     <div className="py-10">
-      <SectionHead
+      <SectionHead level="h1"
         eyebrow="Curriculum & personal AI assistant"
         title={`${PHASES.length} phases, ${MODULES.length} modules, ${TRACKS.length} career tracks`}
         sub="Click a module title for interactive objectives, completion criteria, notes, and evidence links. The status button on the left cycles Not started → Learning → Practising → Confident → Mastered."
@@ -319,7 +319,7 @@ export default function Curriculum() {
                       </button>
                       <div className="min-w-0 flex-1">
                         <Link
-                          to={`/roadmap/${m.id}`}
+                          to={`/r/${META.slug}/roadmap/${m.id}`}
                           className="text-sm font-medium hover:text-accent hover:underline"
                         >
                           {m.title}

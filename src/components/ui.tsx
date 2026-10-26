@@ -116,15 +116,19 @@ export function SectionHead({
   eyebrow,
   title,
   sub,
+  level = 'h2',
 }: {
   eyebrow?: string
   title: string
   sub?: string
+  /** Use h1 on the page-opening heading so each page has exactly one h1. */
+  level?: 'h1' | 'h2'
 }) {
+  const Tag = level
   return (
     <div className="mb-6">
       {eyebrow && <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-accent">{eyebrow}</p>}
-      <h2 className="text-2xl font-semibold tracking-tight">{title}</h2>
+      <Tag className="text-2xl font-semibold tracking-tight">{title}</Tag>
       {sub && <p className="mt-2 max-w-2xl text-ink-soft">{sub}</p>}
     </div>
   )

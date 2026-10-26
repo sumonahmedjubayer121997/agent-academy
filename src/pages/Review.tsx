@@ -187,7 +187,7 @@ export default function Review() {
     return (
       <div className="py-12">
         <div className="flex flex-wrap items-end justify-between gap-4">
-          <SectionHead
+          <SectionHead level="h1"
             eyebrow="Review & Spaced Repetition"
             title="Nothing due right now"
             sub="Cards enter your review queue automatically when you complete a lesson quiz, move a module to Practising/Confident, or create your own flashcards. You can also run a Weak-Spot Drill anytime."
@@ -284,7 +284,7 @@ export default function Review() {
               {LESSONS.map((l) => (
                 <Link
                   key={l.id}
-                  to={`/learn/${l.id}`}
+                  to={`/r/${META.slug}/learn/${l.id}`}
                   className="rounded-xl border border-line bg-surface px-4 py-3 text-sm font-medium transition-all hover:-translate-y-0.5 hover:text-accent"
                 >
                   {l.title} <ArrowRight size={13} className="ml-1 inline" />

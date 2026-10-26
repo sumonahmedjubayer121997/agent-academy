@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { roadmapSlugOfModule } from '../store/progress'
 import { useActiveRoadmap } from '../store/activeRoadmap'
 import { Link } from 'react-router-dom'
 import { ExternalLink } from 'lucide-react'
@@ -90,7 +91,7 @@ export default function Resources() {
             <Card key={g.term} className="p-4 transition-all hover:-translate-y-0.5">
               <p className="font-semibold tracking-tight">{g.term}</p>
               <p className="mt-1.5 text-sm leading-relaxed text-ink-soft">{g.def}</p>
-              <Link to={`/roadmap/${g.moduleId}`} className="mt-2 inline-block text-xs text-accent hover:underline">
+              <Link to={`/r/${roadmapSlugOfModule(g.moduleId)}/roadmap/${g.moduleId}`} className="mt-2 inline-block text-xs text-accent hover:underline">
                 taught in this module →
               </Link>
             </Card>
