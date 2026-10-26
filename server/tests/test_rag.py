@@ -34,6 +34,15 @@ GOLDEN: list[tuple[str, tuple[str, ...]]] = [
     ("how do i calibrate an llm judge", ("module:pe-metrics",)),
     ("how many few-shot examples should i use", ("module:pe-few-shot",)),
     ("how to red team my own prompts", ("module:pe-red-team",)),
+    # -- AI Programming (authored curriculum) --
+    ("which errors should never be retried", ("module:aip-reliability", "aip-")),
+    ("how to cache model responses and save cost", ("module:aip-caching",)),
+    ("what does a circuit breaker do for model calls", ("module:aip-reliability",)),
+    ("where do api keys belong in an ai app", ("module:aip-env-config",)),
+    ("tests as specification for generated code", ("module:aip-spec-as-tests",)),
+    ("how to sandbox generated code safely", ("module:aip-sandboxing",)),
+    ("what metrics should an ai feature dashboard show", ("module:aip-metrics-dashboards",)),
+    ("feature flags and kill switch for ai features", ("module:aip-feature-flags",)),
 ]
 
 

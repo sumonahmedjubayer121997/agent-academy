@@ -1,6 +1,7 @@
 import type { RoadmapBundle, RoadmapMeta, RoadmapStats } from '../types'
 import * as aiAgents from './ai-agents'
 import * as promptEngineering from './prompt-engineering'
+import * as aiProgramming from './ai-programming'
 
 export type { RoadmapBundle } from '../types'
 
@@ -13,6 +14,7 @@ export type { RoadmapBundle } from '../types'
 export const BUNDLES: Record<string, RoadmapBundle> = {
   'ai-agents': aiAgents,
   'prompt-engineering': promptEngineering,
+  'ai-programming': aiProgramming,
 }
 
 export interface RoadmapRegistryEntry extends RoadmapMeta {
@@ -34,6 +36,13 @@ const promptEngineeringStats: RoadmapStats = {
   hours: promptEngineering.MODULES.reduce((sum, m) => sum + m.hours, 0),
 }
 
+const aiProgrammingStats: RoadmapStats = {
+  phases: aiProgramming.PHASES.length,
+  modules: aiProgramming.MODULES.length,
+  lessons: 0,
+  hours: aiProgramming.MODULES.reduce((sum, m) => sum + m.hours, 0),
+}
+
 export const ROADMAPS: RoadmapRegistryEntry[] = [
   {
     ...aiAgents.META,
@@ -44,21 +53,8 @@ export const ROADMAPS: RoadmapRegistryEntry[] = [
     stats: promptEngineeringStats,
   },
   {
-    slug: 'ai-programming',
-    title: 'AI Programming',
-    tagline: 'Write real software around models',
-    description:
-      'Programming in the LLM era: calling models from code, structured I/O, code-generation patterns, and the eval + observability habits that separate toys from products.',
-    level: 'Intermediate',
-    status: 'coming-soon',
-    icon: 'Code2',
-    plannedPhases: [
-      { title: 'Foundations', blurb: 'Python/TypeScript tooling and the mental model of a model-as-a-function.' },
-      { title: 'LLM APIs & structured output', blurb: 'Streaming, retries, tokens, cost, and schema-constrained responses.' },
-      { title: 'Code-generation patterns', blurb: 'Autocomplete, diff editing, agents that write and run code safely.' },
-      { title: 'Evals & observability', blurb: 'Golden sets, regression gates, tracing, and cost monitoring.' },
-      { title: 'Shipping AI features safely', blurb: 'Caching, rate limits, fallbacks, and feature flags for model-backed UX.' },
-    ],
+    ...aiProgramming.META,
+    stats: aiProgrammingStats,
   },
   {
     slug: 'ai-automation',
