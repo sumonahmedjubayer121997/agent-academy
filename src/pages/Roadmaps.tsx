@@ -71,7 +71,7 @@ export default function Roadmaps() {
   const soon = ROADMAPS.filter((r) => r.status === 'coming-soon')
   return (
     <div className="py-10">
-      <SectionHead
+      <SectionHead level="h1"
         eyebrow="Roadmaps"
         title="Pick a path, follow it to the end"
         sub="Every roadmap is a sequence of modules with lessons, spaced review, and portfolio projects. Start one today; the rest are being authored."

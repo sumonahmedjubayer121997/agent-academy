@@ -16,7 +16,7 @@ import { todayStr, useProgress } from '../store/progress'
 
 import { usePageMeta } from '../hooks/usePageMeta'
 export default function Journal() {
-  const { MODULES, trackForModule, trackSpecFor } = useActiveRoadmap()
+  const { MODULES, trackForModule, trackSpecFor, META } = useActiveRoadmap()
   usePageMeta('Journal', 'Study journal — entries, questions, and reflections.')
   const [searchParams] = useSearchParams()
   const initialMod = searchParams.get('module') ?? MODULES[0].id
@@ -299,7 +299,7 @@ export default function Journal() {
                     <div key={m.id} className="rounded-xl border border-line bg-raised/40 p-3.5 text-sm">
                       <div className="flex items-center justify-between gap-2">
                         <Link
-                          to={`/roadmap/${m.id}`}
+                          to={`/r/${META.slug}/roadmap/${m.id}`}
                           className="font-semibold text-ink hover:text-accent hover:underline"
                         >
                           P{m.phase} · {m.title}
@@ -349,7 +349,7 @@ export default function Journal() {
                     {entry.moduleIds.map((id) => {
                       const m = modById.get(id)
                       return (
-                        <Link key={id} to={`/roadmap/${id}`}>
+                        <Link key={id} to={`/r/${META.slug}/roadmap/${id}`}>
                           <Badge>{m?.title ?? id}</Badge>
                         </Link>
                       )

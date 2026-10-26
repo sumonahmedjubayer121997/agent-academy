@@ -50,6 +50,8 @@ export interface ResourceSpec {
   why: string
   prereqs: string
   supports: string
+  /** Which roadmap this resource belongs to; absent = ai-agents (legacy data). */
+  roadmap?: string
 }
 
 export interface QuizQ {
@@ -158,6 +160,7 @@ export interface RoadmapBundle {
   LESSONS?: Lesson[]
   EDGE_WHY: Record<string, string>
   TRACKS: TrackSpecCommon[]
+  SEQUENCE_MODES: Array<{ id: string; label: string; sub: string }>
   trackForModule(moduleId: string): string
   trackSpecFor(trackId: string): TrackSpecCommon
   waveForModule(moduleId: string): 1 | 2 | 3 | 4

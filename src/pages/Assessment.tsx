@@ -20,7 +20,7 @@ function recommendation(scores: Record<string, number>): string {
 
 import { usePageMeta } from '../hooks/usePageMeta'
 export default function Assessment() {
-  const { ASSESSMENT, DOMAIN_CREDIT, DOMAIN_LABELS, MODULES } = useActiveRoadmap()
+  const { ASSESSMENT, DOMAIN_CREDIT, DOMAIN_LABELS, MODULES, META } = useActiveRoadmap()
   usePageMeta('Diagnostic assessment', 'Find your real gaps across five domains and credit what you already know.')
   const { data, recordAssessment, applyAssessmentCredit } = useProgress()
   const [answers, setAnswers] = useState<Record<number, number>>({})
@@ -42,7 +42,7 @@ export default function Assessment() {
   if (showStored) {
     return (
       <div className="mx-auto max-w-3xl py-10">
-        <SectionHead
+        <SectionHead level="h1"
           eyebrow="Assessment"
           title="Your diagnostic results"
           sub="Retake it any time — scores update, and prior-knowledge credit is always yours to apply or ignore."
@@ -61,7 +61,7 @@ export default function Assessment() {
         </Card>
         <p className="mt-4 text-sm text-ink-faint">
           Next: open the{' '}
-          <Link to="/roadmap" className="text-accent hover:underline">
+          <Link to={`/r/${META.slug}/roadmap`} className="text-accent hover:underline">
             roadmap
           </Link>{' '}
           or your{' '}
@@ -165,7 +165,7 @@ export default function Assessment() {
           <Button onClick={() => applyAssessmentCredit()}>
             Apply credit
           </Button>
-          <Link to="/roadmap">
+          <Link to={`/r/${META.slug}/roadmap`}>
             <Button variant="secondary">Skip — I'll mark things myself</Button>
           </Link>
         </div>

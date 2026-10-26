@@ -65,7 +65,7 @@ export default function ModuleDetail() {
     return (
       <div className="py-24 text-center">
         <p className="text-xl font-semibold">Module not found.</p>
-        <Link to="/curriculum" className="mt-2 inline-block text-accent hover:underline">
+        <Link to={`/r/${META.slug}/curriculum`} className="mt-2 inline-block text-accent hover:underline">
           Back to curriculum
         </Link>
       </div>
@@ -84,7 +84,11 @@ export default function ModuleDetail() {
   const loggedHours = (loggedMinutes / 60).toFixed(1)
   const modCards = cardsForModule(m.id)
   const srsSeededCount = modCards.filter((c) => Boolean(data.srs[c.cardId])).length
-  const relatedResources = RESOURCES.filter((r) => r.supports.includes(`Phase ${m.phase}`))
+  // Resources are roadmap-scoped: absent `roadmap` field means ai-agents (legacy data).
+  // Better none than wrong-roadmap recommendations.
+  const relatedResources = RESOURCES.filter(
+    (r) => (r.roadmap ?? 'ai-agents') === META.slug && r.supports.includes(`Phase ${m.phase}`),
+  )
   const linkedJournal = (data.journal ?? []).filter((j) => j.moduleIds.includes(m.id))
 
   const allObjectivesChecked = rec.objectivesDone.length >= m.objectives.length
@@ -138,7 +142,7 @@ export default function ModuleDetail() {
     <div className="py-10">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <Link
-          to="/roadmap"
+          to={`/r/${META.slug}/roadmap`}
           className="inline-flex items-center gap-1.5 text-sm text-ink-soft hover:text-accent"
         >
           <ArrowLeft size={14} /> Roadmap & Skills Map
@@ -660,7 +664,7 @@ export default function ModuleDetail() {
                     const pDone = statusOf(data, p.id) === 'completed'
                     return (
                       <div key={p.id} className="rounded-xl border border-line px-3 py-2">
-                        <Link to={`/roadmap/${p.id}`} className="inline-flex items-center gap-1.5">
+                        <Link to={`/r/${META.slug}/roadmap/${p.id}`} className="inline-flex items-center gap-1.5">
                           <Badge tone={pDone ? 'ok' : 'neutral'}>
                             {pDone ? '✓ ' : ''}
                             {p.title} ({stageOf(data, p.id)})
@@ -687,7 +691,7 @@ export default function ModuleDetail() {
                 </p>
                 <div className="flex flex-wrap gap-1.5">
                   {unlocks.map((u) => (
-                    <Link key={u.id} to={`/roadmap/${u.id}`}>
+                    <Link key={u.id} to={`/r/${META.slug}/roadmap/${u.id}`}>
                       <Badge>{u.title}</Badge>
                     </Link>
                   ))}

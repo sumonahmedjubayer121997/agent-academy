@@ -15,7 +15,7 @@ import {
 import { usePageMeta } from '../hooks/usePageMeta'
 export default function Roadmap() {
   const activeBundle = useActiveRoadmap()
-  const { MODULES, downstreamUnlockCount, TRACKS, trackForModule } = activeBundle
+  const { MODULES, downstreamUnlockCount, TRACKS, trackForModule, META } = activeBundle
   usePageMeta('Roadmap map', 'The full dependency graph of the AI Agents curriculum.')
   const { data } = useProgress()
   const [filter, setFilter] = useState<NonNullable<RoadmapGraphProps['filterTrack']>>('all')
@@ -61,10 +61,10 @@ export default function Roadmap() {
 
   return (
     <div className="py-10">
-      <SectionHead
+      <SectionHead level="h1"
         eyebrow="Interactive roadmap & skills gap map"
         title="The dependency & mastery map"
-        sub="Phases flow left to right; arrows are hard prerequisites. Filter by your three career tracks (A: AI & Agents, B: ML & Data Science, C: Supporting Engineering), spot high-leverage bottlenecks, and see which skills are only understood theoretically versus demonstrated through a project."
+        sub="Phases flow left to right; arrows are hard prerequisites. Filter by this roadmap's career tracks, spot high-leverage bottlenecks, and see which skills are only understood theoretically versus demonstrated through a project."
       />
 
       {/* Track & Bottleneck Filter Bar */}
@@ -72,9 +72,7 @@ export default function Roadmap() {
         {(
           [
             { id: 'all', label: `All ${MODULES.length} Modules` },
-            { id: 'ai-agents', label: 'Track A · AI & Agents' },
-            { id: 'ml-ds', label: 'Track B · ML & Data Science' },
-            { id: 'core-eng', label: 'Track C · Core Engineering' },
+            ...TRACKS.map((t) => ({ id: t.id, label: `${t.code} · ${t.title}` })),
             { id: 'bottlenecks', label: 'KEY Bottlenecks' },
             { id: 'revision', label: 'Due for Revision / Shaky' },
           ] as const
@@ -143,7 +141,7 @@ export default function Roadmap() {
             {bottlenecks.map(({ module: m, unlocks, stage }) => (
               <Link
                 key={m.id}
-                to={`/roadmap/${m.id}`}
+                to={`/r/${META.slug}/roadmap/${m.id}`}
                 className="group flex items-center justify-between rounded-xl border border-line px-4 py-3 transition-all hover:border-accent/40 hover:bg-accent-soft"
               >
                 <div>

@@ -35,7 +35,8 @@ import {
 
 import { usePageMeta } from '../hooks/usePageMeta'
 export default function Planner() {
-  const { MODULES } = useActiveRoadmap()
+  const activeBundle = useActiveRoadmap()
+  const { MODULES, SEQUENCE_MODES } = activeBundle
   usePageMeta('Planner & settings', 'Weekly hours, pace forecasts, export and backup.')
   const {
     data,
@@ -63,7 +64,7 @@ export default function Planner() {
 
   // Daily study plan
   const todayPlan = useMemo(
-    () => getOrCreateDailyPlan(data, today, dailyBudget),
+    () => getOrCreateDailyPlan(data, today, dailyBudget, activeBundle),
     [data, today, dailyBudget],
   )
   const unfinishedYesterday = useMemo(
@@ -112,7 +113,7 @@ export default function Planner() {
 
   const handleSetDailyBudget = (mins: number) => {
     setDailyBudget(mins)
-    saveDailyPlan(generateDailyPlan(data, today, mins))
+    saveDailyPlan(generateDailyPlan(data, today, mins, activeBundle))
   }
 
   const handleSkipBlock = (blockId: string) => {
@@ -180,7 +181,7 @@ export default function Planner() {
 
   return (
     <div className="py-10">
-      <SectionHead
+      <SectionHead level="h1"
         eyebrow="Daily & weekly study planner"
         title="Plan today's session and calibrate your long-term pace"
         sub="Break today's available study time into concrete Revise, Learn, Practise, and Document blocks. Rearrange or skip tasks anytime without guilt — missed blocks can be rolled over with one click."
@@ -214,7 +215,7 @@ export default function Planner() {
               </button>
             ))}
             <button
-              onClick={() => saveDailyPlan(generateDailyPlan(data, today, dailyBudget))}
+              onClick={() => saveDailyPlan(generateDailyPlan(data, today, dailyBudget, activeBundle))}
               title="Regenerate today's blocks from latest recommendations"
               className="rounded-lg border border-line bg-surface p-1.5 text-ink-soft hover:bg-raised hover:text-ink"
             >
@@ -370,25 +371,7 @@ export default function Planner() {
             Recommendation sequence mode (Career direction)
           </h3>
           <div className="mt-3 grid gap-2 sm:grid-cols-3">
-            {(
-              [
-                {
-                  id: 'agent-fast-track',
-                  label: 'AI Agent Fast-Track',
-                  sub: 'Core Eng → LLMs/RAG → Agents → ML',
-                },
-                {
-                  id: 'phase-order',
-                  label: 'Phase 1 → 8 Order',
-                  sub: 'Strict phase-by-phase sequence',
-                },
-                {
-                  id: 'ml-first',
-                  label: 'ML & Data Science First',
-                  sub: 'Prioritise Track B math & ML',
-                },
-              ] as { id: string; label: string; sub: string }[]
-            ).map((opt) => (
+            {SEQUENCE_MODES.map((opt) => (
               <button
                 key={opt.id}
                 onClick={() => setSequenceMode(opt.id)}

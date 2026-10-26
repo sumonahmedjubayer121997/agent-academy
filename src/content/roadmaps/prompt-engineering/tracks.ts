@@ -14,6 +14,12 @@ export interface TrackSpec {
   topics: string[]
 }
 
+/** Sequence modes offered by this roadmap — labels are authored data, not engine copy. */
+export const SEQUENCE_MODES: Array<{ id: string; label: string; sub: string }> = [
+  { id: 'phase-order', label: 'Phase 1 → 6 Order', sub: 'Strict phase-by-phase sequence' },
+  { id: 'builder-fast-track', label: 'Builder Fast-Track', sub: 'APIs & schemas first, theory as needed' },
+]
+
 export const TRACKS: TrackSpec[] = [
   {
     id: 'complete',
