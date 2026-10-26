@@ -202,6 +202,7 @@ export const MODULES: LearningModule[] = [
     id: 'aip-tokens-cost',
     phase: 2,
     title: 'Tokens, pricing & cost control',
+    lessonId: 'aip-token-cost',
     why: 'An AI feature without cost accounting is an unbounded liability. Tokens in, tokens out, price per million — tracked per feature, per user, per day.',
     objectives: [
       'Compute request cost from usage fields and a price table',
@@ -244,6 +245,7 @@ export const MODULES: LearningModule[] = [
     id: 'aip-reliability',
     phase: 2,
     title: 'Retries, backoff & circuit breakers',
+    lessonId: 'aip-resilient-call',
     why: 'Providers rate-limit, time out, and have bad hours. Retry with backoff handles transient faults; circuit breakers stop you from DDoS-ing an already-struggling dependency.',
     objectives: [
       'Retry idempotent calls with exponential backoff + jitter',

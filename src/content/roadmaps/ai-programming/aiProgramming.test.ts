@@ -6,6 +6,7 @@ import { PROJECTS } from './projects'
 import { ASSESSMENT, DOMAIN_LABELS, DOMAIN_CREDIT } from './assessment'
 import { CURRICULUM_DECK, cardsForModule } from './cards'
 import { EDGE_WHY } from './edges'
+import { LESSONS } from './lessons'
 import { TRACKS, SEQUENCE_MODES, trackForModule, waveForModule } from './tracks'
 
 const ids = new Set(MODULES.map((m) => m.id))
@@ -102,6 +103,33 @@ describe('ai-programming curriculum integrity', () => {
       const [from, to] = key.split('->')
       expect(ids.has(from), `edge from unknown ${from}`).toBe(true)
       expect(ids.has(to), `edge to unknown ${to}`).toBe(true)
+    }
+  })
+
+  it('has 2 exemplar lessons, complete in all nine layers, wired to real modules', () => {
+    expect(LESSONS).toHaveLength(2)
+    const validDemos = ['agent-loop', 'vector-sim', 'context-inspector', 'structured-stepthrough', 'retry-timeline', 'cost-meter']
+    for (const l of LESSONS) {
+      expect(ids.has(l.moduleId), `lesson ${l.id} on unknown module`).toBe(true)
+      expect(l.simple.length).toBeGreaterThanOrEqual(4)
+      expect(l.intuition.paragraphs.length).toBeGreaterThanOrEqual(2)
+      expect(l.technical.length).toBeGreaterThanOrEqual(4)
+      expect((l.deeper ?? []).length).toBeGreaterThanOrEqual(2)
+      expect(l.walkthrough.code.length).toBeGreaterThan(100)
+      expect(l.walkthrough.notes.length).toBeGreaterThanOrEqual(4)
+      expect(l.exercise.prompt.length).toBeGreaterThan(40)
+      expect(l.exercise.solution.length).toBeGreaterThan(40)
+      expect(l.quiz.length).toBeGreaterThanOrEqual(3)
+      expect(l.realWorld.length).toBeGreaterThanOrEqual(3)
+      expect(l.further.length).toBeGreaterThanOrEqual(3)
+      if (l.demo) expect(validDemos).toContain(l.demo)
+      const mod = MODULES.find((m) => m.id === l.moduleId)
+      expect(mod?.lessonId).toBe(l.id)
+      if (l.pre) {
+        expect(l.pre.options).toHaveLength(4)
+        expect(l.pre.answer).toBeGreaterThanOrEqual(0)
+        expect(l.pre.answer).toBeLessThan(4)
+      }
     }
   })
 

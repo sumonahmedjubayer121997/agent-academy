@@ -1,5 +1,5 @@
 {
-  "exportedAt": "2026-10-26T01:46:27.592Z",
+  "exportedAt": "2026-10-26T09:55:27.060Z",
   "modules": [
     {
       "roadmap": "ai-agents",
@@ -3372,6 +3372,85 @@
         "Extraction pipelines (invoices, postings, tickets) — the most-shipped industrial LLM feature, and precisely this pattern: schema, validate, repair, measure.",
         "Agent tool arguments: every tool call is structured output; wrong types or invented enum values are how agents crash, which is why Phase 2 feeds directly into Phase 6.",
         "Evals: your Phase 4 golden sets consume schema-validated records — an eval harness over unvalidated prose measures nothing."
+      ]
+    },
+    {
+      "roadmap": "ai-programming",
+      "id": "aip-resilient-call",
+      "moduleId": "aip-reliability",
+      "title": "The Resilient Model Call",
+      "tagline": "Providers fail on a schedule you do not control. Your policy decides what the user experiences.",
+      "simple": [
+        "Model providers fail. Not maliciously and not permanently — they rate-limit, they have bad minutes, they time out. A production AI feature assumes failure as a normal, scheduled event.",
+        "Failures come in two classes with opposite policies. Transient failures (429 rate limits, 5xx server errors, timeouts) may succeed on retry. Client errors (400, 401, 403) will fail identically every single time — retrying them just burns money and delays the honest error.",
+        "Retries need manners: exponential backoff (each wait doubles) plus jitter (randomness) so ten thousand clients that failed together do not retry together — the thundering herd that turns an outage into a stampede.",
+        "Retries need a limit. Four attempts is a common ceiling; past it you surface the error and hand off to the fallback ladder (Phase 5): smaller model, cache, queue, or an honest apology.",
+        "Under sustained failure, the circuit breaker opens: stop calling, fail fast, and probe occasionally (half-open) for recovery. It protects the provider from you and your users from slow timeouts."
+      ],
+      "intuition": {
+        "analogy": "A retry policy is a polite caller, not a persistent door-knocker.",
+        "paragraphs": [
+          "Imagine calling a friend who is on another call. A polite caller waits a bit, tries again, waits longer, tries once more — then leaves a voicemail and moves on with their day. An impolite caller redials every two seconds, which helps nobody and jams the line for real.",
+          "The circuit breaker is the friend whose phone you stop calling after five straight rejections — you wait an hour, try once, and if they answer you resume; if not, you stop again. This is not giving up; it is refusing to let one broken conversation consume your whole afternoon.",
+          "And the two-error-classes rule is knowing the difference between \"line was busy\" (call back later) and \"wrong number\" (calling back harder will not fix the digits)."
+        ]
+      },
+      "technical": [
+        "Backoff schedule: wait(n) = base × 2^(n-1) + jitter, with base typically 250–1000ms and a cap (e.g. 8s). Full jitter (uniform in [0, base×2^n]) spreads load widest; equal jitter (half fixed, half random) trades spread for slightly faster recovery.",
+        "Idempotency gate: only retry when a repeated call is safe. Model completions are effectively idempotent (same prompt, new sample — wasteful but not dangerous); side-effecting tool calls are NOT — a retry may double-charge or double-send.",
+        "Respect the provider: on 429, honor the Retry-After header when present instead of computing your own delay; obey per-model rate limits in the client, not after the error.",
+        "Circuit breaker states: CLOSED (normal, count consecutive failures) → OPEN (fail fast without calling, typically after 5) → HALF-OPEN (after a cool-down, let one probe through; success closes, failure re-opens). Expose breaker state as a metric — silent breakers cause mysterious \"AI is slow\" incidents.",
+        "Where it lives: in your gateway wrapper around the provider interface (Project 1), so every feature inherits the same policy instead of re-implementing it badly."
+      ],
+      "deeper": [
+        "Retry budgets: rather than a fixed max-attempts, cap retries as a fraction of requests (e.g. retries ≤ 20% of total) over a sliding window. This keeps total load amplification bounded at 1.2× even as traffic scales — the approach popularized by Google SRE retry-budget guidance.",
+        "Hedged requests (send a second copy if the first exceeds p95): great for tail latency, dangerous for cost and provider load — only for reads where a duplicate completion is acceptable, and only with tight limits.",
+        "Why full jitter beats deterministic backoff at scale: with N synchronized failing clients, deterministic schedules re-synchronize every retry; uniform jitter de-synchronizes them within one attempt, smoothing provider load measurably."
+      ],
+      "walkthroughCode": "type ChatResult = { text: string; usage: Usage }\n\nconst RETRYABLE = new Set([429, 500, 502, 503, 504])\nconst BASE_MS = 500, MAX_ATTEMPTS = 4\n\nexport async function completeWithRetry(\n  provider: Provider,           // the interface; fake in tests, real in prod\n  messages: Message[],\n): Promise<ChatResult> {\n  for (let attempt = 1; ; attempt++) {\n    try {\n      return await provider.complete(messages)      // client has timeouts set\n    } catch (err) {\n      if (!RETRYABLE.has(err.status) || attempt >= MAX_ATTEMPTS) throw err\n      if (err.retryAfterMs) await sleep(err.retryAfterMs)         // honor 429 hints\n      else {\n        const jitter = Math.random() * BASE_MS * 2 ** (attempt - 1)\n        await sleep(jitter)                                        // full jitter\n      }\n    }\n  }\n}",
+      "realWorld": [
+        "Support copilots: a 429 storm at 9am peak is normal traffic, not an incident — retry policy absorbs it invisibly while the dashboard shows the retry rate ticking up.",
+        "Batch enrichment pipelines: thousands of calls overnight run with tighter retry budgets and queue-based backpressure instead of aggressive client retries.",
+        "On-call reality: \"the AI feature is slow\" almost always means timeouts without a working breaker — fail-fast plus fallbacks converts a slow outage into a fast degradation."
+      ]
+    },
+    {
+      "roadmap": "ai-programming",
+      "id": "aip-token-cost",
+      "moduleId": "aip-tokens-cost",
+      "title": "What a Token Costs",
+      "tagline": "An AI feature without cost accounting is an unbounded liability with a friendly UI.",
+      "simple": [
+        "Every model call costs money, computed from two numbers in the response: input tokens (your prompt) and output tokens (the answer), each priced per million tokens at model-specific rates.",
+        "Output tokens usually cost several times more than input tokens — the model does more work generating than reading. A feature that lets answers run long multiplies its own cost.",
+        "An invoice tells you what you paid. A ledger tells you what cost it: per call, the model × tokens × price math, attributed to the feature and user that caused it, persisted and queryable.",
+        "Budgets make the ledger actionable: per-feature daily ceilings, per-user quotas, alerts at 80% before the money is gone instead of after.",
+        "The cheapest call is the one you do not make: caching repeated prompts, routing easy work to smaller models, and capping output length are the three big levers — all measured against the ledger."
+      ],
+      "intuition": {
+        "analogy": "The ledger is an electricity meter with a room label on every kilowatt.",
+        "paragraphs": [
+          "A household electricity bill tells you the total — useless for decisions. A meter that says \"the heater cost 40 euros this month, the dryer 12\" tells you exactly what to change. Model cost is identical: the invoice is the bill; the ledger is the labeled meter.",
+          "And budgets are the circuit breaker in the fuse box: when the heater line draws too much, something trips before the house burns down. Per-feature budgets trip at 80% with a warning, at 100% with degradation — not with surprise invoices."
+        ]
+      },
+      "technical": [
+        "Cost formula per call: cost = (tokens_in / 1e6) × price_in + (tokens_out / 1e6) × price_out, with the price table versioned as data — providers change prices, so the table is loaded, not hardcoded, and stamped with effective dates.",
+        "Ledger schema: one row per call — timestamp, model, tokens_in, tokens_out, computed_cost, feature_id, user_id, request_id (joins to the trace). This single table answers every cost question: per feature, per user, per day, per model, trend, anomaly.",
+        "Budget enforcement points: alert at 80% (page a human), warn at 95%, degrade or stop at 100% (the Phase-5 ladder: smaller model, cached answers, queue for later). Quotas per user are the same machinery at finer grain.",
+        "Cache interaction: a cache hit costs storage and latency, not tokens — so the ledger records hit/miss beside cost, and cache savings become a computed column, not a guess.",
+        "The three levers, measured: (1) prefix caching for repeated instructions — often the largest single win; (2) model routing by task difficulty — nano for extraction, large only for hard synthesis; (3) output caps (max_tokens) — unbounded generation is an unbounded line item."
+      ],
+      "deeper": [
+        "Why output tokens cost more: generation is autoregressive — each output token requires a full forward pass over the growing sequence, while input tokens are processed once in parallel. You are paying for sequential compute, not for bytes.",
+        "Batching discounts: many providers price batched (offline, delayed) requests at roughly half — features with tolerance for minutes of delay (enrichment, classification queues) should run in batch mode and the ledger should show the discount.",
+        "Unit economics as a product metric: cost per successful action (not per call — retries and repairs included) is the number a business actually prices against; compute it by joining the ledger with the action-success events from your tracing."
+      ],
+      "walkthroughCode": "from dataclasses import dataclass\nfrom datetime import datetime\n\nPRICE_TABLE = {                       # loaded from config in real code,\n    \"illustrative-nano\": (0.15, 0.6), # (price_in_per_m, price_out_per_m)\n    \"illustrative-standard\": (3.0, 12.0),\n}\n\n@dataclass\nclass LedgerEntry:\n    ts: datetime; model: str\n    tokens_in: int; tokens_out: int\n    cost_usd: float; feature: str; user: str; cached: bool\n\ndef record_call(usage, model: str, feature: str, user: str,\n                cached: bool = False) -> LedgerEntry:\n    p_in, p_out = PRICE_TABLE[model]\n    cost = (usage.tokens_in / 1e6) * p_in + (usage.tokens_out / 1e6) * p_out\n    entry = LedgerEntry(datetime.utcnow(), model,\n                        usage.tokens_in, usage.tokens_out,\n                        cost, feature, user, cached)\n    store.append(entry)               # + emit metric, check budgets\n    check_budget(feature)             # alert at 80%, degrade at 100%\n    return entry\n\ndef feature_cost(feature: str, day: str) -> float:\n    return sum(e.cost_usd for e in store\n               if e.feature == feature and e.ts.date() == day)",
+      "realWorld": [
+        "Feature launches: \"will this ruin us if it gets popular?\" is a ledger query — cost per user × projected users, with an alert as the tripwire.",
+        "Pricing decisions: per-successful-action cost (including retries and repairs) is the floor under any per-seat or usage-based pricing conversation.",
+        "Incident reviews: a Tuesday where cost per call doubled is visible in the ledger within minutes — usually a model swap, a cache miss wave, or a runaway generation loop."
       ]
     }
   ],
