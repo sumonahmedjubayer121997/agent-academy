@@ -75,7 +75,7 @@ export interface Lesson {
   /** Optional university-level layer, collapsed under "Go deeper" after the technical section. */
   deeper?: string[]
   numbers?: { title: string; rows: [string, string][]; takeaway: string }
-  demo?: 'agent-loop' | 'vector-sim' | 'context-inspector' | 'structured-stepthrough'
+  demo?: 'agent-loop' | 'vector-sim' | 'context-inspector' | 'structured-stepthrough' | 'retry-timeline' | 'cost-meter'
   walkthrough: { lang: string; code: string; notes: [string, string][] }
   exercise: { prompt: string; solution: string }
   quiz: QuizQ[]

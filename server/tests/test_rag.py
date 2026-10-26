@@ -43,6 +43,13 @@ GOLDEN: list[tuple[str, tuple[str, ...]]] = [
     ("how to sandbox generated code safely", ("module:aip-sandboxing",)),
     ("what metrics should an ai feature dashboard show", ("module:aip-metrics-dashboards",)),
     ("feature flags and kill switch for ai features", ("module:aip-feature-flags",)),
+    # -- AI Programming lessons (public Beta) --
+    ("which errors should never be retried and why", ("lesson:aip-resilient-call:", "module:aip-reliability")),
+    ("why add jitter to exponential backoff", ("lesson:aip-resilient-call:",)),
+    ("what does a circuit breaker solve that retries cannot", ("lesson:aip-resilient-call:", "module:aip-reliability")),
+    ("why is a cost ledger better than the invoice", ("lesson:aip-token-cost:", "module:aip-tokens-cost")),
+    ("why do output tokens cost more than input tokens", ("lesson:aip-token-cost:",)),
+    ("three big levers to cut model cost", ("lesson:aip-token-cost:", "module:aip-caching")),
 ]
 
 
