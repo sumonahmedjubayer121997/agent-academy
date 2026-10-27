@@ -4,6 +4,7 @@ import Navbar from './components/Navbar'
 import { ProgressProvider } from './store/progress'
 import { ActiveRoadmapProvider } from './store/activeRoadmap'
 import { usePageMeta } from './hooks/usePageMeta'
+import { showOnboardingAgain } from './components/Onboarding'
 import { BUNDLES } from './content/roadmaps/registry'
 import Landing from './pages/Landing'
 import Dashboard from './pages/Dashboard'
@@ -73,7 +74,19 @@ function Footer() {
     <footer className="mt-20 border-t border-line py-8">
       <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-2 px-4 text-sm text-ink-faint sm:flex-row">
         <p>Agent Academy — a personal learning companion, built as part of the journey it maps.</p>
-        <p>Progress is stored locally in your browser. No accounts, no fake statistics.</p>
+        <p>
+          Progress is stored locally in your browser. No accounts, no fake statistics.{' '}
+          <button
+            onClick={() => {
+              showOnboardingAgain()
+              window.location.hash = ''
+              window.location.href = '/'
+            }}
+            className="text-accent hover:underline"
+          >
+            New here?
+          </button>
+        </p>
       </div>
     </footer>
   )

@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import Onboarding from '../components/Onboarding'
 import { ArrowRight, ClipboardCheck, Map, ShieldCheck, Sparkles, Target } from 'lucide-react'
 import { BUNDLES, ROADMAPS } from '../content/roadmaps/registry'
 import { phaseStats, totals, useProgress } from '../store/progress'
@@ -110,6 +111,8 @@ export default function Landing() {
           ))}
         </div>
       </section>
+
+      <Onboarding />
 
       {/* Roadmap catalog teaser */}
       <section className="py-14">
