@@ -1,4 +1,5 @@
 import type { Lesson } from '../../types'
+import { FAKE_PROVIDER_LESSON } from './lessonFakeProvider'
 
 /**
  * Exemplar lessons for AI Programming — the nine-layer retention format.
@@ -323,4 +324,5 @@ def feature_cost(feature: str, day: str) -> float:
       },
     ],
   },
+  FAKE_PROVIDER_LESSON,
 ]

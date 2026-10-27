@@ -116,6 +116,7 @@ export const MODULES: LearningModule[] = [
     id: 'aip-testing-fundamentals',
     phase: 1,
     title: 'Testing the non-AI layer',
+    lessonId: 'the-fake-provider',
     why: 'You cannot unit-test a model, but 80% of an AI feature is ordinary code. Testing that 80% deterministically is what keeps the AI 20% debuggable.',
     objectives: [
       'Unit-test pure logic and integration-test boundaries with fakes',

@@ -33,6 +33,7 @@ export const MODULES: LearningModule[] = [
     id: 'pe-anatomy',
     phase: 1,
     title: 'Anatomy of a prompt',
+    lessonId: 'anatomy-of-a-prompt',
     why: 'Most bad prompts are good ingredients in the wrong order. The instruction / context / input / output-format skeleton turns prompt writing from art into assembly.',
     objectives: [
       'Decompose any prompt into its four anatomical parts',

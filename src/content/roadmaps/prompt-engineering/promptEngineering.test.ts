@@ -101,8 +101,8 @@ describe('prompt-engineering curriculum integrity', () => {
   })
 
   it('has 2 exemplar lessons, complete in all nine layers, wired to real modules', () => {
-    expect(LESSONS).toHaveLength(2)
-    const validDemos = ['agent-loop', 'vector-sim', 'context-inspector', 'structured-stepthrough']
+    expect(LESSONS).toHaveLength(3)
+    const validDemos = ['agent-loop', 'vector-sim', 'context-inspector', 'structured-stepthrough', 'anatomy-builder', 'fake-provider', 'retry-timeline', 'cost-meter']
     for (const l of LESSONS) {
       expect(ids.has(l.moduleId), `lesson ${l.id} on unknown module`).toBe(true)
       expect(l.simple.length).toBeGreaterThanOrEqual(4)

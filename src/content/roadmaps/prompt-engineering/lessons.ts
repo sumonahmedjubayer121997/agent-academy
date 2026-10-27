@@ -1,4 +1,5 @@
 import type { Lesson } from '../../types'
+import { ANATOMY_LESSON } from './lessonAnatomy'
 
 /**
  * Exemplar lessons for Prompt Engineering — the same nine-layer retention
@@ -309,4 +310,5 @@ def extract(review: str) -> MovieReview | None:
       },
     ],
   },
+  ANATOMY_LESSON,
 ]
