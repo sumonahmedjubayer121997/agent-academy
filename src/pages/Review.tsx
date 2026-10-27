@@ -208,9 +208,34 @@ export default function Review() {
     setShowAddForm(false)
   }
 
+  const ScopeBar = () => (
+    <div className="mb-4 flex flex-wrap items-center gap-2">
+      <span className="rounded-full border border-line px-2.5 py-1 text-xs text-ink-faint">
+        {plan.dueCount} due across all roadmaps{plan.queuedNew > 0 ? ` · ${plan.queuedNew} queued` : ''}
+      </span>
+      <div className="flex overflow-hidden rounded-lg border border-line" role="group" aria-label="Review scope">
+        {(['all', 'focus'] as const).map((s) => (
+          <button
+            key={s}
+            onClick={() => {
+              setScope(s === 'all' ? 'all' : activeSlug)
+              setSessionQueue([])
+            }}
+            className={`px-2.5 py-1 text-xs font-medium transition-colors ${
+              (scope === 'all') === (s === 'all') ? 'bg-raised text-ink' : 'text-ink-faint hover:bg-raised'
+            }`}
+          >
+            {s === 'all' ? 'All roadmaps' : 'This roadmap'}
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+
   if (sessionQueue.length === 0) {
     return (
-      <div className="py-12">
+      <div className="mx-auto max-w-2xl py-10">
+        <ScopeBar />
         <div className="flex flex-wrap items-end justify-between gap-4">
           <SectionHead level="h1"
             eyebrow="Review & Spaced Repetition"
@@ -352,28 +377,8 @@ export default function Review() {
 
   return (
     <div className="mx-auto max-w-2xl py-10">
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="rounded-full border border-line px-2.5 py-1 text-xs text-ink-faint">
-            {plan.dueCount} due across all roadmaps{plan.queuedNew > 0 ? ` · ${plan.queuedNew} queued` : ''}
-          </span>
-          <div className="flex overflow-hidden rounded-lg border border-line" role="group" aria-label="Review scope">
-            {(['all', 'focus'] as const).map((s) => (
-              <button
-                key={s}
-                onClick={() => {
-                  setScope(s === 'all' ? 'all' : activeSlug)
-                  setSessionQueue([])
-                }}
-                className={`px-2.5 py-1 text-xs font-medium transition-colors ${
-                  (scope === 'all') === (s === 'all') ? 'bg-raised text-ink' : 'text-ink-faint hover:bg-raised'
-                }`}
-              >
-                {s === 'all' ? 'All roadmaps' : 'This roadmap'}
-              </button>
-            ))}
-          </div>
-        </div>
+      <ScopeBar />
+      <div className="mb-4 flex flex-wrap items-center justify-end gap-2">
         <Button variant="ghost" size="sm" onClick={() => setShowAddForm((v) => !v)}>
           <Plus size={14} /> Add card
         </Button>
