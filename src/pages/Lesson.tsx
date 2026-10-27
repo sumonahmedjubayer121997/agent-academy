@@ -14,6 +14,8 @@ import RetryTimeline from '../components/demos/RetryTimeline'
 import CostMeter from '../components/demos/CostMeter'
 import AnatomyBuilder from '../components/demos/AnatomyBuilder'
 import FakeProviderConsole from '../components/demos/FakeProviderConsole'
+import ChatTurnStepper from '../components/demos/ChatTurnStepper'
+import GroundingCheck from '../components/demos/GroundingCheck'
 import FocusTimer from '../components/FocusTimer'
 import { critique, health, type CritiqueResult, type HealthInfo } from '../lib/api'
 
@@ -480,6 +482,10 @@ export default function LessonPage() {
               <AnatomyBuilder />
             ) : lesson.demo === 'fake-provider' ? (
               <FakeProviderConsole />
+            ) : lesson.demo === 'chat-turn-stepper' ? (
+              <ChatTurnStepper />
+            ) : lesson.demo === 'grounding-check' ? (
+              <GroundingCheck />
             ) : (
               <CostMeter />
             )}
