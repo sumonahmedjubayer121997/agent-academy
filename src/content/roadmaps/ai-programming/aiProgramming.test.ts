@@ -107,8 +107,8 @@ describe('ai-programming curriculum integrity', () => {
   })
 
   it('has 2 exemplar lessons, complete in all nine layers, wired to real modules', () => {
-    expect(LESSONS).toHaveLength(2)
-    const validDemos = ['agent-loop', 'vector-sim', 'context-inspector', 'structured-stepthrough', 'retry-timeline', 'cost-meter']
+    expect(LESSONS).toHaveLength(3)
+    const validDemos = ['agent-loop', 'vector-sim', 'context-inspector', 'structured-stepthrough', 'retry-timeline', 'cost-meter', 'anatomy-builder', 'fake-provider']
     for (const l of LESSONS) {
       expect(ids.has(l.moduleId), `lesson ${l.id} on unknown module`).toBe(true)
       expect(l.simple.length).toBeGreaterThanOrEqual(4)

@@ -26,6 +26,8 @@ import ContextInspector from '../components/demos/ContextInspector'
 import StructuredStepthrough from '../components/demos/StructuredStepthrough'
 import RetryTimeline from '../components/demos/RetryTimeline'
 import CostMeter from '../components/demos/CostMeter'
+import AnatomyBuilder from '../components/demos/AnatomyBuilder'
+import FakeProviderConsole from '../components/demos/FakeProviderConsole'
 import FocusTimer from '../components/FocusTimer'
 import { critique, health, type CritiqueResult, type HealthInfo } from '../lib/api'
 
@@ -452,6 +454,10 @@ export default function LessonPage() {
               <StructuredStepthrough />
             ) : lesson.demo === 'retry-timeline' ? (
               <RetryTimeline />
+            ) : lesson.demo === 'anatomy-builder' ? (
+              <AnatomyBuilder />
+            ) : lesson.demo === 'fake-provider' ? (
+              <FakeProviderConsole />
             ) : (
               <CostMeter />
             )}
@@ -459,7 +465,7 @@ export default function LessonPage() {
         )}
 
         <Section n={lesson.demo && lesson.numbers ? 6 : 5} icon={Code2} title="Code walkthrough">
-          <pre className="overflow-x-auto rounded-xl bg-raised p-5 text-[13px] leading-relaxed">
+          <pre className="overflow-x-auto whitespace-pre-wrap break-words rounded-xl bg-raised p-5 text-[13px] leading-relaxed">
             <code>{lesson.walkthrough.code}</code>
           </pre>
           <ol className="mt-5 space-y-3">
@@ -480,7 +486,7 @@ export default function LessonPage() {
             <summary className="cursor-pointer select-none px-4 py-3 text-sm font-medium text-accent">
               Reveal a worked solution
             </summary>
-            <pre className="overflow-x-auto border-t border-line px-4 py-4 text-[13px] leading-relaxed">
+            <pre className="overflow-x-auto whitespace-pre-wrap break-words border-t border-line px-4 py-4 text-[13px] leading-relaxed">
               <code>{lesson.exercise.solution}</code>
             </pre>
           </details>

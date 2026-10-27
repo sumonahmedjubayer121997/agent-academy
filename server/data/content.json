@@ -1,5 +1,5 @@
 {
-  "exportedAt": "2026-10-26T09:55:27.060Z",
+  "exportedAt": "2026-10-27T11:12:17.308Z",
   "modules": [
     {
       "roadmap": "ai-agents",
@@ -3375,6 +3375,45 @@
       ]
     },
     {
+      "roadmap": "prompt-engineering",
+      "id": "anatomy-of-a-prompt",
+      "moduleId": "pe-anatomy",
+      "title": "Anatomy of a Prompt",
+      "tagline": "Most bad prompts are good ingredients in the wrong order — or missing entirely.",
+      "simple": [
+        "A well-formed prompt has four parts, and each has one job: the Instruction states the task, the Context carries the durable rules, the Input is the thing to operate on, and the Output format defines the shape of the answer.",
+        "When a prompt misbehaves, diagnose by part. Vague results point to a weak Instruction. Contradictions point to Context spread across the wrong places. The model inventing structure points to a missing Output format. The model confusing your data with your instructions points to unmarked Input.",
+        "Order matters more than politeness. Instructions first, context second, input last: the contract is set before the noise arrives, and everything after the instruction is read in its light.",
+        "The skeleton is also your debugging checklist. When output disappoints, label each sentence of your prompt as one of the four parts. Unlabeled sentences are usually the problem — they are doing a job nobody assigned.",
+        "The skeleton composes. Every later pattern in this roadmap — few-shot examples, retrieved documents, schemas — is just a part added to this frame, never a replacement for it."
+      ],
+      "intuition": {
+        "analogy": "A prompt is a lab requisition slip, not a letter to a friend.",
+        "paragraphs": [
+          "A requisition slip has printed fields: patient, test, sample, reporting format. Nobody fills it out with pleasantries, and nobody wonders where the sample goes. The lab (the model) processes hundreds of slips a day and needs zero context about you to act correctly.",
+          "When you write a letter, the reader infers intent. When you fill a slip, the fields enforce it. Prompts that behave like slips are debuggable — a wrong result points at a wrong field. Prompts that behave like letters are mysteries."
+        ]
+      },
+      "technical": [
+        "Instruction: one sentence with one verb where possible (\"Extract…\", \"Classify…\", \"Rewrite…\"). Multiple verbs in one instruction is the top source of half-done tasks; split them into steps or separate calls.",
+        "Context: durable rules the model needs across calls (enum definitions, style rules, domain constraints). Context belongs in the system message when it is stable — higher role precedence, cached prefixes, and it stops the rules competing with per-call user content.",
+        "Input: the per-call data, always delimited (tags, triple quotes, fences). Delimiters are the boundary that keeps data from being read as instructions — the same boundary that later becomes your first injection defense.",
+        "Output format: state it as a contract, exactly as a consumer would (\"exactly one JSON object with keys …; no prose; no markdown fences\"). The format line is the single highest-leverage sentence for variance reduction, because it collapses the space of acceptable continuations.",
+        "Failure patterns by missing part: no instruction → generic output; no context → invented rules; no delimiters → data/role confusion; no format → unparseable prose. Name the missing part before editing any words."
+      ],
+      "deeper": [
+        "Role mapping: in chat APIs the skeleton maps onto roles — Context (durable rules) into the system message, Instruction + Input + Format into the turn, or Instruction + Format into developer/user structure when the provider supports it. Higher-priority roles win conflicts, which is exactly why durable rules must not live in the user turn.",
+        "Position effects: instruction adherence is strongest at the start and end of the window. A format spec buried in the middle of a long prompt measurably loses compliance — one more reason the contract goes first and the data goes last.",
+        "Entropy view: an explicit output format removes degrees of freedom from the continuation. That is why format constraints reduce variance more than tone instructions — they eliminate classes of possible outputs rather than reweighting them."
+      ],
+      "walkthroughCode": "// Building the skeleton in code — parts assembled deliberately, not typed ad hoc.\ninterface PromptParts { instruction: string; context?: string; input: string; format: string }\n\nfunction buildPrompt(p: PromptParts): { system: string; user: string } {\n  return {\n    // Durable rules belong to the system role: precedence + cacheable prefix\n    system: p.context ?? '',\n    user: [\n      p.instruction,                    // 1. the task — one verb\n      `\n<email>${p.input}</email>`,   // 2. the data — delimited\n      `\n${p.format}`,                 // 3. the contract — restated last\n    ].join('\n'),\n  }\n}\n\nconst { system, user } = buildPrompt({\n  instruction: 'Extract sender, email, and urgency from the support email below.',\n  context: 'Urgency: urgent (today), normal (this week), low (whenever). Unstated deadline means normal.',\n  input: 'Hi, this is Dana from Acme. Dashboard blank since 9am, client demo at 4pm today! dana@acme.co',\n  format: 'Return exactly one JSON object: sender (string), email (string), urgency (\"urgent\"|\"normal\"|\"low\").',\n})",
+      "realWorld": [
+        "Support triage: one skeleton, thousands of emails a day — the format line is what lets a script consume the result without a human reading it.",
+        "Compliance extraction: the context part carries the enum definitions (urgency levels, categories) so the model classifies against the official taxonomy, not an invented one.",
+        "Prompt reviews: teams diff prompts like code once they are assembled from labeled parts — a change to Context stops silently editing Input."
+      ]
+    },
+    {
       "roadmap": "ai-programming",
       "id": "aip-resilient-call",
       "moduleId": "aip-reliability",
@@ -3451,6 +3490,45 @@
         "Feature launches: \"will this ruin us if it gets popular?\" is a ledger query — cost per user × projected users, with an alert as the tripwire.",
         "Pricing decisions: per-successful-action cost (including retries and repairs) is the floor under any per-seat or usage-based pricing conversation.",
         "Incident reviews: a Tuesday where cost per call doubled is visible in the ledger within minutes — usually a model swap, a cache miss wave, or a runaway generation loop."
+      ]
+    },
+    {
+      "roadmap": "ai-programming",
+      "id": "the-fake-provider",
+      "moduleId": "aip-testing-fundamentals",
+      "title": "The Fake Provider",
+      "tagline": "You cannot unit-test a model. You can unit-test everything around it — if it hides behind an interface.",
+      "simple": [
+        "Roughly 80 percent of an AI feature is ordinary code: validation, routing, retries, caching, formatting. That 80 percent can be tested fast and deterministically — but only if the model itself is replaceable.",
+        "The trick is one seam: a Provider interface with a single operation (complete(messages, options) returning a typed Result). The real implementation calls an API; a fake implementation returns scripted responses from memory.",
+        "A good fake has three powers: it is deterministic (same script, same answer, every run), it is scriptable (you tell it what to return or throw next), and it fails on demand (429, timeout, malformed output — injected like a stage prop).",
+        "With the fake in place, your whole suite runs offline in milliseconds: no network, no API key, no flaky 3am provider hiccup turning your CI red for reasons unrelated to your code.",
+        "The real provider is not banished — it moves to a separate, clearly labelled smoke test that runs nightly or before release. Unit tests prove your logic; the smoke test proves the wire is real."
+      ],
+      "intuition": {
+        "analogy": "The fake is a flight simulator, and the real provider is the aircraft.",
+        "paragraphs": [
+          "Pilots train almost entirely in simulators because simulators are cheap, repeatable, and can fail on command: engine fire at 10,000 feet, on a Tuesday, every Tuesday, until the crew handles it perfectly. Nobody trains engine-fire recovery on the passenger aircraft.",
+          "Your fake provider is the simulator control panel. It scripts the failure you need to test — three 429s in a row, a hang, a malformed body — and it will produce that exact failure identically a thousand times. The real aircraft (provider) is flown rarely, on scheduled check flights (smoke tests)."
+        ]
+      },
+      "technical": [
+        "The interface is small on purpose: complete(messages: Message[], options?: Options) => Promise<Result> where Result carries text, usage, finishReason, and possibly structured output. Everything else (retries, caching, cost) is YOUR code layered above — which is exactly the code unit tests protect.",
+        "Fake design: a queue of scripted responses; helpers like failNext(n, {status}) and delayNext(ms); counters for calls and token usage. Keep it under a hundred lines — if the fake needs a fake, the interface is wrong.",
+        "Test patterns unlocked: assert exact outputs (deterministic), assert call counts (retry layer: fake fails 3 times, expect 4 calls), assert latency bounds with mocked timers (timeout logic), assert repair-loop behavior (malformed then valid script). None of these are possible against a live provider without flakiness.",
+        "Placement: dependency injection at the boundary — the feature receives a Provider, tests construct FakeProvider, production wiring injects the real one from configuration. The fake is a first-class module in the repo, not a test afterthought.",
+        "Contract discipline: the fake must answer with the same shapes the real provider produces. The practical guard is golden recordings — capture a handful of real responses, and a test that replays them against the same assertions the fake-mode tests make."
+      ],
+      "deeper": [
+        "The test pyramid for AI features: many unit tests against the fake (logic), fewer integration tests with the fake exercising adapters and persistence, and one or two smoke tests against the real provider (nightly or pre-release). Trying to make the base of the pyramid use the real provider is why AI test suites become slow and flaky.",
+        "Fakes vs mocks: a mock asserts interactions (\"complete was called once\"); a fake is a working implementation with scripted behavior. For provider seams, prefer the fake — your code consumes responses, not call signatures, and a fake lets you test consumption naturally.",
+        "Golden recordings also catch provider drift: when the vendor changes a response field, the nightly smoke replays recordings and the diff points at the exact behavioral change — turning a mystery outage into a contract check."
+      ],
+      "walkthroughCode": "// The seam + the fake — the two smallest artifacts with the biggest testing payoff.\ninterface Provider {\n  complete(messages: Message[], options?: Options): Promise<Result>\n}\n\nclass FakeProvider implements Provider {\n  private queue: Array<Result | Error> = []\n  calls: Message[][] = []          // assert call counts (retry tests)\n\n  respond(r: Result) { this.queue.push(r) }\n  failNext(n: number, err: Error) { for (let i = 0; i < n; i++) this.queue.push(err) }\n\n  async complete(messages: Message[]): Promise<Result> {\n    this.calls.push(messages)\n    const next = this.queue.shift()\n    if (next instanceof Error) throw next\n    return next ?? { text: '', usage: { in: 0, out: 0 }, finishReason: 'stop' }\n  }\n}\n\n// A test that used to be flaky and slow is now instant and exact:\ntest('retry layer absorbs three 429s then succeeds', async () => {\n  const fake = new FakeProvider()\n  fake.failNext(3, providerError(429))\n  fake.respond({ text: 'urgent', usage: { in: 42, out: 1 }, finishReason: 'stop' })\n\n  const result = await completeWithRetry(fake, [{ role: 'user', content: 'how urgent?' }])\n\n  expect(result.text).toBe('urgent')   // deterministic — same every run\n  expect(fake.calls).toHaveLength(4)   // 3 failures + 1 success, no network\n})",
+      "realWorld": [
+        "Platform teams: every serious AI codebase (and most SDKs) ships a fake or test-double for exactly this seam — it is the precondition for confident refactoring of the reliability layer.",
+        "Incident drills: a regression test reproducing a past 429 storm as a fake script is how the fix becomes permanent — the outage becomes a replayable unit test.",
+        "Onboarding: a new engineer can run the full suite on day one with zero credentials — the fake removes the API-key barrier from contributing."
       ]
     }
   ],

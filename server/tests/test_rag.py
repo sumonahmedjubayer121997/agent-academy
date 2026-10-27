@@ -50,6 +50,13 @@ GOLDEN: list[tuple[str, tuple[str, ...]]] = [
     ("why is a cost ledger better than the invoice", ("lesson:aip-token-cost:", "module:aip-tokens-cost")),
     ("why do output tokens cost more than input tokens", ("lesson:aip-token-cost:",)),
     ("three big levers to cut model cost", ("lesson:aip-token-cost:", "module:aip-caching")),
+    # -- lessons wave 2 (PE anatomy, AIP fake provider) --
+    ("what are the four parts of a prompt", ("lesson:anatomy-of-a-prompt:", "module:pe-anatomy")),
+    ("output is correct but unparseable which part is missing", ("lesson:anatomy-of-a-prompt:", "module:pe-anatomy")),
+    ("why delimit the input data in a prompt", ("lesson:anatomy-of-a-prompt:", "module:pe-delimiters")),
+    ("how to unit test an ai feature deterministically", ("lesson:the-fake-provider:", "module:aip-testing-fundamentals")),
+    ("fake provider vs mocks for testing", ("lesson:the-fake-provider:", "module:aip-testing-fundamentals")),
+    ("what do golden recordings catch", ("lesson:the-fake-provider:", "module:aip-testing-fundamentals")),
 ]
 
 
