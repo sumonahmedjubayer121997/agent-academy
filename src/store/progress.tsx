@@ -3,6 +3,7 @@ import { BUNDLES } from '../content/roadmaps/registry'
 import { useActiveRoadmap } from './activeRoadmap'
 import type { LearningModule, Phase } from '../content/types'
 import { isDue, newCard, review, reviewWithGrade, type RecallGrade, type SrsCard } from '../lib/srs'
+import { spreadBacklog as spreadBacklogFn } from '../lib/srsQueue'
 import { addDays, dayStr } from '../lib/date'
 import { saveIdbSnapshot } from '../lib/backupDb'
 
@@ -174,6 +175,7 @@ export interface ProgressData {
   dailyPlans?: Record<string, DailyPlanRecord>
   lastActiveModuleId?: string
   // v3 multi-roadmap fields
+  reviewSettings?: { maxReviewsPerDay?: number; newCardsPerDay?: Record<string, number> }
   assessments?: Record<string, { done: boolean; applied: boolean; scores: Record<string, number> }>
   sequenceModes?: Record<string, string>
   lastActiveByRoadmap?: Record<string, string>
@@ -710,6 +712,8 @@ interface ProgressContextValue {
   hasPreviousBackup: boolean
   restorePreviousBackup: () => boolean
   markRoadmapStarted: (slug: string) => void
+  updateReviewSettings: (patch: { maxReviewsPerDay?: number; newCardsPerDay?: Record<string, number> }) => void
+  spreadReviewBacklog: () => number
   resetAll: () => void
 }
 
@@ -879,7 +883,16 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
           })
         }),
       seedModuleCards: (moduleId, dueImmediate = true) => {
+        // Cross-roadmap equivalents: if an equivalent module is Confident+, this
+        // roadmap's deck seeds without a same-day flood (the learner has seen the ideas).
+        const equivalents = (activeBundle as unknown as { EQUIVALENTS?: Record<string, string[]> }).EQUIVALENTS
+        const eqIds = equivalents?.[moduleId] ?? []
+        const eqConfident = eqIds.some((eid) => {
+          const st = stageOf(data, eid)
+          return st === 'confident' || st === 'mastered'
+        })
         const modCards = activeBundle.cardsForModule(moduleId)
+        if (eqConfident) dueImmediate = false
         setData((d) => {
           const nextSrs = { ...d.srs }
           const now = new Date()
@@ -1116,6 +1129,22 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
             },
           })
         }),
+      updateReviewSettings: (patch) =>
+        setData((d) => ({
+          ...d,
+          reviewSettings: {
+            ...d.reviewSettings,
+            ...patch,
+            newCardsPerDay: { ...(d.reviewSettings?.newCardsPerDay ?? {}), ...(patch.newCardsPerDay ?? {}) },
+          },
+        })),
+      spreadReviewBacklog: () => {
+        const { next, spread } = spreadBacklogFn(data.srs, todayStr(), (t, n) =>
+          dayStr(addDays(new Date(Date.parse(t)), n)),
+        )
+        if (spread > 0) setData((d) => touch({ ...d, srs: next }))
+        return spread
+      },
       markRoadmapStarted: (slug) =>
         setData((d) =>
           d.startedRoadmaps?.[slug]

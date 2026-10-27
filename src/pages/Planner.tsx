@@ -1,4 +1,6 @@
 import { useMemo, useRef, useState } from 'react'
+import { BUNDLES } from '../content/roadmaps/registry'
+import { shortTitleOf } from '../store/activeRoadmap'
 import { useActiveRoadmap } from '../store/activeRoadmap'
 import { sequenceModeOf } from '../store/progress'
 import { Link } from 'react-router-dom'
@@ -41,6 +43,7 @@ export default function Planner() {
   const {
     data,
     setWeeklyHours,
+    updateReviewSettings,
     setSequenceMode,
     saveDailyPlan,
     toggleDailyBlock,
@@ -363,6 +366,42 @@ export default function Planner() {
               />
               <span className="w-10 font-mono text-sm font-semibold">{hours}h</span>
             </div>
+          </div>
+        </Card>
+
+        <Card className="p-6">
+          <h3 className="text-sm font-semibold tracking-tight">Review health (daily caps)</h3>
+          <p className="mt-1 text-xs leading-relaxed text-ink-faint">
+            New cards enter each roadmap's deck slowly, and total reviews stay bounded — the Anki-style
+            guard against review bankruptcy now that several decks are live.
+          </p>
+          <div className="mt-3 flex flex-wrap items-center gap-4 text-sm">
+            <label className="flex items-center gap-2">
+              <span className="text-xs text-ink-soft">Max reviews/day</span>
+              <input
+                type="number"
+                min={10}
+                max={500}
+                value={data.reviewSettings?.maxReviewsPerDay ?? 100}
+                onChange={(e) => updateReviewSettings({ maxReviewsPerDay: Number(e.target.value) })}
+                className="w-20 rounded-lg border border-line bg-surface px-2 py-1 text-xs"
+              />
+            </label>
+            {Object.keys(BUNDLES).map((slug) => (
+              <label key={slug} className="flex items-center gap-2">
+                <span className="text-xs text-ink-soft">New/day · {shortTitleOf(BUNDLES[slug].META)}</span>
+                <input
+                  type="number"
+                  min={0}
+                  max={50}
+                  value={data.reviewSettings?.newCardsPerDay?.[slug] ?? 10}
+                  onChange={(e) =>
+                    updateReviewSettings({ newCardsPerDay: { [slug]: Number(e.target.value) } })
+                  }
+                  className="w-16 rounded-lg border border-line bg-surface px-2 py-1 text-xs"
+                />
+              </label>
+            ))}
           </div>
         </Card>
 

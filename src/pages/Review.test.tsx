@@ -39,6 +39,11 @@ describe('Review page (Feature 5 & P0 multi-card session fix)', () => {
       </MemoryRouter>,
     )
 
+    // P6 UI present: global counts bar + scope chips
+    expect(screen.getByRole('button', { name: /All roadmaps/i })).toBeTruthy()
+    expect(screen.getByRole('button', { name: /This roadmap/i })).toBeTruthy()
+    expect(screen.getByText(/due across all roadmaps/i)).toBeTruthy()
+
     // Card 1 of 2 is shown ("1 / 2")
     expect(screen.getByText(/1\s*\/\s*2/)).toBeTruthy()
     expect(screen.getByText(/When does the agent loop stop\?/i)).toBeTruthy()
@@ -57,7 +62,10 @@ describe('Review page (Feature 5 & P0 multi-card session fix)', () => {
     // Answer Card 2 and finish session
     const optionButtons = screen
       .getAllByRole('button')
-      .filter((b) => !/Add card/i.test(b.textContent ?? ''))
+      .filter(
+        (b) =>
+          !/Add card|All roadmaps|This roadmap|Next card|Drill|Spread/i.test(b.textContent ?? ''),
+      )
     fireEvent.click(optionButtons[0])
     fireEvent.click(screen.getByRole('button', { name: /Finish session/i }))
 
