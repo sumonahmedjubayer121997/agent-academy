@@ -60,7 +60,7 @@ function PracticeProjectRow({ p }: { p: PracticeProjectSpec }) {
   const [open, setOpen] = useState(false)
   const { MODULES, META } = useActiveRoadmap()
   return (
-    <div className="border-b border-line last:border-0">
+    <div id={p.id} className="scroll-mt-20 border-b border-line last:border-0">
       <button
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}

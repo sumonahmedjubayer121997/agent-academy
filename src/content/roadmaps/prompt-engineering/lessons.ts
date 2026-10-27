@@ -14,6 +14,7 @@ export const LESSONS: Lesson[] = [
     title: 'What the Model Actually Sees',
     minutes: 25,
     tagline: 'A prompt is not a message to a person — it is the entire world, for exactly one call.',
+  takeaways: ["A prompt is the entire world for one call — the model has no memory of you.", "Different wording = different token sequence = different output, even at temperature 0.", "Structure beats politeness: explicit constraints move the model more than persona or pleas."],
     simple: [
       'When you send a prompt, the model does not remember you, your previous chats, or your intentions. Everything it knows this turn is the exact text you sent — nothing more.',
       'That text is first chopped into tokens: word pieces of roughly four characters each. "Unbelievable" might be three tokens; "the" is one. The model never sees letters or spacing the way you do — only this token sequence.',
@@ -154,6 +155,8 @@ for (const temperature of [0, 1]) {
     title: 'JSON You Can Trust',
     minutes: 30,
     tagline: 'JSON mode guarantees syntax. Your program needs a schema, a validator, and a repair loop.',
+  takeaways: ["JSON mode guarantees syntax, not shape — validate every response against a schema.", "Feed validation errors back verbatim: specific feedback turns re-rolls into fixes.", "Design schemas the model can satisfy: flat, enums, optional-and-omitted for unknowns."],
+  relatedPractice: "pe-pp-json-gauntlet",
     pre: {
       q: 'In the "prompts are APIs" framing, what is the API contract a structured prompt must define?',
       options: [

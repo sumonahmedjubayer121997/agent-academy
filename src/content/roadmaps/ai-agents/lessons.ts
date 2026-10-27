@@ -7,6 +7,7 @@ export const LESSONS: Lesson[] = [
     title: 'The Agent Loop',
     minutes: 35,
     tagline: 'Every agent framework is this one loop wearing a costume.',
+  takeaways: ["Every agent is the same loop: observe, reason, act — frameworks only dress it differently.", "Tools turn a chatbot into an agent: the loop decides, the tool executes.", "Stop conditions and budgets are what keep a loop from becoming a bill."],
     pre: {
       q: 'Before we start — from Phase 4: when a model "calls a function", who actually executes it?',
       options: ['The model, inside its own sandbox', 'My runtime — the model only returns a structured request'],
@@ -161,6 +162,7 @@ for step in range(max_steps):
     title: 'Embeddings & Similarity',
     minutes: 30,
     tagline: 'Turn meaning into geometry — the most reused idea in applied AI.',
+  takeaways: ["Embeddings turn meaning into geometry — similar things land close together.", "Cosine similarity measures direction agreement, which is why it beats raw distance for text.", "Retrieval quality is embedding quality: failures upstream are search failures downstream."],
     pre: {
       q: 'Warm-up from the math track: what is the dot product of (3, 4) · (4, 3)?',
       options: ['12', '24', '25'],

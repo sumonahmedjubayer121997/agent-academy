@@ -7,6 +7,8 @@ export const FAKE_PROVIDER_LESSON: Lesson = {
   title: 'The Fake Provider',
   minutes: 30,
   tagline: 'You cannot unit-test a model. You can unit-test everything around it — if it hides behind an interface.',
+  takeaways: ["Hide the model behind one interface; the fake and the real provider both implement it.", "A good fake is deterministic, scriptable, and fails on demand — 429 storms become unit tests.", "Real calls live in a labelled nightly smoke tier, never in the per-push unit suite."],
+  relatedPractice: "aip-pp-fake-provider",
   pre: {
     q: 'What does boundary validation (pydantic/zod) catch that type checking alone misses?',
     options: [
