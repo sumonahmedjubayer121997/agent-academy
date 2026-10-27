@@ -13,6 +13,8 @@ export const LESSONS: Lesson[] = [
     title: 'The Resilient Model Call',
     minutes: 30,
     tagline: 'Providers fail on a schedule you do not control. Your policy decides what the user experiences.',
+  takeaways: ["Retry only transient errors (429/5xx/timeout); fail fast on client errors (400/401).", "Exponential backoff WITH jitter — without jitter, failed clients retry as a herd.", "A circuit breaker stops sustained failure from becoming slow, multiplied load."],
+  relatedPractice: "aip-pp-retry-lab",
     pre: {
       q: 'Which two timeouts must be configured separately on an HTTP client?',
       options: [
@@ -169,6 +171,8 @@ export async function completeWithRetry(
     title: 'What a Token Costs',
     minutes: 25,
     tagline: 'An AI feature without cost accounting is an unbounded liability with a friendly UI.',
+  takeaways: ["Cost = tokens_in x price_in + tokens_out x price_out — and output tokens cost several times more.", "Attribute every call in a ledger (feature + user); budgets make it a control surface at 80/95/100%.", "Three levers: cache repeated prompts, route easy work to smaller models, cap output tokens."],
+  relatedPractice: "aip-pp-cost-ledger",
     pre: {
       q: 'Besides the generated text, what does every chat response carry that your code must parse?',
       options: [

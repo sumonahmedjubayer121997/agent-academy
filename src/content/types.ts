@@ -67,6 +67,10 @@ export interface Lesson {
   title: string
   minutes: number
   tagline: string
+  /** Three-bullet revision summary shown pinned near the top ("If you remember three things"). */
+  takeaways?: string[]
+  /** Practice-project id this lesson's exercise feeds into (deep link on the projects page). */
+  relatedPractice?: string
   /** Cold-recall question from prerequisite material, shown before section 1. */
   pre?: QuizQ
   simple: string[]

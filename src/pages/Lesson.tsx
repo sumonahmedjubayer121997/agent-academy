@@ -2,21 +2,7 @@ import { useEffect, useState } from 'react'
 import { useActiveRoadmap } from '../store/activeRoadmap'
 import { Link, useParams } from 'react-router-dom'
 import { usePageMeta } from '../hooks/usePageMeta'
-import {
-  ArrowLeft,
-  BookOpen,
-  Braces,
-  Building2,
-  Calculator,
-  CheckCircle2,
-  Code2,
-  Compass,
-  ExternalLink,
-  HelpCircle,
-  Lightbulb,
-  PencilLine,
-  Play,
-} from 'lucide-react'
+import { ArrowLeft, BookOpen, Braces, Building2, Calculator, CheckCircle2, Code2, Compass, ExternalLink, HelpCircle, Lightbulb, PencilLine, Play, Wrench } from 'lucide-react'
 import type { QuizQ } from '../content/types'
 import { statusOf, useProgress } from '../store/progress'
 import { Badge, Button, Card } from '../components/ui'
@@ -335,6 +321,17 @@ function FeynmanBox({ lessonId, lessonTitle }: { lessonId: string; lessonTitle: 
 
 export default function LessonPage() {
   const { LESSONS = [], META } = useActiveRoadmap()
+  const [readPct, setReadPct] = useState(0)
+  useEffect(() => {
+    const onScroll = () => {
+      const h = document.documentElement
+      const max = h.scrollHeight - h.clientHeight
+      setReadPct(max > 0 ? Math.min(100, Math.round((h.scrollTop / max) * 100)) : 0)
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    onScroll()
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
   const { lessonId } = useParams()
   const { data, setStatus } = useProgress()
   const lesson = LESSONS.find((l) => l.id === lessonId)
@@ -352,9 +349,19 @@ export default function LessonPage() {
   }
 
   const moduleStatus = statusOf(data, lesson.moduleId)
+  const takeaways = lesson.takeaways
+  const relatedPractice = lesson.relatedPractice
+  const idx = LESSONS.findIndex((l) => l.id === lessonId)
+  const prevLesson = idx > 0 ? LESSONS[idx - 1] : undefined
+  const nextLesson = idx >= 0 && idx < LESSONS.length - 1 ? LESSONS[idx + 1] : undefined
 
   return (
     <article className="mx-auto max-w-3xl py-10">
+      <div
+        aria-hidden="true"
+        className="fixed left-0 top-14 z-30 h-0.5 bg-accent transition-[width] duration-150"
+        style={{ width: `${readPct}%` }}
+      />
       <Link
         to={`/r/${META.slug}/roadmap/${lesson.moduleId}`}
         className="inline-flex items-center gap-1.5 text-sm text-ink-soft hover:text-accent"
@@ -380,6 +387,21 @@ export default function LessonPage() {
         )}
         <h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">{lesson.title}</h1>
         <p className="mt-2 text-lg text-ink-soft">{lesson.tagline}</p>
+        {takeaways && takeaways.length > 0 && (
+          <div className="mt-5 rounded-xl border border-accent/25 bg-accent-soft px-5 py-4">
+            <p className="text-xs font-semibold uppercase tracking-widest text-accent">
+              If you remember three things
+            </p>
+            <ul className="mt-2 space-y-1.5 text-sm leading-relaxed text-ink">
+              {takeaways.map((t, i) => (
+                <li key={i} className="flex gap-2.5">
+                  <span className="mt-0.5 font-mono text-xs font-bold text-accent">{i + 1}</span>
+                  {t}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </header>
 
       <div className="mt-8 space-y-6">
@@ -470,11 +492,11 @@ export default function LessonPage() {
           </pre>
           <ol className="mt-5 space-y-3">
             {lesson.walkthrough.notes.map(([line, note]) => (
-              <li key={line} className="flex gap-3 text-sm">
-                <code className="mt-0.5 h-fit shrink-0 rounded bg-accent-soft px-2 py-0.5 font-mono text-[12px] text-accent">
+              <li key={line} className="flex flex-wrap gap-3 text-sm">
+                <code className="mt-0.5 h-fit max-w-full shrink-0 break-all rounded bg-accent-soft px-2 py-0.5 font-mono text-[12px] text-accent">
                   {line}
                 </code>
-                <span className="leading-relaxed text-ink-soft">{note}</span>
+                <span className="min-w-[12rem] flex-1 leading-relaxed text-ink-soft">{note}</span>
               </li>
             ))}
           </ol>
@@ -482,6 +504,14 @@ export default function LessonPage() {
 
         <Section n={lesson.demo && lesson.numbers ? 7 : 6} icon={PencilLine} title="Hands-on exercise">
           <p className="leading-relaxed text-ink-soft">{lesson.exercise.prompt}</p>
+          {relatedPractice && (
+            <Link
+              to={`/r/${META.slug}/projects#${relatedPractice}`}
+              className="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-line px-3 py-1.5 text-xs font-medium text-accent transition-colors hover:bg-raised"
+            >
+              <Wrench size={12} /> Do this as a practice build
+            </Link>
+          )}
           <details className="group mt-4 rounded-xl border border-line">
             <summary className="cursor-pointer select-none px-4 py-3 text-sm font-medium text-accent">
               Reveal a worked solution
@@ -494,6 +524,10 @@ export default function LessonPage() {
 
         <Section n={lesson.demo && lesson.numbers ? 8 : 7} icon={HelpCircle} title="Knowledge check">
           <LessonQuiz quiz={lesson.quiz} quizId={`lesson:${lesson.id}`} moduleId={lesson.moduleId} />
+          <p className="mt-3 text-xs text-ink-faint">
+            Each question you answer here becomes a spaced-review card — answering honestly is what
+            schedules it.
+          </p>
         </Section>
 
         <Section n={lesson.demo && lesson.numbers ? 9 : 8} icon={Building2} title="Where you'll meet this in the real world">
@@ -529,6 +563,31 @@ export default function LessonPage() {
           <FeynmanBox lessonId={lesson.id} lessonTitle={lesson.title} />
         </Section>
       </div>
+
+      {(prevLesson || nextLesson) && (
+        <nav className="mt-10 grid gap-3 border-t border-line pt-6 sm:grid-cols-2" aria-label="Lesson navigation">
+          {prevLesson ? (
+            <Link
+              to={`/r/${META.slug}/learn/${prevLesson.id}`}
+              className="group rounded-xl border border-line bg-surface p-4 transition-colors hover:border-line-strong"
+            >
+              <p className="text-xs text-ink-faint">← Previous lesson</p>
+              <p className="mt-1 text-sm font-medium group-hover:text-accent">{prevLesson.title}</p>
+            </Link>
+          ) : (
+            <span />
+          )}
+          {nextLesson && (
+            <Link
+              to={`/r/${META.slug}/learn/${nextLesson.id}`}
+              className="group rounded-xl border border-line bg-surface p-4 text-right transition-colors hover:border-line-strong"
+            >
+              <p className="text-xs text-ink-faint">Next lesson →</p>
+              <p className="mt-1 text-sm font-medium group-hover:text-accent">{nextLesson.title}</p>
+            </Link>
+          )}
+        </nav>
+      )}
     </article>
   )
 }

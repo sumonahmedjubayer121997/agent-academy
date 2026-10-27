@@ -7,6 +7,8 @@ export const ANATOMY_LESSON: Lesson = {
   title: 'Anatomy of a Prompt',
   minutes: 25,
   tagline: 'Most bad prompts are good ingredients in the wrong order — or missing entirely.',
+  takeaways: ["Four parts, one job each: Instruction, Context, Input, Output format.", "Diagnose by missing part — unparseable output means a missing format line, not bad wording.", "Instructions first, delimited data last: the contract is set before the noise arrives."],
+  relatedPractice: "pe-pp-anatomy-audit",
   pre: {
     q: 'Why can rewording a prompt change the output even at temperature 0?',
     options: [
