@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { DeckCard } from '../content/roadmaps/ai-agents'
 import { cardRoadmapOf } from '../lib/cards'
+import { BUNDLES } from '../content/roadmaps/registry'
+import { planReviewQueue } from '../lib/srsQueue'
 import { useActiveRoadmap } from '../store/activeRoadmap'
 import { Link } from 'react-router-dom'
 import {
@@ -30,36 +32,38 @@ export default function Review() {
   const { CURRICULUM_DECK, LESSONS = [], MODULES, META } = useActiveRoadmap()
   const activeSlug = META.slug
   usePageMeta('Review', 'Spaced-repetition review of your due cards.')
-  const { data, gradeCard, logSession, seedModuleCards, addCustomCard, deleteCustomCard } =
+  const { data, gradeCard, logSession, seedModuleCards, addCustomCard, deleteCustomCard, spreadReviewBacklog } =
     useProgress()
 
   // Build unified card catalog: curriculum deck + any lesson quizzes + user's custom flashcards
   const cardCatalog = useMemo(() => {
     const map = new Map<string, DeckCard>()
-    for (const c of CURRICULUM_DECK) {
-      map.set(c.cardId, c)
-    }
-    for (const l of LESSONS) {
-      l.quiz.forEach((q, idx) => {
-        const id = `lesson:${l.id}:q${idx}`
-        if (!map.has(id)) {
-          map.set(id, {
-            cardId: id,
-            moduleId: l.moduleId,
-            moduleTitle: l.title,
-            phase: 1,
-            kind: 'mcq',
-            prompt: q.q,
-            answer: q.explain,
-            options: q.options,
-            correctOption: q.answer,
-            lessonId: l.id,
-          })
-        }
-      })
+    for (const bundle of Object.values(BUNDLES)) {
+      for (const c of bundle.CURRICULUM_DECK) {
+        map.set(c.cardId, c as DeckCard)
+      }
+      for (const l of bundle.LESSONS ?? []) {
+        l.quiz.forEach((q, idx) => {
+          const id = `lesson:${l.id}:q${idx}`
+          if (!map.has(id)) {
+            map.set(id, {
+              cardId: id,
+              moduleId: l.moduleId,
+              moduleTitle: l.title,
+              phase: 1,
+              kind: 'mcq',
+              prompt: q.q,
+              answer: q.explain,
+              options: q.options,
+              correctOption: q.answer,
+              lessonId: l.id,
+            })
+          }
+        })
+      }
     }
     for (const custom of data.customCards ?? []) {
-      const mod = MODULES.find((m) => m.id === custom.moduleId)
+      const mod = Object.values(BUNDLES).flatMap((b) => b.MODULES).find((m) => m.id === custom.moduleId)
       map.set(custom.id, {
         cardId: custom.id,
         moduleId: custom.moduleId,
@@ -73,18 +77,39 @@ export default function Review() {
     return map
   }, [data.customCards])
 
-  // Compute cards currently due in `data.srs`
-  const dueNow = useMemo(() => {
-    const rawDue = dueCards(data, todayStr())
-    return rawDue
-      .map((d) => cardCatalog.get(d.cardId))
-      .filter((x): x is DeckCard => Boolean(x))
-  }, [data, cardCatalog])
-  // Scoped by default: only cards from the active roadmap's deck are queued
-  // (AI Agents cards are unprefixed; other decks prefix ids with their slug).
+
+  // Review default: ALL due cards, focus roadmap first, with intake caps.
+  // (AI Agents cards are unprefixed; other decks prefix ids with their slug;
+  //  custom cards resolve through the module table.)
+  const roadmapOf = (cardId: string) => {
+    const byPrefix = cardRoadmapOf(cardId)
+    if (byPrefix !== 'ai-agents' || cardId.includes('/')) return byPrefix
+    if (cardId.startsWith('custom:')) {
+      const modId = cardId.split(':')[1]
+      for (const [slug, b] of Object.entries(BUNDLES)) {
+        if (b.MODULES.some((m) => m.id === modId)) return slug
+      }
+    }
+    return 'ai-agents'
+  }
+  const [scope, setScope] = useState<'all' | string>('all')
+  const plan = useMemo(
+    () =>
+      planReviewQueue(data.srs, todayStr(), {
+        focusSlug: activeSlug,
+        scope,
+        roadmapOf,
+        settings: data.reviewSettings,
+      }),
+    [data.srs, data.reviewSettings, activeSlug, scope],
+  )
+  const dueNow = useMemo(
+    () => plan.queue.map((id) => cardCatalog.get(id)).filter((x): x is DeckCard => Boolean(x)),
+    [plan, cardCatalog],
+  )
 
   // Snapshot the active session queue so grading cards does not mutate array indices mid-flight
-  const scopedDue = useMemo(() => dueNow.filter((c) => cardRoadmapOf(c.cardId) === activeSlug), [dueNow, activeSlug])
+  const scopedDue = dueNow
   const [sessionQueue, setSessionQueue] = useState<DeckCard[]>(() => scopedDue)
   const [sessionMode, setSessionMode] = useState<'due' | 'drill'>('due')
   const [i, setI] = useState(0)
@@ -189,7 +214,7 @@ export default function Review() {
         <div className="flex flex-wrap items-end justify-between gap-4">
           <SectionHead level="h1"
             eyebrow="Review & Spaced Repetition"
-            title="Nothing due right now"
+            title={plan.dueCount === 0 && Object.keys(data.srs).length === 0 ? "Your deck is empty" : "Nothing due right now"}
             sub="Cards enter your review queue automatically when you complete a lesson quiz, move a module to Practising/Confident, or create your own flashcards. You can also run a Weak-Spot Drill anytime."
           />
           <div className="mb-6 flex flex-wrap gap-2">
@@ -328,14 +353,52 @@ export default function Review() {
   return (
     <div className="mx-auto max-w-2xl py-10">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="rounded-full border border-line px-2.5 py-1 text-xs text-ink-faint">
+            {plan.dueCount} due across all roadmaps{plan.queuedNew > 0 ? ` · ${plan.queuedNew} queued` : ''}
+          </span>
+          <div className="flex overflow-hidden rounded-lg border border-line" role="group" aria-label="Review scope">
+            {(['all', 'focus'] as const).map((s) => (
+              <button
+                key={s}
+                onClick={() => {
+                  setScope(s === 'all' ? 'all' : activeSlug)
+                  setSessionQueue([])
+                }}
+                className={`px-2.5 py-1 text-xs font-medium transition-colors ${
+                  (scope === 'all') === (s === 'all') ? 'bg-raised text-ink' : 'text-ink-faint hover:bg-raised'
+                }`}
+              >
+                {s === 'all' ? 'All roadmaps' : 'This roadmap'}
+              </button>
+            ))}
+          </div>
+        </div>
+        <Button variant="ghost" size="sm" onClick={() => setShowAddForm((v) => !v)}>
+          <Plus size={14} /> Add card
+        </Button>
+      </div>
+
+      {plan.spreadEligible && (
+        <Card className="mb-4 border-bad/30 bg-bad/5 p-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <p className="text-sm text-ink-soft">
+              <b>Review backlog:</b> {plan.dueCount} cards are due — more than three days of reviews at your
+              current cap. Spread them over the next 7 days?
+            </p>
+            <Button size="sm" onClick={() => spreadReviewBacklog()}>
+              Spread backlog
+            </Button>
+          </div>
+        </Card>
+      )}
+
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
         <SectionHead
           eyebrow={sessionMode === 'drill' ? 'Deliberate practice drill' : 'Spaced review'}
           title={sessionMode === 'drill' ? 'Weak-spot active recall' : "Today's cards"}
           sub="Mixed across modules — active retrieval strengthens memory far more than re-reading."
         />
-        <Button variant="ghost" size="sm" onClick={() => setShowAddForm((v) => !v)}>
-          <Plus size={14} /> Add card
-        </Button>
       </div>
 
       {showAddForm && (
