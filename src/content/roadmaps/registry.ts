@@ -2,6 +2,7 @@ import type { RoadmapBundle, RoadmapMeta, RoadmapStats } from '../types'
 import * as aiAgents from './ai-agents'
 import * as promptEngineering from './prompt-engineering'
 import * as aiProgramming from './ai-programming'
+import * as chatbotDev from './chatbot-dev'
 
 export type { RoadmapBundle } from '../types'
 
@@ -15,6 +16,7 @@ export const BUNDLES: Record<string, RoadmapBundle> = {
   'ai-agents': aiAgents,
   'prompt-engineering': promptEngineering,
   'ai-programming': aiProgramming,
+  'chatbot-dev': chatbotDev,
 }
 
 export interface RoadmapRegistryEntry extends RoadmapMeta {
@@ -41,6 +43,13 @@ const aiProgrammingStats: RoadmapStats = {
   modules: aiProgramming.MODULES.length,
   lessons: 0,
   hours: aiProgramming.MODULES.reduce((sum, m) => sum + m.hours, 0),
+}
+
+const chatbotDevStats: RoadmapStats = {
+  phases: chatbotDev.PHASES.length,
+  modules: chatbotDev.MODULES.length,
+  lessons: (chatbotDev.LESSONS ?? []).length,
+  hours: chatbotDev.MODULES.reduce((sum, m) => sum + m.hours, 0),
 }
 
 export const ROADMAPS: RoadmapRegistryEntry[] = [
@@ -74,22 +83,8 @@ export const ROADMAPS: RoadmapRegistryEntry[] = [
     ],
   },
   {
-    slug: 'chatbot-dev',
-    title: 'Chatbot Development',
-    tagline: 'Conversational products people actually use',
-    description:
-      'Design and build chatbots that hold up: conversation design, RAG answers with sources, memory and state, tool use across turns, and evaluation before launch.',
-    level: 'Beginner-friendly',
-    status: 'coming-soon',
-    icon: 'MessagesSquare',
-    plannedPhases: [
-      { title: 'Conversation design', blurb: 'Intents, repair, tone, and knowing when not to use a bot.' },
-      { title: 'RAG chatbots', blurb: 'Retrieval, grounding, citations, and honest "no answer found" replies.' },
-      { title: 'Memory & state', blurb: 'Sessions, long-term memory, and context windows that fill up.' },
-      { title: 'Multi-turn tool use', blurb: 'Handing the bot real actions — with approval gates where it matters.' },
-      { title: 'Channels', blurb: 'Web widget, Telegram, WhatsApp: same brain, different constraints.' },
-      { title: 'Evaluation & guardrails', blurb: 'Conversation-level testing, red-teaming, and monitoring quality in production.' },
-    ],
+    ...chatbotDev.META,
+    stats: chatbotDevStats,
   },
 ]
 

@@ -1,5 +1,5 @@
 {
-  "exportedAt": "2026-10-27T11:12:17.308Z",
+  "exportedAt": "2026-10-27T22:56:47.136Z",
   "modules": [
     {
       "roadmap": "ai-agents",
@@ -3225,6 +3225,981 @@
         "aip-fallbacks",
         "aip-security-prompt"
       ]
+    },
+    {
+      "roadmap": "chatbot-dev",
+      "id": "cb-what-chats-good",
+      "phase": 1,
+      "title": "What makes a chatbot good",
+      "why": "Most chatbot failures are design failures wearing a technology costume. Deciding what the bot is for — and when it should NOT be a chatbot — prevents building an expensive wrong thing.",
+      "objectives": [
+        "List the qualities of a good chatbot use case (bounded, repeated, language-shaped)",
+        "Identify three use cases where a form or page beats a chatbot",
+        "Write a one-sentence job statement for a real bot"
+      ],
+      "completion": [
+        "A job statement a stranger understands",
+        "Three rejected-alternative candidates with reasons",
+        "Success criterion stated as a measurable user outcome"
+      ],
+      "deliverable": "A use-case brief for one real chatbot idea.",
+      "essential": true,
+      "hours": 2,
+      "prereqs": []
+    },
+    {
+      "roadmap": "chatbot-dev",
+      "id": "cb-conversation-patterns",
+      "phase": 1,
+      "title": "Core conversation patterns",
+      "why": "Good conversations are assembled from a small set of moves: greet, clarify, confirm, progress, repair. Knowing the patterns turns chat writing from improvisation into engineering.",
+      "objectives": [
+        "Name the five core moves and when each applies",
+        "Write clarify and confirm variants for a real intent",
+        "Spot pattern failures in an existing chatbot transcript"
+      ],
+      "completion": [
+        "Pattern library for one intent (5+ variants)",
+        "An annotated bad transcript with three named failures",
+        "Rules written for when to confirm vs proceed"
+      ],
+      "deliverable": "A pattern library for your bot job statement.",
+      "essential": true,
+      "hours": 3,
+      "prereqs": [
+        "cb-what-chats-good"
+      ]
+    },
+    {
+      "roadmap": "chatbot-dev",
+      "id": "cb-turn-anatomy",
+      "phase": 1,
+      "title": "Anatomy of a turn",
+      "why": "Every turn, the model sees only what you assemble: system persona, memory, retrieved docs, recent history, and the new message. Turn anatomy is the mental model behind cost, drift, and context bugs.",
+      "objectives": [
+        "List the ingredients assembled into a model call each turn",
+        "Explain why later turns degrade without compaction",
+        "Trace one real transcript into its per-turn assemblies"
+      ],
+      "completion": [
+        "A per-turn ingredient diagram for a 6-turn conversation",
+        "Token growth chart across the turns",
+        "One degradation case explained via anatomy"
+      ],
+      "deliverable": "Annotated turn-anatomy trace of a real chat.",
+      "essential": true,
+      "hours": 3,
+      "prereqs": [
+        "cb-conversation-patterns"
+      ]
+    },
+    {
+      "roadmap": "chatbot-dev",
+      "id": "cb-persona-voice",
+      "phase": 1,
+      "title": "Persona, tone and consistent voice",
+      "why": "Users trust a consistent voice. Persona drift — formal on turn one, breezy on turn nine — reads as two different people wearing one chat window.",
+      "objectives": [
+        "Write a persona spec a stranger can apply consistently",
+        "Encode the voice as rules plus examples, not adjectives",
+        "Test consistency across a 20-turn conversation"
+      ],
+      "completion": [
+        "One-page voice spec with do/dont examples",
+        "A stranger applies it and the output matches",
+        "Drift case found and fixed"
+      ],
+      "deliverable": "A voice spec that survives the stranger test.",
+      "essential": false,
+      "hours": 2,
+      "prereqs": [
+        "cb-conversation-patterns"
+      ]
+    },
+    {
+      "roadmap": "chatbot-dev",
+      "id": "cb-error-repair",
+      "phase": 1,
+      "title": "Repair flows",
+      "why": "Conversations WILL go wrong — miss, misunderstanding, dead end. Bots are judged not by never failing but by recovering gracefully.",
+      "objectives": [
+        "Design repair moves for the three failure classes",
+        "Write a reset flow that restores context cleanly",
+        "Define the escalation trigger to a human"
+      ],
+      "completion": [
+        "Repair scripts for miss, misunderstanding, and dead end",
+        "A reset that a confused user can invoke and survive",
+        "Escalation criteria written as rules, not vibes"
+      ],
+      "deliverable": "A repair playbook with three scripted recoveries.",
+      "essential": true,
+      "hours": 3,
+      "prereqs": [
+        "cb-conversation-patterns"
+      ]
+    },
+    {
+      "roadmap": "chatbot-dev",
+      "id": "cb-dialog-samples",
+      "phase": 1,
+      "title": "Wizard-of-Oz testing",
+      "why": "Before building anything, you can test the conversation with a human behind the curtain. One afternoon of WoZ testing kills more bad designs than a month of building.",
+      "objectives": [
+        "Run a Wizard-of-Oz session for your bot concept",
+        "Log where users get confused or abandon",
+        "Convert findings into design changes"
+      ],
+      "completion": [
+        "Two WoZ sessions with full transcripts",
+        "Confusion points logged and classified",
+        "Three design changes traceable to findings"
+      ],
+      "deliverable": "A WoZ findings report driving your design.",
+      "essential": false,
+      "hours": 3,
+      "prereqs": [
+        "cb-error-repair"
+      ]
+    },
+    {
+      "roadmap": "chatbot-dev",
+      "id": "cb-scope-refusals",
+      "phase": 1,
+      "title": "Scoping and out-of-scope behavior",
+      "why": "An unscoped chatbot will happily answer anything, badly. Deciding refusal scripts up front is both a design and a safety decision.",
+      "objectives": [
+        "Define in-scope intents and out-of-scope topics",
+        "Write refusal scripts that offer an alternative",
+        "Test scope edges with adversarial requests"
+      ],
+      "completion": [
+        "Intent inventory with explicit out-of-scope list",
+        "Refusal scripts that redirect, not just decline",
+        "Ten edge requests all handled by design"
+      ],
+      "deliverable": "A scope spec with tested refusal scripts.",
+      "essential": true,
+      "hours": 2,
+      "prereqs": [
+        "cb-what-chats-good",
+        "cb-error-repair"
+      ]
+    },
+    {
+      "roadmap": "chatbot-dev",
+      "id": "cb-rag-recap",
+      "phase": 2,
+      "title": "RAG recap for chat",
+      "why": "Retrieval is what lets a chatbot know things it was never trained on. This module adapts the RAG pipeline to the conversational setting, where retrieval happens per turn and feeds an ongoing dialogue.",
+      "objectives": [
+        "Explain retrieve-then-generate as a turn ingredient",
+        "Adapt a corpus ingest for conversational Q&A",
+        "Measure retrieval quality on chat questions"
+      ],
+      "completion": [
+        "A chat over a real document set",
+        "Retrieval quality measured on 20 questions",
+        "Ingest-to-answer latency recorded"
+      ],
+      "deliverable": "A RAG chat answering from your corpus.",
+      "essential": true,
+      "hours": 3,
+      "prereqs": [
+        "cb-turn-anatomy"
+      ]
+    },
+    {
+      "roadmap": "chatbot-dev",
+      "id": "cb-grounding-contract",
+      "phase": 2,
+      "title": "The grounding contract",
+      "why": "The single sentence that separates trustworthy chatbots from confident liars: answer ONLY from provided sources, or say you cannot. Everything in this phase operationalizes that contract.",
+      "objectives": [
+        "Write the grounding instruction so it holds under pressure",
+        "Design the parseable refusal format",
+        "Measure both grounding and refusal rates"
+      ],
+      "completion": [
+        "20 answerable questions answered with citations",
+        "Unanswerable refusal rate above 80 percent",
+        "The contract text and its failure cases documented"
+      ],
+      "deliverable": "A grounded answering prompt with measured honesty.",
+      "essential": true,
+      "hours": 3,
+      "prereqs": [
+        "cb-rag-recap"
+      ]
+    },
+    {
+      "roadmap": "chatbot-dev",
+      "id": "cb-citations",
+      "phase": 2,
+      "title": "Citations users can click",
+      "why": "A claim with a visible source is checkable; without one it is trivia. Citations turn the chatbot from an oracle into a research assistant.",
+      "objectives": [
+        "Require inline citations in a parseable format",
+        "Render them as links in one channel UI",
+        "Verify every citation resolves to real content"
+      ],
+      "completion": [
+        "Citations render and resolve for 20 answers",
+        "A verifier that flags dangling or wrong citations",
+        "One user test confirming checkability"
+      ],
+      "deliverable": "A cited-answer chat on one channel.",
+      "essential": true,
+      "hours": 3,
+      "prereqs": [
+        "cb-grounding-contract"
+      ]
+    },
+    {
+      "roadmap": "chatbot-dev",
+      "id": "cb-refusal-design",
+      "phase": 2,
+      "title": "Refusal as a feature",
+      "why": "Users forgive a bot that says it does not know, with a pointer to where to look. They do not forgive invention. Refusal design is UX work, not model behavior hope.",
+      "objectives": [
+        "Design refusal variants (not in sources, ambiguous, out of scope)",
+        "Offer alternatives in every refusal",
+        "Tune the refusal threshold honestly"
+      ],
+      "completion": [
+        "Refusal taxonomy implemented per case",
+        "Refusal rate measured on ambiguous questions",
+        "Over-refusal case found and fixed"
+      ],
+      "deliverable": "A refusal design with rates for each class.",
+      "essential": true,
+      "hours": 3,
+      "prereqs": [
+        "cb-grounding-contract"
+      ]
+    },
+    {
+      "roadmap": "chatbot-dev",
+      "id": "cb-chunking-chat",
+      "phase": 2,
+      "title": "Chunking for conversational corpora",
+      "why": "Chat questions rarely match document headings. Chunking strategy decides whether turn-five follow-ups like \"what about the second one?\" can retrieve anything useful.",
+      "objectives": [
+        "Chunk a real corpus for conversational access",
+        "Handle follow-up references in retrieval",
+        "Compare chunk sizes on chat-style questions"
+      ],
+      "completion": [
+        "Corpus chunked with strategy documented",
+        "Follow-up questions retrieve correctly",
+        "Before/after quality on 20 chat questions"
+      ],
+      "deliverable": "A chunking strategy with measured quality.",
+      "essential": false,
+      "hours": 4,
+      "prereqs": [
+        "cb-rag-recap"
+      ]
+    },
+    {
+      "roadmap": "chatbot-dev",
+      "id": "cb-hybrid-retrieval-chat",
+      "phase": 2,
+      "title": "Hybrid retrieval in chat",
+      "why": "Users mix keywords and questions mid-chat (\"the refund policy... what does it say?\"). Hybrid search plus reranking keeps retrieval working across those styles.",
+      "objectives": [
+        "Combine keyword and semantic search per turn",
+        "Rerank candidates before they reach the context",
+        "Measure hybrid vs single-mode on chat questions"
+      ],
+      "completion": [
+        "Hybrid retrieval wired per turn",
+        "Reranker or heuristic applied",
+        "Improvement measured on a mixed query set"
+      ],
+      "deliverable": "A hybrid retrieval layer with numbers.",
+      "essential": false,
+      "hours": 4,
+      "prereqs": [
+        "cb-chunking-chat"
+      ]
+    },
+    {
+      "roadmap": "chatbot-dev",
+      "id": "cb-multi-source-fusion",
+      "phase": 2,
+      "title": "Multi-source fusion and freshness",
+      "why": "Real bots answer from docs, FAQs, tickets, and APIs — sources that disagree and expire. Fusion and freshness policy decide whether the answer is current and coherent.",
+      "objectives": [
+        "Fuse answers from multiple sources with attribution",
+        "Handle contradictions between sources explicitly",
+        "Define freshness rules per source"
+      ],
+      "completion": [
+        "Two-source answer with per-source citations",
+        "A contradiction surfaced honestly, not averaged",
+        "Freshness policy written and enforced"
+      ],
+      "deliverable": "A multi-source grounded answer path.",
+      "essential": false,
+      "hours": 4,
+      "prereqs": [
+        "cb-hybrid-retrieval-chat"
+      ]
+    },
+    {
+      "roadmap": "chatbot-dev",
+      "id": "cb-state-vs-memory",
+      "phase": 3,
+      "title": "State versus memory",
+      "why": "Two different things get conflated: session state (slots, current intent — structured) and conversational memory (what was said — summarized). Separating them is the architecture decision of Phase 3.",
+      "objectives": [
+        "Define session state vs conversational memory for a bot",
+        "Choose what goes in structured slots vs summary",
+        "Draw the memory architecture diagram"
+      ],
+      "completion": [
+        "Architecture diagram with both stores",
+        "Slot schema for one real intent",
+        "Summary contents specified"
+      ],
+      "deliverable": "A memory architecture for your bot.",
+      "essential": true,
+      "hours": 3,
+      "prereqs": [
+        "cb-turn-anatomy"
+      ]
+    },
+    {
+      "roadmap": "chatbot-dev",
+      "id": "cb-session-state",
+      "phase": 3,
+      "title": "Session state and slots",
+      "why": "Every real conversation carries structured facts — the order number, the tier, the chosen option. Slots make them inspectable and testable instead of buried in chat history.",
+      "objectives": [
+        "Design a slot schema with types and required flags",
+        "Read and write slots from turns",
+        "Reset and expire state cleanly"
+      ],
+      "completion": [
+        "Slot schema implemented",
+        "Slots survive a 10-turn conversation correctly",
+        "Session reset behavior tested"
+      ],
+      "deliverable": "A slot-tracking layer with tests.",
+      "essential": true,
+      "hours": 3,
+      "prereqs": [
+        "cb-state-vs-memory"
+      ]
+    },
+    {
+      "roadmap": "chatbot-dev",
+      "id": "cb-long-term-memory",
+      "phase": 3,
+      "title": "Long-term memory and consent",
+      "why": "Remembering that a user prefers metric units is delightful; remembering their health details unprompted is creepy. Long-term memory needs a consent model and a view/delete affordance.",
+      "objectives": [
+        "Design remembered-facts with explicit consent",
+        "Build a \"what do you know about me\" view",
+        "Expire and delete on request"
+      ],
+      "completion": [
+        "Consent flow before first memory write",
+        "A working memory view with delete",
+        "Retention policy written"
+      ],
+      "deliverable": "A consented long-term memory feature.",
+      "essential": true,
+      "hours": 4,
+      "prereqs": [
+        "cb-state-vs-memory"
+      ]
+    },
+    {
+      "roadmap": "chatbot-dev",
+      "id": "cb-context-budget-chat",
+      "phase": 3,
+      "title": "The cross-turn context budget",
+      "why": "Every turn re-sends context; a 30-turn chat with full history re-sends everything 30 times. The budget decides what earns tokens per turn as the window fills.",
+      "objectives": [
+        "Compute the per-turn token cost of full history",
+        "Design the degradation ladder (drop, summarize, window)",
+        "Measure cost with and without budgeting"
+      ],
+      "completion": [
+        "Token growth chart for a 30-turn chat",
+        "Degradation ladder implemented",
+        "Cost per conversation halved or better"
+      ],
+      "deliverable": "A context budget with measured savings.",
+      "essential": true,
+      "hours": 3,
+      "prereqs": [
+        "cb-state-vs-memory"
+      ]
+    },
+    {
+      "roadmap": "chatbot-dev",
+      "id": "cb-rolling-summarization",
+      "phase": 3,
+      "title": "Rolling summarization",
+      "why": "Compaction is how conversations stay affordable past turn twenty — but a bad summary silently drops the constraint set on turn three. Summarization needs a contract of its own.",
+      "objectives": [
+        "Write a summarizer with a preservation checklist",
+        "Trigger compaction on budget, not turn count alone",
+        "Test that turn-3 constraints survive turn 50"
+      ],
+      "completion": [
+        "Summarizer with constraints-preserved checklist",
+        "50-turn adversarial chat keeps its constraint",
+        "Summary quality spot-checked"
+      ],
+      "deliverable": "A compaction engine with a survival test.",
+      "essential": true,
+      "hours": 4,
+      "prereqs": [
+        "cb-context-budget-chat"
+      ]
+    },
+    {
+      "roadmap": "chatbot-dev",
+      "id": "cb-constraint-persistence",
+      "phase": 3,
+      "title": "Constraint persistence",
+      "why": "A user instruction like \"always answer in bullet points\" is a constraint — it must outlive the history window. Constraints deserve first-class storage, not luck.",
+      "objectives": [
+        "Detect user constraints and store them",
+        "Re-inject constraints every turn",
+        "Let users list and revoke constraints"
+      ],
+      "completion": [
+        "Constraints stored and re-injected",
+        "A \"my rules\" list command works",
+        "Revocation takes effect immediately"
+      ],
+      "deliverable": "First-class constraints with a list/revoke command.",
+      "essential": false,
+      "hours": 3,
+      "prereqs": [
+        "cb-rolling-summarization"
+      ]
+    },
+    {
+      "roadmap": "chatbot-dev",
+      "id": "cb-multi-user-privacy",
+      "phase": 3,
+      "title": "Multi-user state and privacy",
+      "why": "One brain, many users: state must never leak between accounts, and logs must respect the same boundary. Most chatbot privacy bugs are state-plumbing bugs.",
+      "objectives": [
+        "Partition state per user with hard isolation",
+        "Redact PII from conversation logs",
+        "Test for cross-user leakage"
+      ],
+      "completion": [
+        "Isolation test with two users passes",
+        "PII redaction proven on realistic logs",
+        "Data-retention policy enforced"
+      ],
+      "deliverable": "A multi-user state layer with a leakage test.",
+      "essential": true,
+      "hours": 3,
+      "prereqs": [
+        "cb-session-state",
+        "cb-long-term-memory"
+      ]
+    },
+    {
+      "roadmap": "chatbot-dev",
+      "id": "cb-tools-in-chat",
+      "phase": 4,
+      "title": "Tools in conversation",
+      "why": "A chatbot that can act — look up an order, check stock, file a ticket — stops being a FAQ and becomes an assistant. Tools also import every failure mode of distributed systems into your dialogue.",
+      "objectives": [
+        "Define chat-appropriate tools with clear descriptions",
+        "Route a turn to a tool and render the result conversationally",
+        "Handle tool failure without breaking the chat"
+      ],
+      "completion": [
+        "Two tools callable mid-conversation",
+        "Results rendered as chat, not JSON dumps",
+        "A failing tool degrades gracefully"
+      ],
+      "deliverable": "A chat with two working tools.",
+      "essential": true,
+      "hours": 4,
+      "prereqs": [
+        "cb-session-state"
+      ]
+    },
+    {
+      "roadmap": "chatbot-dev",
+      "id": "cb-slot-filling",
+      "phase": 4,
+      "title": "Slot filling turn by turn",
+      "why": "Collecting a booking = gathering five structured fields through natural dialogue without interrogating the user. Slot filling is the bridge between conversation and action.",
+      "objectives": [
+        "Define required slots and their validators",
+        "Ask conversationally, confirm implicitly or explicitly",
+        "Handle corrections to already-filled slots"
+      ],
+      "completion": [
+        "A complete slot-filling dialogue for one intent",
+        "Correction flow works (\"no, make it Tuesday\")",
+        "Full state visible to the user on request"
+      ],
+      "deliverable": "A slot-filling flow with corrections.",
+      "essential": true,
+      "hours": 4,
+      "prereqs": [
+        "cb-session-state",
+        "cb-tools-in-chat"
+      ]
+    },
+    {
+      "roadmap": "chatbot-dev",
+      "id": "cb-confirmation-gates",
+      "phase": 4,
+      "title": "Confirm-before-act gates",
+      "why": "Reading is reversible; sending, booking, and deleting are not. Confirmation gates are the seatbelt of conversational agents — and the last line of defense against injection.",
+      "objectives": [
+        "Classify tools by reversibility",
+        "Design confirmation for destructive actions",
+        "Make the summary the user sees accurate"
+      ],
+      "completion": [
+        "Tool safety classes defined",
+        "Confirmation gate fires for the destructive tool",
+        "The confirmation text matches the actual action"
+      ],
+      "deliverable": "Gated actions with accurate confirmations.",
+      "essential": true,
+      "hours": 3,
+      "prereqs": [
+        "cb-slot-filling"
+      ]
+    },
+    {
+      "roadmap": "chatbot-dev",
+      "id": "cb-parallel-actions",
+      "phase": 4,
+      "title": "Parallel actions and progress",
+      "why": "Real requests need several lookups (\"flights AND hotels\"). Parallelism with honest progress reporting turns a ten-second freeze into a two-second conversation.",
+      "objectives": [
+        "Run independent tool calls in parallel per turn",
+        "Report partial progress in chat",
+        "Handle one of three calls failing"
+      ],
+      "completion": [
+        "Parallel calls measured faster than serial",
+        "Progress messages render incrementally",
+        "Partial failure surfaced honestly"
+      ],
+      "deliverable": "A parallel-action turn with progress UX.",
+      "essential": false,
+      "hours": 3,
+      "prereqs": [
+        "cb-tools-in-chat"
+      ]
+    },
+    {
+      "roadmap": "chatbot-dev",
+      "id": "cb-human-handoff",
+      "phase": 4,
+      "title": "Human handoff",
+      "why": "The best bots know when to get a human. A clean handoff carries the transcript, the slots, and the reason — the user should not repeat themselves.",
+      "objectives": [
+        "Define handoff triggers (emotion, complexity, failure)",
+        "Package context for the human agent",
+        "Return gracefully if the human resolves it"
+      ],
+      "completion": [
+        "Triggers fire in scripted scenarios",
+        "Handoff package contains transcript + slots + reason",
+        "Post-handoff resume works"
+      ],
+      "deliverable": "A handoff flow with a complete context package.",
+      "essential": true,
+      "hours": 3,
+      "prereqs": [
+        "cb-error-repair",
+        "cb-tools-in-chat"
+      ]
+    },
+    {
+      "roadmap": "chatbot-dev",
+      "id": "cb-proactive-messaging",
+      "phase": 4,
+      "title": "Proactive messages",
+      "why": "Sometimes the bot speaks first: the flight changed, the report is ready. Proactive messaging is powerful, regulated by channels, and easy to abuse into spam.",
+      "objectives": [
+        "Design event-triggered proactive messages",
+        "Respect channel rules and quiet hours",
+        "Provide an opt-out honored everywhere"
+      ],
+      "completion": [
+        "One event triggers a compliant proactive message",
+        "Opt-out honored across channels",
+        "Rate limits respected"
+      ],
+      "deliverable": "A compliant proactive notification.",
+      "essential": false,
+      "hours": 2,
+      "prereqs": [
+        "cb-session-state"
+      ]
+    },
+    {
+      "roadmap": "chatbot-dev",
+      "id": "cb-conversation-apis",
+      "phase": 4,
+      "title": "Conversation platform APIs",
+      "why": "Industry platforms (Dialogflow, Lex, Azure Bot Framework) offer intents, entities, and sessions as primitives. Knowing when they help and when a plain LLM loop beats them is an architecture skill.",
+      "objectives": [
+        "Map a design onto one platform API",
+        "Compare platform primitives vs your own loop",
+        "Migrate one intent between the two"
+      ],
+      "completion": [
+        "One intent working on a platform AND your loop",
+        "A comparison note with trade-offs",
+        "The migration done once"
+      ],
+      "deliverable": "A platform-vs-own-loop comparison with code.",
+      "essential": false,
+      "hours": 3,
+      "prereqs": [
+        "cb-tools-in-chat"
+      ]
+    },
+    {
+      "roadmap": "chatbot-dev",
+      "id": "cb-channel-web",
+      "phase": 5,
+      "title": "Web widget",
+      "why": "The web widget is where latency is most visible and branding matters most. Entry points, streaming, and the time-to-first-token budget are the whole game.",
+      "objectives": [
+        "Embed a chat widget with branded entry points",
+        "Stream answers with stable layout",
+        "Hold a sub-2-second time-to-first-token budget"
+      ],
+      "completion": [
+        "Widget live on a real page",
+        "TTFT measured under budget",
+        "Entry context (page URL) passed into the chat"
+      ],
+      "deliverable": "A production-shaped web widget.",
+      "essential": true,
+      "hours": 3,
+      "prereqs": [
+        "cb-grounding-contract"
+      ]
+    },
+    {
+      "roadmap": "chatbot-dev",
+      "id": "cb-channel-telegram",
+      "phase": 5,
+      "title": "Telegram bots",
+      "why": "Telegram is the friendliest real channel: free, fast, scriptable, with commands and inline keyboards — the ideal first non-web surface.",
+      "objectives": [
+        "Ship a Telegram bot with commands",
+        "Use inline keyboards for choices",
+        "Handle deep links with parameters"
+      ],
+      "completion": [
+        "Bot answers grounded questions in Telegram",
+        "Commands and keyboards working",
+        "A deep link starts the chat with context"
+      ],
+      "deliverable": "Your bot live on Telegram.",
+      "essential": true,
+      "hours": 3,
+      "prereqs": [
+        "cb-channel-web"
+      ]
+    },
+    {
+      "roadmap": "chatbot-dev",
+      "id": "cb-channel-whatsapp",
+      "phase": 5,
+      "title": "WhatsApp and template rules",
+      "why": "WhatsApp reaches users where they live — under strict rules: approved templates, the 24-hour reply window, per-message costs. Compliance is the engineering here.",
+      "objectives": [
+        "Send within template and window rules",
+        "Design the conversation to stay inside the window",
+        "Handle opt-in and opt-out correctly"
+      ],
+      "completion": [
+        "A compliant message flow reviewed against rules",
+        "Window-expiry behavior designed",
+        "Opt-out honored end to end"
+      ],
+      "deliverable": "A rule-compliant WhatsApp flow (sandbox OK).",
+      "essential": false,
+      "hours": 3,
+      "prereqs": [
+        "cb-channel-telegram"
+      ]
+    },
+    {
+      "roadmap": "chatbot-dev",
+      "id": "cb-channel-voice",
+      "phase": 5,
+      "title": "Voice: ASR, TTS, barge-in",
+      "why": "Voice changes every budget: recognition errors, synthesis latency, and users who interrupt. Voice chatbots fail on turn-taking, not intelligence.",
+      "objectives": [
+        "Wire speech-to-text and text-to-speech into the loop",
+        "Design for recognition errors (confirm critical slots)",
+        "Handle interruption mid-answer"
+      ],
+      "completion": [
+        "A working voice loop end to end",
+        "Critical slots confirmed aloud",
+        "Barge-in cancels gracefully"
+      ],
+      "deliverable": "A voice chatbot for one intent.",
+      "essential": false,
+      "hours": 4,
+      "prereqs": [
+        "cb-channel-web"
+      ]
+    },
+    {
+      "roadmap": "chatbot-dev",
+      "id": "cb-channel-agnostic",
+      "phase": 5,
+      "title": "The channel-agnostic core",
+      "why": "N brains across N channels drift apart. The architecture that scales: one conversational core, thin channel adapters, channel capabilities expressed as flags.",
+      "objectives": [
+        "Extract the core behind a channel interface",
+        "Write two adapters over one brain",
+        "Express capabilities (cards? voice?) as flags"
+      ],
+      "completion": [
+        "Web and Telegram share one core",
+        "A change to the core ships to both",
+        "Capability flags drive rendering"
+      ],
+      "deliverable": "One brain, two channels, one codebase.",
+      "essential": true,
+      "hours": 4,
+      "prereqs": [
+        "cb-channel-telegram"
+      ]
+    },
+    {
+      "roadmap": "chatbot-dev",
+      "id": "cb-rich-responses",
+      "phase": 5,
+      "title": "Rich responses per channel",
+      "why": "A card on web is a picture on WhatsApp and a mess on voice. Rich responses are a translation problem: same content, channel-native rendering.",
+      "objectives": [
+        "Design one response type for three channels",
+        "Degrade gracefully where a channel cannot render it",
+        "Keep accessibility (voice/text) intact everywhere"
+      ],
+      "completion": [
+        "One rich response rendered on two channels",
+        "A fallback for the incapable channel",
+        "Screen-reader path verified on web"
+      ],
+      "deliverable": "A cross-channel response renderer.",
+      "essential": false,
+      "hours": 3,
+      "prereqs": [
+        "cb-channel-agnostic"
+      ]
+    },
+    {
+      "roadmap": "chatbot-dev",
+      "id": "cb-reengagement",
+      "phase": 5,
+      "title": "Notifications and re-engagement",
+      "why": "Conversations end; relationships continue. Digests, reminders, and follow-ups bring users back — and every one of them is a spam risk needing rate limits and value.",
+      "objectives": [
+        "Design one high-value follow-up message",
+        "Rate-limit and schedule respectfully",
+        "Measure re-engagement without dark patterns"
+      ],
+      "completion": [
+        "A follow-up that users act on",
+        "Limits enforced per user per day",
+        "Unsubscribe works everywhere"
+      ],
+      "deliverable": "A re-engagement message with measured value.",
+      "essential": false,
+      "hours": 2,
+      "prereqs": [
+        "cb-proactive-messaging",
+        "cb-channel-agnostic"
+      ]
+    },
+    {
+      "roadmap": "chatbot-dev",
+      "id": "cb-conversation-evals",
+      "phase": 6,
+      "title": "Multi-turn golden conversations",
+      "why": "A chatbot is judged by whole conversations, not single answers. Golden multi-turn chats — with follow-ups, corrections, and refusals — are the eval unit that matches reality.",
+      "objectives": [
+        "Author 10 golden conversations covering intents and repairs",
+        "Score a run against them (exact, checkable, judge)",
+        "Gate changes on conversation score"
+      ],
+      "completion": [
+        "10 golden chats with expected turns",
+        "A scorer producing one headline number",
+        "A bad change caught by the gate"
+      ],
+      "deliverable": "A conversation-level eval suite.",
+      "essential": true,
+      "hours": 5,
+      "prereqs": [
+        "cb-grounding-contract",
+        "cb-slot-filling"
+      ]
+    },
+    {
+      "roadmap": "chatbot-dev",
+      "id": "cb-red-team-chat",
+      "phase": 6,
+      "title": "Red-teaming the chatbot",
+      "why": "Users will try role-play, translation tricks, and fake system messages — and your retrieved documents carry injected instructions. Structured red-teaming finds what users will find, first.",
+      "objectives": [
+        "Run a time-boxed red-team across user and channel vectors",
+        "Log findings with severity and reproduction",
+        "Convert the top findings into eval cases"
+      ],
+      "completion": [
+        "A triaged findings report",
+        "Top 3 findings reproduced as eval cases",
+        "One attack class fixed at the right layer"
+      ],
+      "deliverable": "A red-team report with regression cases.",
+      "essential": true,
+      "hours": 4,
+      "prereqs": [
+        "cb-conversation-evals",
+        "cb-scope-refusals"
+      ]
+    },
+    {
+      "roadmap": "chatbot-dev",
+      "id": "cb-injection-defense-chat",
+      "phase": 6,
+      "title": "Injection defenses for chat",
+      "why": "Every retrieved page, ticket, and product description is text your prompt will consume — text someone else wrote. Chatbots have the largest attack surface of any LLM product.",
+      "objectives": [
+        "Threat-model: user, channel, and document vectors",
+        "Layer defenses (delimiting, output validation, action gates)",
+        "Re-run the attack suite per layer"
+      ],
+      "completion": [
+        "Threat model with all three vectors drawn",
+        "Break rate dropping layer by layer",
+        "Residual risks accepted in writing"
+      ],
+      "deliverable": "A layered defense note with measured break rates.",
+      "essential": true,
+      "hours": 4,
+      "prereqs": [
+        "cb-red-team-chat",
+        "cb-confirmation-gates"
+      ]
+    },
+    {
+      "roadmap": "chatbot-dev",
+      "id": "cb-pii-logs",
+      "phase": 6,
+      "title": "PII in conversation logs",
+      "why": "Users volunteer names, numbers, and grievances in chat. Logs are where privacy goes to leak — redaction and retention are the minimum bar.",
+      "objectives": [
+        "Inventory PII flowing through transcripts",
+        "Redact at write time, not read time",
+        "Enforce retention windows on stored chats"
+      ],
+      "completion": [
+        "PII inventory signed off",
+        "Redaction test on realistic transcripts",
+        "Old conversations actually deleted"
+      ],
+      "deliverable": "A PII policy enforced in the pipeline.",
+      "essential": true,
+      "hours": 3,
+      "prereqs": [
+        "cb-multi-user-privacy"
+      ]
+    },
+    {
+      "roadmap": "chatbot-dev",
+      "id": "cb-chat-metrics",
+      "phase": 6,
+      "title": "Conversational metrics",
+      "why": "Containment (solved without human), resolution, escalation, CSAT — these tell you if the bot works; token counts only tell you it runs.",
+      "objectives": [
+        "Instrument the four core conversational metrics",
+        "Read a dashboard that answers \"is it working\"",
+        "Spot one improvement from the numbers"
+      ],
+      "completion": [
+        "All four metrics flowing per day",
+        "A one-glance health dashboard",
+        "One change shipped from a metric, with before/after"
+      ],
+      "deliverable": "A metrics dashboard with a shipped improvement.",
+      "essential": true,
+      "hours": 3,
+      "prereqs": [
+        "cb-conversation-evals"
+      ]
+    },
+    {
+      "roadmap": "chatbot-dev",
+      "id": "cb-ab-chatbots",
+      "phase": 6,
+      "title": "A/B testing conversations",
+      "why": "Persona A or B? Longer or shorter answers? Conversation strategy is tunable — and tuning without controlled comparison is superstition.",
+      "objectives": [
+        "Run a two-variant conversation experiment",
+        "Pick a success metric that is not vanity",
+        "Roll out the winner with a written decision"
+      ],
+      "completion": [
+        "Experiment report with metric deltas",
+        "Winner deployed behind a flag",
+        "Decision log entry with the numbers"
+      ],
+      "deliverable": "One completed conversation experiment.",
+      "essential": false,
+      "hours": 3,
+      "prereqs": [
+        "cb-chat-metrics"
+      ]
+    },
+    {
+      "roadmap": "chatbot-dev",
+      "id": "cb-capstone-chatbot",
+      "phase": 6,
+      "title": "Capstone: ship a real chatbot",
+      "why": "The portfolio artifact: one real chatbot on one real channel, carrying the roadmap — grounded answers with citations, memory with consent, a gated action, an eval suite, a red-team report, and honest metrics.",
+      "objectives": [
+        "Pick a real use case with at least one real user (you count)",
+        "Carry the phase outcomes into one shipped bot",
+        "Write the engineering story: decisions, numbers, trade-offs"
+      ],
+      "completion": [
+        "Bot live on a channel with real usage",
+        "Eval gate green; red-team residuals documented",
+        "README + demo + trade-off log complete"
+      ],
+      "deliverable": "The shipped chatbot — your portfolio centerpiece.",
+      "essential": true,
+      "hours": 8,
+      "prereqs": [
+        "cb-conversation-evals",
+        "cb-injection-defense-chat",
+        "cb-channel-agnostic",
+        "cb-chat-metrics"
+      ]
     }
   ],
   "lessons": [
@@ -3530,6 +4505,84 @@
         "Incident drills: a regression test reproducing a past 429 storm as a fake script is how the fix becomes permanent — the outage becomes a replayable unit test.",
         "Onboarding: a new engineer can run the full suite on day one with zero credentials — the fake removes the API-key barrier from contributing."
       ]
+    },
+    {
+      "roadmap": "chatbot-dev",
+      "id": "what-the-model-gets-each-turn",
+      "moduleId": "cb-turn-anatomy",
+      "title": "What the Model Gets Each Turn",
+      "tagline": "A conversation is not memory — it is re-assembly, every single turn.",
+      "simple": [
+        "A chatbot conversation feels like one continuous discussion. Technically it is a series of independent, stateless model calls — each turn you build the entire context from scratch.",
+        "The assembly has fixed ingredients: the persona and rules (system), the structured state (slots and constraints), retrieved sources for this question, the recent turns, and the new message.",
+        "Because everything is re-sent, conversation has a per-turn cost curve: turn twenty with full history re-sends twenty turns of text. That is why long chats get expensive and eventually hit the window.",
+        "The fix is not a bigger window — it is separating what deserves to persist. Structured facts live in slots and are re-injected cheaply. Prose history gets windowed and then summarized. Constraints get first-class storage.",
+        "Once you see the assembly, chatbot bugs become readable: a forgotten instruction is a storage bug, a wrong answer is a retrieval bug, and a drifting persona is an assembly bug."
+      ],
+      "intuition": {
+        "analogy": "Each turn is a new amnesiac expert handed a dossier: a brief, their notes, the relevant files, and the last few pages of the meeting transcript.",
+        "paragraphs": [
+          "The expert (model) is brilliant but remembers nothing between consultations. Your bot is the assistant who prepares the dossier before every single consult — and the quality of the chatbot IS the quality of that dossier assembly.",
+          "A good assistant includes the standing decisions (slots), the rule the client set an hour ago (constraints), the file relevant to this question (retrieval), and only the recent transcript — not a dump of everything ever said."
+        ]
+      },
+      "technical": [
+        "Per-turn assembly, concretely: system = persona + rules + stored constraints; user block = summary of old turns + recent turns verbatim + retrieved chunks + the new message. Every ingredient is your code making a decision.",
+        "Cost math: with full history, turn N costs roughly the sum of all previous turns. At ~300 tokens per exchange, turn 30 carries ~9,000 tokens of history — before retrieval. The degradation ladder (window → summarize → drop) bends this curve.",
+        "Why slots beat prose: \"order 55421\" buried in turn 4 prose costs a full re-read and can be lost in summarization; as a slot it is 3 tokens, exactly correct, and trivially testable.",
+        "Constraints are the highest-value persistence: a rule set on turn 3 (\"bullet points only\") must be re-injected every turn from storage — never trusted to survive inside a summary.",
+        "Retrieval is per-turn and query-dependent: it must handle follow-up references by rewriting the query with the prior turn, or \"the second one\" retrieves nothing."
+      ],
+      "deeper": [
+        "This assembly loop IS the architecture pattern behind every agent framework — the chatbot turn is the agent loop with conversation as its interface. Learn it here and agents stop being magic.",
+        "KV-prefix caching rewards stable prefixes: persona + rules first (identical every turn) means the provider can reuse computation for that prefix — one more reason durable content goes at the front.",
+        "The loss curve of summarization is asymmetric: summaries preserve topics and decisions well, exact numbers and constraints poorly — which is exactly why numbers live in slots and constraints in their own store."
+      ],
+      "walkthroughCode": "// The per-turn assembly — the beating heart of every chatbot.\ninterface TurnContext {\n  system: string\n  slots: Record<string, string>      // structured, stored, trusted\n  constraints: string[]              // user rules: first-class, always re-injected\n  summary: string                    // old turns, compacted\n  recentTurns: Message[]             // verbatim, windowed\n  retrieved: Chunk[]                 // THIS turn's question, rewritten if follow-up\n  userMessage: string\n}\n\nfunction assembleTurn(ctx: TurnContext): Message[] {\n  return [\n    {\n      role: 'system',\n      content: [\n        PERSONA,\n        ...ctx.constraints.map((c) => `User rule: ${c}`),  // survives forever\n        `Known facts: ${JSON.stringify(ctx.slots)}`,\n      ].join('\\n'),\n    },\n    // stable prefix ends here: persona + rules + slots (cache-friendly)\n    { role: 'user', content: [\n        ctx.summary ? `[earlier]\\n${ctx.summary}\\n\\n` : '',\n        ...ctx.recentTurns.map((m) => `${m.role}: ${m.text}`),\n        ...(ctx.retrieved.length\n          ? ['\\n[sources]\\n' + ctx.retrieved.map((c) => c.text).join('\\n---\\n')]\n          : []),\n        `\\n[user]\\n${ctx.userMessage}`,\n      ].join('\\n') },\n  ]\n}",
+      "realWorld": [
+        "Support bots: the order number lives in a slot, not in the hope that turn 14 of history is still in the window.",
+        "Assistants with preferences: \"always bullet points\" is a stored constraint re-injected every turn — users notice exactly when it breaks.",
+        "Cost incidents: a chatbot that quietly sent full history for 60-turn conversations — the invoice found it before the evals did."
+      ]
+    },
+    {
+      "roadmap": "chatbot-dev",
+      "id": "grounded-cited-or-silent",
+      "moduleId": "cb-grounding-contract",
+      "title": "Grounded, Cited, or Silent",
+      "tagline": "A chatbot may do three things with a question: answer from sources with citations, or say it cannot.",
+      "simple": [
+        "Users do not forgive invention. They forgive \"I cannot find that in my sources — here is where to check\" remarkably well. Trust in a chatbot is built on the second behavior.",
+        "The grounding contract is one instruction backed by machinery: answer ONLY from the provided sources, cite every claim, and refuse what the sources do not support.",
+        "Citations are not decoration — they make every claim checkable by the user and by your eval suite. A citation that does not resolve, or resolves to text that does not support the claim, is a bug you can test for.",
+        "Refusal is a designed behavior with classes: absent (sources say nothing), ambiguous (sources conflict or are unclear), and out-of-scope (not the bot job). Each gets its own script, and each script offers an alternative.",
+        "The failure you must hunt hardest is the plausible one: a confident, well-formatted, correctly-cited answer that the source does not actually support. Vibes-checking finds these; judgment drills and eval sets catch them."
+      ],
+      "intuition": {
+        "analogy": "A grounded chatbot is a librarian, not an oracle.",
+        "paragraphs": [
+          "Ask a librarian about a book not in the catalog: they say it is not there and suggest where else to look. They do not improvise a summary from the title. The value IS the boundary — you trust the catalog because the librarian respects it.",
+          "An oracle answers everything with equal confidence; that confidence is indistinguishable whether the answer comes from the shelf or from imagination. Users learn quickly which one they are talking to."
+        ]
+      },
+      "technical": [
+        "The contract in the prompt: \"Answer ONLY from the [sources] block. Cite each claim with [n] markers tied to the provided chunks. If the sources do not contain the answer, reply exactly: NOT_IN_SOURCES plus one sentence on what WOULD help.\" A parseable refusal string makes honesty machine-measurable.",
+        "Citation machinery: markers must map to chunk ids you supply; a verifier asserts every marker resolves AND spot-checks support. Dangling or unsupported citations fail the build, not the user.",
+        "Refusal measurement: score three question classes separately — answerable (should ground, zero inventions), ambiguous (should hedge or ask), absent (should refuse). One aggregate number hides exactly the trade you care about.",
+        "The follow-up problem: retrieval must rewrite references (\"the second one\") with the prior turn before it can ground the answer — grounding fails as a retrieval bug half the time.",
+        "Injection interaction: sources are untrusted text. The grounding contract also binds the ANSWER to sources and never lets source text escalate into instructions — the first line of injection defense in a chatbot."
+      ],
+      "deeper": [
+        "Faithfulness metrics: groundedness can be scored automatically — entailment-style checks or an LLM judge asking \"is this sentence supported by chunk n?\" — but a judge is an instrument, and instruments get calibrated against your own labels.",
+        "The economics of refusal: every point of over-refusal pushes users to worse channels (human load) or worse sources; every point of under-refusal ships hallucinations. The threshold is a product decision with numbers attached, not a prompt tweak.",
+        "Confidence is not calibration: the model is equally fluent whether grounded or inventing. Fluency-based trust (\"it sounded sure\") is precisely the failure mode the contract exists to replace."
+      ],
+      "walkthroughCode": "GROUNDING_CONTRACT = \"\"\"\nAnswer ONLY from the [sources] block.\n- Cite every factual claim with [n] tied to the chunk ids given.\n- If the sources do not contain the answer, reply exactly:\n  NOT_IN_SOURCES — then one sentence naming what document WOULD help.\n- Never merge general knowledge into a cited claim.\n\"\"\"\n\nNOT_IN_SOURCES = \"NOT_IN_SOURCES\"\n\ndef chat grounded(question: str, history, store) -> str:\n    chunks = retrieve(rewrite(question, history.last_turn))   # follow-ups resolved\n    answer = llm(system=PERSONA + GROUNDING_CONTRACT,\n                  sources=[c.text for c in chunks], question=question)\n    if answer.startswith(NOT_IN_SOURCES):\n        metrics.refusals += 1                                  # honest, measured\n        return answer + nearest_alternative(question)\n    bad = dangling_citations(answer, chunks)                   # [3] with no chunk 3\n    unsupported = spot_check_support(answer, chunks, k=2)      # judge: does n support it?\n    if bad or unsupported:\n        log_grounding_failure(question, bad or unsupported)\n        return NOT_IN_SOURCES + \" — verifying this answer failed.\"\n    return answer",
+      "realWorld": [
+        "Support bots: the policy page IS the source of truth — the contract is what stops the bot improvising refund terms under pressure.",
+        "Internal knowledge bots: \"not in the docs, here is the team to ask\" beats a confident guess that starts a wrong process.",
+        "Legal and medical adjacent products: grounded-cited-or-silent is not a feature there — it is the license to operate."
+      ]
     }
   ],
   "projects": [
@@ -3630,6 +4683,41 @@
       "title": "Shipped AI Feature (Capstone)",
       "problem": "The portfolio piece. Pick one real feature with at least one real user (you count), and ship it carrying every practice: the gateway, streaming UX, evals in CI, dashboards, a flag, a fallback ladder, quotas, and a written record of trade-offs and numbers.",
       "evaluation": "It is live and used; budgets (latency, cost) hold over a measured week; the kill switch and fallback ladder each drilled once; the eval gate demonstrably blocks a bad edit."
+    },
+    {
+      "roadmap": "chatbot-dev",
+      "id": "cb-project-support-copilot",
+      "title": "Grounded Support Copilot",
+      "problem": "Support teams drown in the same twenty questions, and most \"AI support bots\" invent policies under pressure. You will build the trustworthy version: a chatbot that answers ONLY from your knowledge base, cites every claim as a clickable source, refuses what it cannot ground, and hands off to a human with full context when stuck.",
+      "evaluation": "Golden conversations scored turn-by-turn; hallucination count on the answerable set (must be zero); refusal rate on the unanswerable set; citation resolution rate; latency and cost per conversation."
+    },
+    {
+      "roadmap": "chatbot-dev",
+      "id": "cb-project-multichannel-bot",
+      "title": "One Brain, Two Channels",
+      "problem": "Bots built per-channel drift apart: web answers one way, WhatsApp another, and every fix ships twice. You will build the scaling architecture — a single conversational core behind a channel interface, shipped simultaneously to a web widget and Telegram with channel-native UX for each.",
+      "evaluation": "The same golden conversations pass on both channels; the demonstrated single-change rollout; a latency budget held per channel."
+    },
+    {
+      "roadmap": "chatbot-dev",
+      "id": "cb-project-slots-gates",
+      "title": "Slot-Filling Assistant with Gates",
+      "problem": "Chat gets real when it does things — and dangerous when it does them wrong. You will build an assistant that collects structured information through natural dialogue (with corrections), shows its work, confirms before anything irreversible, and survives an injection attack that tries to skip the gate.",
+      "evaluation": "Six scripted dialogues pass (happy, corrections, edge); the gate fires on every destructive path; the injected bypass attempt fails and is logged as a test."
+    },
+    {
+      "roadmap": "chatbot-dev",
+      "id": "cb-project-memory-engine",
+      "title": "Conversational Memory Engine",
+      "problem": "Long conversations break bots twice: they forget turn three, and they cost a fortune re-sending turn one forever. You will build the memory layer that solves both — structured slots, consented long-term facts the user can view and delete, and a rolling summarizer whose preservation checklist is enforced by a 50-turn survival test.",
+      "evaluation": "The survival test passing is the headline; consent lifecycle audited; cost chart before/after; cross-user isolation test green."
+    },
+    {
+      "roadmap": "chatbot-dev",
+      "id": "cb-project-eval-harness",
+      "title": "Chatbot Eval & Red-Team Harness",
+      "problem": "Chatbots ship on vibes and break in production. You will build the harness that proves yours works: multi-turn golden conversations scored in CI, a red-team suite replaying real attack vectors, and the four conversational metrics (containment, resolution, escalation, CSAT) on a dashboard that answers \"is it working\".",
+      "evaluation": "The planted regression is caught; red-team findings are triaged with fixes or accepted residuals; the metrics dashboard surfaces one real improvement; judge calibration documented."
     }
   ]
 }

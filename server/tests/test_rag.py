@@ -57,6 +57,17 @@ GOLDEN: list[tuple[str, tuple[str, ...]]] = [
     ("how to unit test an ai feature deterministically", ("lesson:the-fake-provider:", "module:aip-testing-fundamentals")),
     ("fake provider vs mocks for testing", ("lesson:the-fake-provider:", "module:aip-testing-fundamentals")),
     ("what do golden recordings catch", ("lesson:the-fake-provider:", "module:aip-testing-fundamentals")),
+    # -- Chatbot Development (public Beta) --
+    ("what does the model receive on each chat turn", ("lesson:what-the-model-gets-each-turn:", "module:cb-turn-anatomy")),
+    ("why do chat constraints need first-class storage", ("lesson:what-the-model-gets-each-turn:", "module:cb-constraint-persistence")),
+    ("grounding contract answer only from sources", ("lesson:grounded-cited-or-silent:", "module:cb-grounding-contract")),
+    ("what is the most dangerous grounding failure", ("lesson:grounded-cited-or-silent:", "module:cb-grounding-contract")),
+    ("why make the refusal a parseable string", ("lesson:grounded-cited-or-silent:", "module:cb-refusal-design")),
+    ("slot filling without interrogating the user", ("module:cb-slot-filling",)),
+    ("when should a tool need confirmation", ("module:cb-confirmation-gates",)),
+    ("what belongs in a human handoff package", ("module:cb-human-handoff",)),
+    ("one brain multiple channels architecture", ("module:cb-channel-agnostic",)),
+    ("multi-turn golden conversations as evals", ("module:cb-conversation-evals",)),
 ]
 
 
