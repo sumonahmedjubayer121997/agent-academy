@@ -22,6 +22,7 @@ import {
 import { RESOURCES } from '../content/resources'
 import { masteryGate } from '../lib/mastery'
 import FocusTimer from '../components/FocusTimer'
+import PracticeTasks from '../components/PracticeTasks'
 import { Badge, Button, Card, ProgressBar, StatusBadge } from '../components/ui'
 import {
   isUnlocked,
@@ -407,6 +408,8 @@ export default function ModuleDetail() {
           </div>
         </Card>
       )}
+
+      <PracticeTasks moduleId={m.id} />
 
       {/* Interactive Objectives & Completion Criteria Checklists */}
       <div className="mt-8 grid gap-6 lg:grid-cols-2">

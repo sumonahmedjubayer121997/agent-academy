@@ -136,4 +136,33 @@ describe('validateAndMigrateProgress', () => {
     expect(r.data.sessions[1]?.roadmap).toBe('prompt-engineering')
     expect(r.data.sessions[2]?.roadmap).toBeUndefined() // legacy review sessions stay unattributed
   })
+
+  it('carries practice-task completion through migration, sanitising malformed entries', () => {
+    const r = validateAndMigrateProgress({
+      moduleStatus: {},
+      tasks: {
+        'aip-t-error-triage': { done: true, at: '2026-10-28T09:00:00.000Z' },
+        'aip-t-other': { done: 'yes', at: 42 },
+        'not-an-object': 'nope',
+      },
+    })
+    expect(r.ok).toBe(true)
+    if (!r.ok) return
+    expect(r.data.tasks?.['aip-t-error-triage']).toEqual({ done: true, at: '2026-10-28T09:00:00.000Z' })
+    expect(r.data.tasks?.['aip-t-other']).toEqual({ done: true }) // truthy done coerced, bad `at` dropped
+    expect(r.data.tasks?.['not-an-object']).toBeUndefined() // non-object entries dropped
+  })
+
+  it('loads pre-tasks v3 progress unchanged — no tasks key, no schema bump', () => {
+    const r = validateAndMigrateProgress({
+      moduleStatus: { 'p1-python-core': 'completed' },
+      activity: ['2026-10-01'],
+    })
+    expect(r.ok).toBe(true)
+    if (!r.ok) return
+    expect(r.data.schemaVersion).toBe(3)
+    expect(r.data.tasks).toEqual({})
+    expect(r.data.modules?.['p1-python-core']?.stage).toBe('confident')
+    expect(r.data.activity).toEqual(['2026-10-01'])
+  })
 })

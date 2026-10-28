@@ -1,5 +1,5 @@
 import { createElement } from 'react'
-import { act, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { describe, expect, it } from 'vitest'
 import { MODULES } from './modules'
@@ -11,11 +11,13 @@ import { CURRICULUM_DECK, cardsForModule } from './cards'
 import { EDGE_WHY } from './edges'
 import { EQUIVALENTS } from './equivalents'
 import { LESSONS } from './lessons'
+import { PRACTICE_TASKS } from './practiceTasks'
 import { TRACKS, SEQUENCE_MODES, trackForModule, waveForModule } from './tracks'
 import { BUNDLES } from '../registry'
 import { ActiveRoadmapProvider } from '../../../store/activeRoadmap'
 import { ProgressProvider, moduleRecordOf, nextUp, stageOf, todayStr, useProgress } from '../../../store/progress'
 import LessonPage from '../../../pages/Lesson'
+import ModuleDetail from '../../../pages/ModuleDetail'
 
 const ids = new Set(MODULES.map((m) => m.id))
 
@@ -114,13 +116,15 @@ describe('ai-programming curriculum integrity', () => {
     }
   })
 
-  it('has 5 exemplar lessons (including aip-eval-suites and aip-logging-tracing), complete in all nine layers, wired to real modules', () => {
-    expect(LESSONS).toHaveLength(5)
+  it('has 7 exemplar lessons (including aip-codegen-loop and aip-fallback-ladder), complete in all nine layers, wired to real modules', () => {
+    expect(LESSONS).toHaveLength(7)
     const lessonIds = LESSONS.map((l) => l.id)
     expect(new Set(lessonIds).size).toBe(LESSONS.length)
     expect(lessonIds).toContain('aip-eval-suites')
     expect(lessonIds).toContain('aip-logging-tracing')
-    const validDemos = ['agent-loop', 'vector-sim', 'context-inspector', 'structured-stepthrough', 'retry-timeline', 'cost-meter', 'anatomy-builder', 'fake-provider']
+    expect(lessonIds).toContain('aip-codegen-loop')
+    expect(lessonIds).toContain('aip-fallback-ladder')
+    const validDemos = ['agent-loop', 'vector-sim', 'context-inspector', 'structured-stepthrough', 'retry-timeline', 'cost-meter', 'fallback-ladder', 'anatomy-builder', 'fake-provider']
     for (const l of LESSONS) {
       expect(ids.has(l.moduleId), `lesson ${l.id} on unknown module`).toBe(true)
       expect(l.takeaways).toHaveLength(3)
@@ -149,8 +153,8 @@ describe('ai-programming curriculum integrity', () => {
     }
   })
 
-  it('mounts LessonPage at /r/ai-programming/learn/<id> for both new exemplar lessons without errors', () => {
-    for (const lessonId of ['aip-eval-suites', 'aip-logging-tracing'] as const) {
+  it('mounts LessonPage at /r/ai-programming/learn/<id> for the new exemplar lessons without errors', () => {
+    for (const lessonId of ['aip-eval-suites', 'aip-logging-tracing', 'aip-codegen-loop', 'aip-fallback-ladder'] as const) {
       const lesson = LESSONS.find((l) => l.id === lessonId)!
       const { unmount } = render(
         createElement(
@@ -269,6 +273,112 @@ describe('ai-programming curriculum integrity', () => {
     // 3. Module is NOT removed from the learning plan / recommendations
     const rec = nextUp(api!.data, 3, MODULES)
     expect(rec[0]?.id).toBe('aip-first-call')
+    unmount()
+  })
+
+  it('practice tasks: namespaced unique ids, valid module/lesson/practice refs, tier-shaped fields, offline-first', () => {
+    expect(PRACTICE_TASKS.length).toBeGreaterThanOrEqual(1)
+    const taskIds = PRACTICE_TASKS.map((t) => t.id)
+    expect(new Set(taskIds).size).toBe(taskIds.length)
+    const lessonIds = LESSONS.map((l) => l.id)
+    for (const t of PRACTICE_TASKS) {
+      expect(t.id.startsWith('aip-t-'), `task id ${t.id} must be aip-t- namespaced`).toBe(true)
+      expect(ids.has(t.moduleId), `task ${t.id} references unknown module`).toBe(true)
+      const [minMinutes, maxMinutes] =
+        t.kind === 'exercise' ? [10, 20] : t.kind === 'guided' ? [30, 60] : [60, 180]
+      expect(t.minutes).toBeGreaterThanOrEqual(minMinutes)
+      expect(t.minutes).toBeLessThanOrEqual(maxMinutes)
+      expect(t.requirements.length).toBeGreaterThanOrEqual(3)
+      expect(t.checks.length).toBeGreaterThanOrEqual(2)
+      expect(t.hints.length).toBeGreaterThanOrEqual(2)
+      expect(t.doneWhen.length).toBeGreaterThan(20)
+      expect(t.offline, `task ${t.id} must be runnable offline`).toBe(true)
+      if (t.lessonId) {
+        expect(lessonIds).toContain(t.lessonId)
+        const lesson = LESSONS.find((l) => l.id === t.lessonId)
+        expect(lesson?.moduleId).toBe(t.moduleId)
+      }
+      if (t.practiceId) {
+        const pp = PRACTICE_PROJECTS.find((p) => p.id === t.practiceId)
+        expect(pp, `task ${t.id} references unknown practice ${t.practiceId}`).toBeDefined()
+        expect(pp?.modules).toContain(t.moduleId)
+      }
+    }
+    // pilot wiring: the reliability task links its lesson and its practice build
+    const pilot = PRACTICE_TASKS.find((t) => t.moduleId === 'aip-reliability')
+    expect(pilot?.lessonId).toBe('aip-resilient-call')
+    expect(pilot?.practiceId).toBe('aip-pp-retry-lab')
+  })
+
+  it('task coverage: every ai-programming module has at least one task, phases match, tiers are balanced', () => {
+    const covered = new Set(PRACTICE_TASKS.map((t) => t.moduleId))
+    for (const m of MODULES) {
+      expect(covered.has(m.id), `module ${m.id} has no practice task`).toBe(true)
+    }
+    for (const t of PRACTICE_TASKS) {
+      const mod = MODULES.find((m) => m.id === t.moduleId)!
+      expect(t.phase, `task ${t.id} phase mismatch with its module`).toBe(mod.phase)
+    }
+    // tiers exist and exercises dominate (the quick layer is the new coverage)
+    const kinds = new Set(PRACTICE_TASKS.map((t) => t.kind))
+    expect(kinds.has('exercise')).toBe(true)
+    expect(kinds.has('guided')).toBe(true)
+    expect(PRACTICE_TASKS.filter((t) => t.kind === 'exercise').length).toBeGreaterThanOrEqual(
+      PRACTICE_TASKS.length / 2,
+    )
+  })
+
+  it('mounts ModuleDetail with Practice & Build on aip-reliability; toggling a task never touches module state', () => {
+    localStorage.clear()
+    let api: ReturnType<typeof useProgress> | undefined
+    function Probe() {
+      api = useProgress()
+      return null
+    }
+    const task = PRACTICE_TASKS.find((t) => t.moduleId === 'aip-reliability')!
+    const { unmount } = render(
+      createElement(
+        MemoryRouter,
+        { initialEntries: ['/r/ai-programming/roadmap/aip-reliability'] },
+        createElement(
+          ActiveRoadmapProvider,
+          null,
+          createElement(
+            ProgressProvider,
+            null,
+            createElement(Probe),
+            createElement(
+              Routes,
+              null,
+              createElement(Route, {
+                path: '/r/:slug/roadmap/:moduleId',
+                element: createElement(ModuleDetail),
+              }),
+            ),
+          ),
+        ),
+      ),
+    )
+    expect(screen.getByRole('heading', { name: 'Retries, backoff & circuit breakers' })).toBeTruthy()
+    expect(screen.getByRole('heading', { name: 'Practice & Build' })).toBeTruthy()
+    expect(screen.getByText(task.title)).toBeTruthy()
+    // the module's existing practice build is surfaced, not duplicated
+    expect(screen.getByText(/retry & breaker lab/i)).toBeTruthy()
+    expect(screen.getByText('Quick exercise')).toBeTruthy()
+    expect(screen.getByText('offline')).toBeTruthy()
+    // progressive disclosure: hints and the reference solution exist as closed details
+    expect(screen.getAllByText(/Hint 1 of/).length).toBeGreaterThan(0)
+    expect(screen.getByText('Reference solution')).toBeTruthy()
+
+    const box = screen.getByRole('checkbox', { name: `Mark task complete: ${task.title}` })
+    fireEvent.click(box)
+    expect(api!.data.tasks?.[task.id]?.done).toBe(true)
+    // completion is task-scoped: stage, objectives, and completion criteria untouched
+    expect(stageOf(api!.data, 'aip-reliability')).toBe('not-started')
+    expect(moduleRecordOf(api!.data, 'aip-reliability').objectivesDone).toEqual([])
+    expect(moduleRecordOf(api!.data, 'aip-reliability').completionDone).toEqual([])
+    fireEvent.click(box)
+    expect(api!.data.tasks?.[task.id]?.done).toBe(false)
     unmount()
   })
 })

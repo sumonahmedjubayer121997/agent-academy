@@ -2,6 +2,8 @@ import type { Lesson } from '../../types'
 import { FAKE_PROVIDER_LESSON } from './lessonFakeProvider'
 import { EVAL_SUITES_LESSON } from './lessonEvalSuites'
 import { LOGGING_TRACING_LESSON } from './lessonLoggingTracing'
+import { CODEGEN_LOOP_LESSON } from './lessonCodegenLoop'
+import { FALLBACK_LADDER_LESSON } from './lessonFallbackLadder'
 
 /**
  * Exemplar lessons for AI Programming — the nine-layer retention format.
@@ -333,4 +335,6 @@ def feature_cost(feature: str, day: str) -> float:
   FAKE_PROVIDER_LESSON,
   LOGGING_TRACING_LESSON,
   EVAL_SUITES_LESSON,
+  CODEGEN_LOOP_LESSON,
+  FALLBACK_LADDER_LESSON,
 ]

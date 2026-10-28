@@ -79,7 +79,7 @@ export interface Lesson {
   /** Optional university-level layer, collapsed under "Go deeper" after the technical section. */
   deeper?: string[]
   numbers?: { title: string; rows: [string, string][]; takeaway: string }
-  demo?: 'agent-loop' | 'vector-sim' | 'context-inspector' | 'structured-stepthrough' | 'retry-timeline' | 'cost-meter' | 'anatomy-builder' | 'fake-provider' | 'chat-turn-stepper' | 'grounding-check'
+  demo?: 'agent-loop' | 'vector-sim' | 'context-inspector' | 'structured-stepthrough' | 'retry-timeline' | 'cost-meter' | 'fallback-ladder' | 'anatomy-builder' | 'fake-provider' | 'chat-turn-stepper' | 'grounding-check'
   walkthrough: { lang: string; code: string; notes: [string, string][] }
   exercise: { prompt: string; solution: string }
   quiz: QuizQ[]
@@ -153,6 +153,43 @@ export interface PracticeProjectSpec {
   doneWhen: string
 }
 
+/** Task kind tiers: quick exercise / guided implementation / mini-project. */
+export type PracticeTaskKind = 'exercise' | 'guided' | 'project'
+
+/**
+ * A chapter-level practical task shown on a module's Practice & Build section.
+ * Tasks are the smallest practice unit (smaller than a PracticeProject);
+ * `practiceId` reuses an existing project instead of duplicating it, and
+ * `offline: true` marks tasks runnable against the fake provider or fixtures.
+ */
+export interface PracticeTaskSpec {
+  id: string
+  moduleId: string
+  phase: number
+  title: string
+  kind: PracticeTaskKind
+  /** exercise 10–20 · guided 30–60 · project 60–180 */
+  minutes: number
+  difficulty: 'beginner' | 'intermediate' | 'advanced'
+  /** Real-world framing: why an engineer runs this drill. */
+  scenario: string
+  /** The problem statement in one or two sentences. */
+  task: string
+  requirements: string[]
+  /** Measurable definition of done. */
+  doneWhen: string
+  /** Verification checklist — assertions, greps, or observable outcomes. */
+  checks: string[]
+  /** Progressive reveal: hint 1 nudges, the last is near-solution. */
+  hints: string[]
+  solution?: string
+  pitfalls?: string
+  extension?: string
+  lessonId?: string
+  practiceId?: string
+  offline: boolean
+}
+
 /**
  * The explicit content contract every roadmap bundle must satisfy.
  * Optional parts (LESSONS) let a roadmap ship before lessons are authored.
@@ -176,4 +213,6 @@ export interface RoadmapBundle {
   cardsForModule(moduleId: string): DeckCardSpec[]
   PROJECTS: ProjectSpec[]
   PRACTICE_PROJECTS: PracticeProjectSpec[]
+  /** Optional chapter-level tasks; roadmaps opt in (AI Programming first). */
+  PRACTICE_TASKS?: PracticeTaskSpec[]
 }
