@@ -123,6 +123,12 @@ export interface ProjectRecord {
   updatedAt: string
 }
 
+/** Completion state of one practice task (PracticeTaskSpec.id keyed). */
+export interface TaskRecord {
+  done: boolean
+  at?: string
+}
+
 export interface BrainDumpEntry {
   id: string
   date: string
@@ -188,6 +194,9 @@ export interface ProgressData {
   modules?: Record<string, ModuleRecord>
   customCards?: CustomCard[]
   projects?: Record<string, ProjectRecord>
+  // Practice-task completion — v3-additive optional field, no schema bump:
+  // absent means no tasks done; validated/sanitised on load like projects.
+  tasks?: Record<string, TaskRecord>
   journal?: JournalEntry[]
   brainDumps?: BrainDumpEntry[]
   dailyPlans?: Record<string, DailyPlanRecord>
@@ -476,6 +485,17 @@ export function validateAndMigrateProgress(
       ? { ...(obj.startedRoadmaps as Record<string, string>) }
       : {}
 
+  // practice tasks: sanitise entries — keep {done, at?}, drop malformed ones
+  const tasks: Record<string, TaskRecord> = {}
+  if (obj.tasks && typeof obj.tasks === 'object' && !Array.isArray(obj.tasks)) {
+    for (const [k, v] of Object.entries(obj.tasks as Record<string, unknown>)) {
+      if (v && typeof v === 'object') {
+        const t = v as { done?: unknown; at?: unknown }
+        tasks[k] = { done: Boolean(t.done), ...(typeof t.at === 'string' ? { at: t.at } : {}) }
+      }
+    }
+  }
+
   const merged: ProgressData = {
     ...DEFAULT_DATA,
     schemaVersion: 3,
@@ -504,6 +524,7 @@ export function validateAndMigrateProgress(
       obj.projects && typeof obj.projects === 'object' && !Array.isArray(obj.projects)
         ? (obj.projects as Record<string, ProjectRecord>)
         : {},
+    tasks,
     journal: Array.isArray(obj.journal) ? (obj.journal as JournalEntry[]) : [],
     brainDumps: Array.isArray(obj.brainDumps) ? (obj.brainDumps as BrainDumpEntry[]) : [],
     lastActiveModuleId: typeof obj.lastActiveModuleId === 'string' ? obj.lastActiveModuleId : undefined,
@@ -560,6 +581,10 @@ export function statusOf(data: ProgressData, id: string): ModuleStatus {
   const rec = data.modules?.[id]
   if (rec?.stage) return stageToLegacyStatus(rec.stage)
   return data.moduleStatus[id] ?? 'not-started'
+}
+
+export function taskDoneOf(data: ProgressData, taskId: string): boolean {
+  return Boolean(data.tasks?.[taskId]?.done)
 }
 
 export function isUnlocked(data: ProgressData, m: LearningModule): boolean {
@@ -732,6 +757,7 @@ interface ProgressContextValue {
   logSession: (moduleId: string | 'review', minutes: number, note?: string) => void
   updateProject: (projectId: string, moduleId: string, patch: Partial<ProjectRecord>) => void
   toggleProjectMilestone: (projectId: string, moduleId: string, milestoneIndex: number) => void
+  toggleTask: (taskId: string) => void
   addBrainDump: (entry: Omit<BrainDumpEntry, 'id' | 'createdAt' | 'updatedAt'>) => void
   updateBrainDump: (id: string, patch: Partial<BrainDumpEntry>) => void
   addJournalEntry: (entry: Omit<JournalEntry, 'id' | 'createdAt'>) => void
@@ -1057,6 +1083,14 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
             ...d,
             projects: { ...(d.projects ?? {}), [projectId]: next },
           })
+        }),
+      toggleTask: (taskId) =>
+        setData((d) => {
+          const prev = d.tasks?.[taskId]
+          const next: TaskRecord = prev?.done
+            ? { done: false }
+            : { done: true, at: new Date().toISOString() }
+          return touch({ ...d, tasks: { ...(d.tasks ?? {}), [taskId]: next } })
         }),
       addBrainDump: (entry) =>
         setData((d) => {

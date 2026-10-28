@@ -127,6 +127,7 @@ function PracticeProjectsSection() {
   const [phase, setPhase] = useState<number | 'all'>('all')
   const { PRACTICE_PROJECTS, MODULES } = useActiveRoadmap()
   const shown = PRACTICE_PROJECTS.filter((p) => phase === 'all' || p.phase === phase)
+  const phases = [...new Set(PRACTICE_PROJECTS.map((p) => p.phase))].sort((a, b) => a - b)
   const phaseHours = (n: number) =>
     PRACTICE_PROJECTS.filter((p) => p.phase === n).reduce((s, p) => s + p.hours, 0)
 
@@ -144,9 +145,9 @@ function PracticeProjectsSection() {
             phase === 'all' ? 'bg-raised text-ink' : 'text-ink-faint hover:bg-raised hover:text-ink'
           }`}
         >
-          All 40
+          All {PRACTICE_PROJECTS.length}
         </button>
-        {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
+        {phases.map((n) => (
           <button
             key={n}
             onClick={() => setPhase(n)}
