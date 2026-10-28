@@ -524,6 +524,7 @@ export const MODULES: LearningModule[] = [
     id: 'aip-logging-tracing',
     phase: 4,
     title: 'Logging & tracing model calls',
+    lessonId: 'aip-logging-tracing',
     why: 'You cannot debug what you did not record. Structured logs with request ids and spans turn "the AI is being weird" into a replayable timeline.',
     objectives: [
       'Log every model call as structured JSON with ids',
@@ -566,6 +567,7 @@ export const MODULES: LearningModule[] = [
     id: 'aip-eval-suites',
     phase: 4,
     title: 'Eval suites in CI',
+    lessonId: 'aip-eval-suites',
     why: 'Prompts and models change; behavior must not silently drift. A golden set executed in CI is the contract that lets you upgrade models without holding your breath.',
     objectives: [
       'Build a golden set for one real feature',
