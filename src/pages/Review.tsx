@@ -218,6 +218,8 @@ export default function Review() {
         {(['all', 'focus'] as const).map((s) => (
           <button
             key={s}
+            type="button"
+            aria-pressed={(scope === 'all') === (s === 'all')}
             onClick={() => {
               setScope(s === 'all' ? 'all' : activeSlug)
               setSessionQueue([])
@@ -263,8 +265,9 @@ export default function Review() {
             <h3 className="font-semibold tracking-tight">Create a personal active-recall flashcard</h3>
             <form onSubmit={handleCreateCustomCard} className="mt-4 space-y-3">
               <div>
-                <label className="block text-xs font-medium text-ink-faint">Module</label>
+                <label htmlFor="review-custom-mod" className="block text-xs font-medium text-ink-faint">Module</label>
                 <select
+                  id="review-custom-mod"
                   value={customModId}
                   onChange={(e) => setCustomModId(e.target.value)}
                   className="mt-1 w-full rounded-xl border border-line bg-surface px-3 py-2 text-sm"
@@ -277,10 +280,11 @@ export default function Review() {
                 </select>
               </div>
               <div>
-                <label className="block text-xs font-medium text-ink-faint">
+                <label htmlFor="review-custom-front" className="block text-xs font-medium text-ink-faint">
                   Front (Question or retrieval prompt)
                 </label>
                 <input
+                  id="review-custom-front"
                   value={customPrompt}
                   onChange={(e) => setCustomPrompt(e.target.value)}
                   placeholder="e.g. Why must tool side-effects use idempotency keys when retries are enabled?"
@@ -288,10 +292,11 @@ export default function Review() {
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-ink-faint">
+                <label htmlFor="review-custom-back" className="block text-xs font-medium text-ink-faint">
                   Back (Concise answer / code snippet)
                 </label>
                 <textarea
+                  id="review-custom-back"
                   value={customAnswer}
                   onChange={(e) => setCustomAnswer(e.target.value)}
                   rows={3}
@@ -424,6 +429,7 @@ export default function Review() {
             <select
               value={customModId}
               onChange={(e) => setCustomModId(e.target.value)}
+              aria-label="Module for custom flashcard"
               className="w-full rounded-lg border border-line bg-surface px-3 py-1.5 text-xs"
             >
               {MODULES.map((m) => (
@@ -435,6 +441,7 @@ export default function Review() {
             <input
               value={customPrompt}
               onChange={(e) => setCustomPrompt(e.target.value)}
+              aria-label="Question or front prompt"
               placeholder="Question / front prompt…"
               className="w-full rounded-lg border border-line bg-surface px-3 py-1.5 text-sm"
             />
@@ -442,6 +449,7 @@ export default function Review() {
               value={customAnswer}
               onChange={(e) => setCustomAnswer(e.target.value)}
               rows={2}
+              aria-label="Answer or back explanation"
               placeholder="Answer / back explanation…"
               className="w-full rounded-lg border border-line bg-surface px-3 py-1.5 text-sm"
             />
@@ -561,6 +569,7 @@ export default function Review() {
                   value={scratchAnswer}
                   onChange={(e) => setScratchAnswer(e.target.value)}
                   rows={2}
+                  aria-label="Jot your answer in your own words before revealing"
                   placeholder="Optional: jot your answer in your own words before revealing…"
                   className="w-full rounded-xl border border-line bg-raised/40 px-3.5 py-2.5 text-sm placeholder:text-ink-faint focus:border-accent focus:outline-none"
                 />

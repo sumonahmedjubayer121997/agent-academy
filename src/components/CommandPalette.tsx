@@ -68,12 +68,22 @@ function glossaryItems(): PaletteItem[] {
   }))
 }
 
+function isFocusable(el: HTMLElement | null): el is HTMLElement {
+  if (!el || !el.isConnected) return false
+  if ('disabled' in el && Boolean((el as HTMLButtonElement).disabled)) return false
+  if (el.getAttribute('aria-hidden') === 'true') return false
+  return typeof el.focus === 'function'
+}
+
 export default function CommandPalette({ open, onClose }: { open: boolean; onClose: () => void }) {
   const navigate = useNavigate()
   const [q, setQ] = useState('')
   const [active, setActive] = useState(0)
+  const dialogRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const listRef = useRef<HTMLDivElement>(null)
+  const triggerRef = useRef<HTMLElement | null>(null)
+  const wasOpenRef = useRef(false)
 
   const focus = useActiveRoadmap().META.slug
   const ALL_ITEMS = useMemo(
@@ -86,21 +96,78 @@ export default function CommandPalette({ open, onClose }: { open: boolean; onClo
     return ALL_ITEMS.filter(
       (i) => i.label.toLowerCase().includes(needle) || i.keywords.toLowerCase().includes(needle),
     ).slice(0, 12)
-  }, [q])
+  }, [q, ALL_ITEMS])
+
+  const activeIndex = results.length === 0 ? -1 : Math.min(active, results.length - 1)
+  const activeItem = activeIndex >= 0 ? results[activeIndex] : undefined
+
+  const restoreFocus = () => {
+    const target = triggerRef.current
+    triggerRef.current = null
+    if (isFocusable(target)) {
+      target.focus()
+      return
+    }
+    const fallback = document.querySelector<HTMLElement>(
+      '[data-palette-trigger]:not([disabled]), [data-palette-fallback]:not([disabled])',
+    )
+    if (isFocusable(fallback)) {
+      fallback.focus()
+    }
+  }
 
   useEffect(() => {
     if (open) {
+      wasOpenRef.current = true
+      const currentActive = document.activeElement
+      if (
+        currentActive instanceof HTMLElement &&
+        currentActive !== document.body &&
+        !dialogRef.current?.contains(currentActive)
+      ) {
+        triggerRef.current = currentActive
+      }
       setQ('')
       setActive(0)
-      setTimeout(() => inputRef.current?.focus(), 30)
+      inputRef.current?.focus()
+    } else if (wasOpenRef.current) {
+      wasOpenRef.current = false
+      restoreFocus()
     }
   }, [open])
+
+  useEffect(() => {
+    return () => {
+      if (wasOpenRef.current) {
+        wasOpenRef.current = false
+        restoreFocus()
+      }
+    }
+  }, [])
 
   useEffect(() => setActive(0), [q])
 
   useEffect(() => {
-    listRef.current?.querySelector(`[data-idx="${active}"]`)?.scrollIntoView({ block: 'nearest' })
-  }, [active])
+    if (activeIndex < 0) return
+    const el = listRef.current?.querySelector<HTMLElement>(`[data-idx="${activeIndex}"]`)
+    el?.scrollIntoView?.({ block: 'nearest' })
+  }, [activeIndex])
+
+  useEffect(() => {
+    if (!open) return
+    const onFocusIn = (e: FocusEvent) => {
+      const target = e.target
+      if (
+        dialogRef.current &&
+        target instanceof Node &&
+        !dialogRef.current.contains(target)
+      ) {
+        inputRef.current?.focus()
+      }
+    }
+    document.addEventListener('focusin', onFocusIn)
+    return () => document.removeEventListener('focusin', onFocusIn)
+  }, [open])
 
   if (!open) return null
 
@@ -109,10 +176,55 @@ export default function CommandPalette({ open, onClose }: { open: boolean; onClo
     navigate(i.route)
   }
 
+  const getFocusableControls = (): HTMLElement[] => {
+    if (!dialogRef.current) return []
+    return Array.from(
+      dialogRef.current.querySelectorAll<HTMLElement>(
+        'input:not([disabled]), button:not([disabled]):not([tabindex="-1"]), [href], [tabindex]:not([tabindex="-1"])',
+      ),
+    ).filter((el) => isFocusable(el))
+  }
+
+  const handleDialogKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === 'Escape') {
+      e.preventDefault()
+      e.stopPropagation()
+      onClose()
+      return
+    }
+    if (e.key === 'Tab') {
+      const focusables = getFocusableControls()
+      if (focusables.length === 0) {
+        e.preventDefault()
+        return
+      }
+      const current = document.activeElement as HTMLElement | null
+      const idx = current ? focusables.indexOf(current) : -1
+      if (e.shiftKey) {
+        if (idx <= 0) {
+          e.preventDefault()
+          focusables[focusables.length - 1].focus()
+        }
+      } else {
+        if (idx === -1 || idx >= focusables.length - 1) {
+          e.preventDefault()
+          focusables[0].focus()
+        }
+      }
+    }
+  }
+
+  const statusText =
+    results.length === 0
+      ? 'No matches found.'
+      : `${results.length} ${results.length === 1 ? 'result' : 'results'} available.`
+
   return (
     <div
+      ref={dialogRef}
       className="fixed inset-0 z-50 flex items-start justify-center bg-black/30 px-4 pt-[12vh]"
       onClick={onClose}
+      onKeyDown={handleDialogKeyDown}
       role="dialog"
       aria-modal="true"
       aria-label="Command palette"
@@ -122,52 +234,80 @@ export default function CommandPalette({ open, onClose }: { open: boolean; onClo
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center gap-2.5 border-b border-line px-4 py-3">
-          <Search size={15} className="shrink-0 text-ink-faint" />
+          <Search size={15} className="shrink-0 text-ink-faint" aria-hidden="true" />
           <input
             ref={inputRef}
+            type="text"
+            role="combobox"
+            aria-expanded="true"
+            aria-autocomplete="list"
+            aria-controls="palette-results"
+            aria-activedescendant={activeItem ? `palette-option-${activeItem.id}` : undefined}
+            aria-label="Search everything"
             value={q}
             onChange={(e) => setQ(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === 'ArrowDown') {
+              if (e.key === 'ArrowDown' && !e.altKey && !e.ctrlKey && !e.metaKey) {
                 e.preventDefault()
-                setActive((v) => Math.min(results.length - 1, v + 1))
-              } else if (e.key === 'ArrowUp') {
+                if (results.length > 0) {
+                  setActive((v) => Math.min(results.length - 1, Math.max(0, v) + 1))
+                }
+              } else if (e.key === 'ArrowUp' && !e.altKey && !e.ctrlKey && !e.metaKey) {
                 e.preventDefault()
-                setActive((v) => Math.max(0, v - 1))
-              } else if (e.key === 'Enter' && results[active]) {
+                if (results.length > 0) {
+                  setActive((v) => Math.max(0, Math.min(results.length - 1, v) - 1))
+                }
+              } else if (e.key === 'Enter' && activeItem) {
                 e.preventDefault()
-                choose(results[active])
-              } else if (e.key === 'Escape') {
-                onClose()
+                choose(activeItem)
               }
             }}
             placeholder="Search modules, projects, pages…"
             className="w-full bg-transparent text-sm outline-none placeholder:text-ink-faint"
-            aria-label="Search everything"
-            aria-controls="palette-results"
           />
-          <kbd className="rounded border border-line px-1.5 py-0.5 font-mono text-[10px] text-ink-faint">esc</kbd>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close command palette"
+            className="rounded border border-line px-1.5 py-0.5 font-mono text-[10px] text-ink-faint transition-colors hover:bg-raised hover:text-ink"
+          >
+            esc
+          </button>
         </div>
-        <div ref={listRef} id="palette-results" role="listbox" className="max-h-[52vh] overflow-y-auto p-1.5">
+        <div role="status" aria-live="polite" aria-atomic="true" className="sr-only">
+          {statusText}
+        </div>
+        <div
+          ref={listRef}
+          id="palette-results"
+          role="listbox"
+          aria-label="Search results"
+          className="max-h-[52vh] overflow-y-auto p-1.5"
+        >
           {results.length === 0 && (
-            <p className="px-3 py-6 text-center text-sm text-ink-faint">No matches — try a module or project name.</p>
+            <p className="px-3 py-6 text-center text-sm text-ink-faint">
+              No matches — try a module or project name.
+            </p>
           )}
           {results.map((item, idx) => (
             <button
               key={item.id}
+              id={`palette-option-${item.id}`}
+              type="button"
+              tabIndex={-1}
               data-idx={idx}
               role="option"
-              aria-selected={idx === active}
+              aria-selected={idx === activeIndex}
               onMouseEnter={() => setActive(idx)}
               onClick={() => choose(item)}
               className={`flex w-full items-center justify-between gap-3 rounded-lg px-3 py-2 text-left text-sm transition-colors ${
-                idx === active ? 'bg-raised text-ink' : 'text-ink-soft'
+                idx === activeIndex ? 'bg-raised text-ink' : 'text-ink-soft'
               }`}
             >
               <span className="truncate">{item.label}</span>
               <span className="flex shrink-0 items-center gap-2 text-[11px] text-ink-faint">
                 {item.hint}
-                {idx === active && <CornerDownLeft size={11} />}
+                {idx === activeIndex && <CornerDownLeft size={11} aria-hidden="true" />}
               </span>
             </button>
           ))}

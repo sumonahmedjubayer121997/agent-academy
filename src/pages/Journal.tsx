@@ -164,10 +164,11 @@ export default function Journal() {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wide text-ink-faint">
+              <label htmlFor="journal-learned" className="block text-xs font-semibold uppercase tracking-wide text-ink-faint">
                 1. What I learned today
               </label>
               <textarea
+                id="journal-learned"
                 value={learned}
                 onChange={(e) => setLearned(e.target.value)}
                 rows={2}
@@ -177,10 +178,11 @@ export default function Journal() {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wide text-ink-faint">
+              <label htmlFor="journal-built" className="block text-xs font-semibold uppercase tracking-wide text-ink-faint">
                 2. What I built or practised
               </label>
               <textarea
+                id="journal-built"
                 value={built}
                 onChange={(e) => setBuilt(e.target.value)}
                 rows={2}
@@ -191,10 +193,11 @@ export default function Journal() {
 
             <div className="grid gap-3 sm:grid-cols-2">
               <div>
-                <label className="block text-xs font-semibold uppercase tracking-wide text-ink-faint">
+                <label htmlFor="journal-difficulties" className="block text-xs font-semibold uppercase tracking-wide text-ink-faint">
                   3. What I found difficult
                 </label>
                 <textarea
+                  id="journal-difficulties"
                   value={difficulties}
                   onChange={(e) => setDifficulties(e.target.value)}
                   rows={2}
@@ -204,10 +207,11 @@ export default function Journal() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold uppercase tracking-wide text-ink-faint">
+                <label htmlFor="journal-questions" className="block text-xs font-semibold uppercase tracking-wide text-ink-faint">
                   4. What I still do not understand
                 </label>
                 <textarea
+                  id="journal-questions"
                   value={openQuestions}
                   onChange={(e) => setOpenQuestions(e.target.value)}
                   rows={2}
@@ -218,10 +222,11 @@ export default function Journal() {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wide text-ink-faint">
+              <label htmlFor="journal-next-steps" className="block text-xs font-semibold uppercase tracking-wide text-ink-faint">
                 5. What I should do next
               </label>
               <input
+                id="journal-next-steps"
                 value={nextSteps}
                 onChange={(e) => setNextSteps(e.target.value)}
                 placeholder="Concrete first step for your next study session…"
@@ -248,6 +253,7 @@ export default function Journal() {
               <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
+                aria-label="Search notes and reflections"
                 placeholder="Search across journal entries, module notes, and open questions…"
                 className="w-full rounded-xl border border-line bg-surface px-3.5 py-2 text-sm placeholder:text-ink-faint focus:border-accent focus:outline-none"
               />
@@ -267,6 +273,7 @@ export default function Journal() {
                 </select>
                 <button
                   type="button"
+                  aria-pressed={onlyUnresolved}
                   onClick={() => setOnlyUnresolved((v) => !v)}
                   className={`rounded-xl border px-3 py-1.5 text-xs font-medium transition-colors ${
                     onlyUnresolved
@@ -274,7 +281,7 @@ export default function Journal() {
                       : 'border-line text-ink-soft hover:bg-raised'
                   }`}
                 >
-                  <HelpCircle size={12} className="mr-1 inline" />
+                  <HelpCircle size={12} className="mr-1 inline" aria-hidden="true" />
                   Unresolved questions only
                 </button>
               </div>
@@ -356,11 +363,12 @@ export default function Journal() {
                     })}
                   </div>
                   <button
+                    type="button"
                     onClick={() => deleteJournalEntry(entry.id)}
-                    className="text-xs text-ink-faint hover:text-bad"
+                    className="-my-1 -mr-1 inline-flex min-h-[34px] min-w-[34px] items-center justify-center rounded-lg p-1.5 text-xs text-ink-faint hover:bg-raised hover:text-bad"
                     aria-label="Delete journal entry"
                   >
-                    <Trash2 size={14} />
+                    <Trash2 size={14} aria-hidden="true" />
                   </button>
                 </div>
 

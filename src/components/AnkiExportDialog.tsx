@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Download, FileText, X } from 'lucide-react'
 import { Button } from './ui'
 import { collectCards, downloadTsv, ANKI_IMPORT_INSTRUCTIONS, type ExportScope } from '../lib/ankiExport'
@@ -22,6 +22,23 @@ export default function AnkiExportDialog({
   const cards = useMemo(() => collectCards(scope), [scope])
   const [excluded, setExcluded] = useState<Set<string>>(new Set())
   const kept = cards.filter((c) => !excluded.has(c.cardId))
+  const closeBtnRef = useRef<HTMLButtonElement>(null)
+
+  useEffect(() => {
+    const prev = document.activeElement instanceof HTMLElement ? document.activeElement : null
+    closeBtnRef.current?.focus()
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault()
+        onClose()
+      }
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => {
+      window.removeEventListener('keydown', onKeyDown)
+      if (prev && prev.isConnected) prev.focus()
+    }
+  }, [onClose])
 
   const toggle = (id: string) =>
     setExcluded((prev) => {
@@ -48,11 +65,13 @@ export default function AnkiExportDialog({
             </p>
           </div>
           <button
+            ref={closeBtnRef}
+            type="button"
             onClick={onClose}
             aria-label="Close export dialog"
-            className="rounded-lg p-1.5 text-ink-faint transition-colors hover:bg-raised hover:text-ink"
+            className="-mr-1.5 -mt-1.5 inline-flex min-h-[40px] min-w-[40px] items-center justify-center rounded-lg p-2 text-ink-faint transition-colors hover:bg-raised hover:text-ink"
           >
-            <X size={16} />
+            <X size={16} aria-hidden="true" />
           </button>
         </div>
 

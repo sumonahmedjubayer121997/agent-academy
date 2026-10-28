@@ -207,6 +207,8 @@ export default function Planner() {
             {[30, 60, 90, 120].map((m) => (
               <button
                 key={m}
+                type="button"
+                aria-pressed={todayPlan.budgetMinutes === m}
                 onClick={() => handleSetDailyBudget(m)}
                 className={`rounded-lg border px-2.5 py-1 text-xs font-semibold transition-all ${
                   todayPlan.budgetMinutes === m
@@ -218,11 +220,13 @@ export default function Planner() {
               </button>
             ))}
             <button
+              type="button"
               onClick={() => saveDailyPlan(generateDailyPlan(data, today, dailyBudget, activeBundle))}
               title="Regenerate today's blocks from latest recommendations"
-              className="rounded-lg border border-line bg-surface p-1.5 text-ink-soft hover:bg-raised hover:text-ink"
+              aria-label="Regenerate today's blocks from latest recommendations"
+              className="inline-flex min-h-[34px] min-w-[34px] items-center justify-center rounded-lg border border-line bg-surface p-1.5 text-ink-soft hover:bg-raised hover:text-ink"
             >
-              <RefreshCw size={13} />
+              <RefreshCw size={13} aria-hidden="true" />
             </button>
           </div>
         </div>
@@ -254,12 +258,14 @@ export default function Planner() {
             >
               <div className="flex min-w-0 flex-1 items-start gap-3">
                 <button
+                  type="button"
+                  aria-pressed={block.done}
                   onClick={() => {
                     if (!data.dailyPlans?.[today]) saveDailyPlan(todayPlan)
                     toggleDailyBlock(today, block.id)
                   }}
                   aria-label={`Mark "${block.title}" as done`}
-                  className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border text-xs font-bold transition-all ${
+                  className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border text-xs font-bold transition-all ${
                     block.done
                       ? 'border-ok bg-ok text-white'
                       : 'border-line-strong text-ink-faint hover:border-accent hover:text-accent'
@@ -298,27 +304,32 @@ export default function Planner() {
                   </Link>
                 )}
                 <button
+                  type="button"
                   onClick={() => handleMoveBlock(block.id, -1)}
                   disabled={idx === 0}
                   aria-label="Move task up"
-                  className="rounded p-1 text-ink-faint hover:bg-raised hover:text-ink disabled:opacity-30"
+                  className="inline-flex min-h-[34px] min-w-[34px] items-center justify-center rounded-lg p-1.5 text-ink-faint hover:bg-raised hover:text-ink disabled:opacity-30"
                 >
-                  <ArrowUp size={13} />
+                  <ArrowUp size={13} aria-hidden="true" />
                 </button>
                 <button
+                  type="button"
                   onClick={() => handleMoveBlock(block.id, 1)}
                   disabled={idx === todayPlan.blocks.length - 1}
                   aria-label="Move task down"
-                  className="rounded p-1 text-ink-faint hover:bg-raised hover:text-ink disabled:opacity-30"
+                  className="inline-flex min-h-[34px] min-w-[34px] items-center justify-center rounded-lg p-1.5 text-ink-faint hover:bg-raised hover:text-ink disabled:opacity-30"
                 >
-                  <ArrowDown size={13} />
+                  <ArrowDown size={13} aria-hidden="true" />
                 </button>
                 <button
+                  type="button"
+                  aria-pressed={Boolean(block.skipped)}
                   onClick={() => handleSkipBlock(block.id)}
                   title={block.skipped ? 'Unskip task' : 'Skip for today without penalty'}
-                  className="rounded p-1 text-ink-faint hover:bg-raised hover:text-ink"
+                  aria-label={block.skipped ? `Unskip "${block.title}"` : `Skip "${block.title}" for today`}
+                  className="inline-flex min-h-[34px] min-w-[34px] items-center justify-center rounded-lg p-1.5 text-ink-faint hover:bg-raised hover:text-ink"
                 >
-                  <SkipForward size={13} />
+                  <SkipForward size={13} aria-hidden="true" />
                 </button>
               </div>
             </div>
@@ -344,6 +355,8 @@ export default function Planner() {
             {[5, 10, 15].map((h) => (
               <button
                 key={h}
+                type="button"
+                aria-pressed={hours === h}
                 onClick={() => setWeeklyHours(h)}
                 className={`rounded-xl border px-4 py-2 text-sm font-semibold transition-all ${
                   hours === h
@@ -413,6 +426,8 @@ export default function Planner() {
             {SEQUENCE_MODES.map((opt) => (
               <button
                 key={opt.id}
+                type="button"
+                aria-pressed={seqMode === opt.id}
                 onClick={() => setSequenceMode(opt.id)}
                 className={`rounded-xl border p-2.5 text-left transition-all ${
                   seqMode === opt.id

@@ -68,7 +68,11 @@ export default function Roadmap() {
       />
 
       {/* Track & Bottleneck Filter Bar */}
-      <div className="mb-4 flex flex-wrap items-center gap-2">
+      <div
+        className="mb-4 flex flex-wrap items-center gap-2"
+        role="group"
+        aria-label="Filter roadmap modules"
+      >
         {(
           [
             { id: 'all', label: `All ${MODULES.length} Modules` },
@@ -79,6 +83,8 @@ export default function Roadmap() {
         ).map((item) => (
           <button
             key={item.id}
+            type="button"
+            aria-pressed={filter === item.id}
             onClick={() => setFilter(item.id)}
             className={`rounded-xl border px-3.5 py-1.5 text-xs font-semibold transition-all ${
               filter === item.id
