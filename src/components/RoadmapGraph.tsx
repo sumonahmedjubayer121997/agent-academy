@@ -5,6 +5,7 @@ import { isDue } from '../lib/srs'
 import {
   isUnlocked,
   moduleRecordOf,
+  moduleTaskStats,
   stageOf,
   statusOf,
   todayStr,
@@ -21,7 +22,7 @@ const LEFT = 20
 const trunc = (s: string, n = 25) => (s.length > n ? s.slice(0, n - 1) + '…' : s)
 
 export interface RoadmapGraphProps {
-  filterTrack?: string | 'all' | 'bottlenecks' | 'revision'
+  filterTrack?: string | 'all' | 'bottlenecks' | 'revision' | 'practice'
   bundle: RoadmapBundle
 }
 
@@ -69,6 +70,11 @@ export default function RoadmapGraph({ filterTrack = 'all', bundle }: RoadmapGra
   const matchesActiveFilter = (moduleId: string): boolean => {
     if (filterTrack === 'all') return true
     if (filterTrack === 'bottlenecks') return bottleneckIds.has(moduleId)
+    if (filterTrack === 'practice') {
+      const tStats = moduleTaskStats(data, bundle.PRACTICE_TASKS, moduleId)
+      if (tStats.total === 0 || tStats.done >= tStats.total) return false
+      return stageOf(data, moduleId) !== 'not-started' || isUnlocked(data, modById.get(moduleId)!)
+    }
     if (filterTrack === 'revision') {
       const stage = stageOf(data, moduleId)
       const modCardIds = cardsForModule(moduleId).map((c) => c.cardId)
@@ -232,6 +238,7 @@ export default function RoadmapGraph({ filterTrack = 'all', bundle }: RoadmapGra
           const trackId = trackForModule(m.id)
           const trackSpec = trackSpecFor(trackId)
           const isBottleneck = bottleneckIds.has(m.id)
+          const tStats = moduleTaskStats(data, bundle.PRACTICE_TASKS, m.id)
 
           const modCardIds = cardsForModule(m.id).map((c) => c.cardId)
           const hasDueSrs = modCardIds.some((cid) => data.srs[cid] && isDue(data.srs[cid], today))
@@ -284,6 +291,8 @@ export default function RoadmapGraph({ filterTrack = 'all', bundle }: RoadmapGra
 
           const flagsDescription = `${isBottleneck ? ' Key bottleneck.' : ''}${
             dueForRevision ? ' Due for revision.' : ''
+          }${
+            tStats.total > 0 ? ` ${tStats.done} of ${tStats.total} practice tasks done.` : ''
           }`
 
           const label = `Phase ${m.phase} · ${m.title} · Track ${trackSpec.code} · ${m.hours}h · ${statusSummary}${
@@ -404,6 +413,7 @@ export default function RoadmapGraph({ filterTrack = 'all', bundle }: RoadmapGra
                 >
                   [{trackSpec.code}] {m.hours}h · {stage === 'not-started' ? (m.essential ? 'essential' : 'optional') : stage}
                   {m.project ? ' · proj' : ''}
+                  {tStats.total > 0 ? ` · 🛠 ${tStats.done}/${tStats.total}` : ''}
                 </text>
                 {dueForRevision && (
                   <g opacity={finalOpacity}>

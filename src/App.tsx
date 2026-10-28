@@ -74,7 +74,10 @@ function Footer() {
   return (
     <footer className="mt-20 border-t border-line py-8">
       <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-2 px-4 text-sm text-ink-faint sm:flex-row">
-        <p>Agent Academy — a personal learning companion, built as part of the journey it maps.</p>
+        <p>
+          Agent Academy — a personal learning companion, built as part of the journey it maps.{' '}
+          <span className="font-mono text-[11px]">build {__APP_COMMIT_SHA__}</span>
+        </p>
         <p>
           Progress is stored locally in your browser. No accounts, no fake statistics.{' '}
           <button

@@ -3,6 +3,7 @@ import { sequenceModeOf } from '../store/progress'
 import { LESSONS } from '../content/roadmaps/ai-agents'
 import { MODULES } from '../content/roadmaps/ai-agents'
 import { PROJECTS } from '../content/roadmaps/ai-agents'
+import { BUNDLES } from '../content/roadmaps/registry'
 import { RESOURCES } from '../content/resources'
 import { TRACKS, trackForModule } from '../content/roadmaps/ai-agents'
 import {
@@ -112,6 +113,17 @@ function buildStaticChunks(): SearchChunk[] {
       text: `${r.title} (${r.provider}): ${r.why} Supports ${r.supports}`,
     })
   }
+  // Chapter-level practice tasks from every roadmap that has them (registry-scoped).
+  for (const [slug, b] of Object.entries(BUNDLES)) {
+    for (const t of b.PRACTICE_TASKS ?? []) {
+      chunks.push({
+        id: `task:${t.id}`,
+        title: `Practice task · ${t.title}`,
+        route: `/r/${slug}/roadmap/${t.moduleId}#${t.id}`,
+        text: `${t.title}. ${t.scenario} ${t.task} Done when: ${t.doneWhen}`,
+      })
+    }
+  }
   return chunks
 }
 
@@ -216,6 +228,19 @@ export interface AssistantResponse {
 }
 
 const modById = new Map(MODULES.map((m) => [m.id, m]))
+
+/** Verified practice-task totals across every roadmap that has tasks. */
+function practiceTaskTotals(data: ProgressData): { total: number; done: number } {
+  let total = 0
+  let done = 0
+  for (const b of Object.values(BUNDLES)) {
+    for (const t of b.PRACTICE_TASKS ?? []) {
+      total++
+      if (data.tasks?.[t.id]?.done) done++
+    }
+  }
+  return { total, done }
+}
 
 /**
  * Grounded Personal AI Learning Assistant (Offline-first engine).
@@ -374,13 +399,19 @@ export function answerPersonalAssistantQuery(
   }
 
   // Intent 4: "Recommend the next topic" / "What should I learn next?"
-  if (qLower.includes('next') || qLower.includes('recommend') || qLower.includes('should i learn')) {
+  if (qLower.includes('next') || qLower.includes('recommend') || qLower.includes('should i learn') || qLower.includes('practis') || qLower.includes('practic')) {
     const recs = getRecommendations(data, { limit: 3 })
     const due = dueCards(data, todayStr())
+    const pt = practiceTaskTotals(data)
     const savedFacts: string[] = [
       `Sequence mode: ${sequenceModeOf(data, 'ai-agents')} · Weekly target: ${data.weeklyHours}h/wk.`,
       `Due spaced-repetition cards today: ${due.length}.`,
       `Active modules in Learning/Practising: ${t.modulesLearning + t.modulesPractising}.`,
+      ...(pt.total > 0
+        ? [
+            `Practice tasks completed: ${pt.done}/${pt.total} across roadmap chapters (deep-linked from each module's Practice & Build section).`,
+          ]
+        : []),
     ]
     return {
       query,

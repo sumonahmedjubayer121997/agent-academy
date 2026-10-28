@@ -1,8 +1,15 @@
-import { Link } from 'react-router-dom'
+import { useEffect, useRef, useState } from 'react'
+import { Link, useLocation } from 'react-router-dom'
 import { BookOpen, CheckCircle2, ExternalLink, Wrench } from 'lucide-react'
 import { useActiveRoadmap } from '../store/activeRoadmap'
-import { taskDoneOf, useProgress } from '../store/progress'
-import { Badge, Card } from './ui'
+import {
+  computeTaskAutonomy,
+  taskDoneOf,
+  taskRecordOf,
+  useProgress,
+  type TaskAutonomy,
+} from '../store/progress'
+import { Badge, Button, Card } from './ui'
 import type { PracticeTaskSpec } from '../content/types'
 
 const KIND_META: Record<
@@ -14,15 +21,47 @@ const KIND_META: Record<
   project: { label: 'Mini-project', tone: 'warn' },
 }
 
+const AUTONOMY_META: Record<
+  TaskAutonomy,
+  { label: string; tone: 'ok' | 'accent' | 'neutral' | 'warn' }
+> = {
+  verified: { label: 'Verified', tone: 'ok' },
+  independent: { label: 'Independent', tone: 'accent' },
+  hinted: { label: 'Hinted', tone: 'neutral' },
+  assisted: { label: 'Assisted', tone: 'warn' },
+}
+
 function TaskRow({ t }: { t: PracticeTaskSpec }) {
-  const { data, toggleTask } = useProgress()
+  const {
+    data,
+    toggleTask,
+    toggleTaskCheck,
+    recordTaskHint,
+    recordTaskSolutionView,
+    setTaskEvidence,
+    addCustomCard,
+    addEvidence,
+  } = useProgress()
   const { LESSONS, META } = useActiveRoadmap()
-  const done = taskDoneOf(data, t.id)
+  const location = useLocation()
+  const rec = taskRecordOf(data, t.id)
+  const done = rec.done
+  const autonomy = computeTaskAutonomy(rec, t.checks.length)
   const lesson = t.lessonId ? LESSONS?.find((l) => l.id === t.lessonId) : undefined
   const kind = KIND_META[t.kind]
+  const isDeepLinked = location.hash === '#' + t.id
+
+  const [pitfallSaved, setPitfallSaved] = useState(false)
+  const [evidenceUrl, setEvidenceUrl] = useState(rec.evidenceUrl ?? '')
+  const [evidenceSaved, setEvidenceSaved] = useState(false)
+  const rowRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (isDeepLinked) rowRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }, [isDeepLinked])
 
   return (
-    <div className="rounded-xl border border-line bg-surface">
+    <div id={t.id} ref={rowRef} className="scroll-mt-24 rounded-xl border border-line bg-surface">
       <div className="flex items-start gap-3 px-4 py-3">
         <input
           type="checkbox"
@@ -40,13 +79,18 @@ function TaskRow({ t }: { t: PracticeTaskSpec }) {
             <Badge>~{t.minutes} min</Badge>
             <Badge>{t.difficulty}</Badge>
             {t.offline && <Badge tone="ok">offline</Badge>}
+            {done && autonomy && (
+              <Badge tone={AUTONOMY_META[autonomy].tone}>
+                {AUTONOMY_META[autonomy].label}
+              </Badge>
+            )}
           </div>
           <p className="mt-1 text-xs leading-relaxed text-ink-faint">{t.task}</p>
         </div>
         {done && <CheckCircle2 size={16} className="mt-0.5 shrink-0 text-ok" aria-label="Task completed" />}
       </div>
 
-      <details className="border-t border-line px-4 py-3">
+      <details className="border-t border-line px-4 py-3" open={isDeepLinked || undefined}>
         <summary className="cursor-pointer select-none text-xs font-semibold text-accent">
           Instructions, checks &amp; hints
         </summary>
@@ -74,15 +118,27 @@ function TaskRow({ t }: { t: PracticeTaskSpec }) {
           </p>
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide text-ink-faint">
-              Verify it — the checklist
+              Verify it — the checklist ({(rec.checksDone?.length ?? 0)}/{t.checks.length} checks
+              verified)
             </p>
             <ul className="mt-1 space-y-1 text-ink-soft">
-              {t.checks.map((c, i) => (
-                <li key={i} className="flex gap-2">
-                  <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
-                  {c}
-                </li>
-              ))}
+              {t.checks.map((c, i) => {
+                const checked = rec.checksDone?.includes(i) ?? false
+                return (
+                  <li key={i}>
+                    <label className="flex cursor-pointer items-start gap-2 rounded-lg p-1.5 transition-colors hover:bg-raised/60">
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={() => toggleTaskCheck(t.id, i)}
+                        aria-label={`Verify: ${c}`}
+                        className="mt-1 accent-[var(--accent)]"
+                      />
+                      <span className={checked ? 'line-through text-ink-faint' : ''}>{c}</span>
+                    </label>
+                  </li>
+                )
+              })}
             </ul>
           </div>
 
@@ -92,7 +148,13 @@ function TaskRow({ t }: { t: PracticeTaskSpec }) {
                 Hints — reveal one at a time
               </p>
               {t.hints.map((h, i) => (
-                <details key={i} className="rounded-lg border border-line px-3 py-1.5">
+                <details
+                  key={i}
+                  className="rounded-lg border border-line px-3 py-1.5"
+                  onToggle={(e) => {
+                    if ((e.target as HTMLDetailsElement).open) recordTaskHint(t.id, i + 1)
+                  }}
+                >
                   <summary className="cursor-pointer select-none text-xs font-medium text-ink-soft">
                     Hint {i + 1} of {t.hints.length}
                   </summary>
@@ -103,7 +165,12 @@ function TaskRow({ t }: { t: PracticeTaskSpec }) {
           )}
 
           {t.solution && (
-            <details className="rounded-lg border border-line px-3 py-1.5">
+            <details
+              className="rounded-lg border border-line px-3 py-1.5"
+              onToggle={(e) => {
+                if ((e.target as HTMLDetailsElement).open) recordTaskSolutionView(t.id)
+              }}
+            >
               <summary className="cursor-pointer select-none text-xs font-semibold text-accent">
                 Reference solution
               </summary>
@@ -116,6 +183,59 @@ function TaskRow({ t }: { t: PracticeTaskSpec }) {
               )}
             </details>
           )}
+
+          {t.pitfalls && (
+            <div>
+              <button
+                type="button"
+                onClick={() => {
+                  addCustomCard(
+                    t.moduleId,
+                    `Pitfalls to avoid in "${t.title}" (${t.moduleId})`,
+                    t.pitfalls!,
+                  )
+                  setPitfallSaved(true)
+                }}
+                disabled={pitfallSaved}
+                className="rounded-lg border border-line px-2.5 py-1 text-xs font-medium text-accent transition-colors hover:bg-raised disabled:text-ok disabled:opacity-100"
+              >
+                {pitfallSaved ? 'Saved to recall deck ✓' : '+ Add pitfall to recall deck'}
+              </button>
+            </div>
+          )}
+
+          <form
+            className="rounded-lg border border-line px-3 py-2"
+            onSubmit={(e) => {
+              e.preventDefault()
+              const url = evidenceUrl.trim()
+              if (!url) return
+              setTaskEvidence(t.id, url)
+              addEvidence(t.moduleId, { label: `Task: ${t.title}`, url })
+              setEvidenceSaved(true)
+            }}
+          >
+            <div className="flex flex-wrap items-center gap-2">
+              <input
+                value={evidenceUrl}
+                onChange={(e) => {
+                  setEvidenceUrl(e.target.value)
+                  setEvidenceSaved(false)
+                }}
+                aria-label={`Evidence URL for ${t.title}`}
+                placeholder="Evidence URL (repo / gist / PR)"
+                className="min-w-[14rem] flex-1 rounded-lg border border-line bg-surface px-2.5 py-1 text-xs"
+              />
+              <Button type="submit" size="sm" variant="secondary">
+                Save &amp; attach to module evidence
+              </Button>
+            </div>
+            <p className="mt-1 text-[11px] text-ink-faint">
+              {evidenceSaved
+                ? 'Saved to the task record and the module’s evidence list ✓'
+                : 'Optional — attach the repo/gist once the task is done; all checks + evidence earn the Verified badge.'}
+            </p>
+          </form>
 
           {t.extension && (
             <details className="rounded-lg border border-line px-3 py-1.5">

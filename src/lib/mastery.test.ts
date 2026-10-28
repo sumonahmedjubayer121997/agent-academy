@@ -30,6 +30,23 @@ describe('masteryGate', () => {
     expect(r.missing).toHaveLength(2)
   })
 
+  it('requires at least one completed practice task when a task census is provided', () => {
+    const record = rec([0, 1], [{ label: 'repo', url: 'u' }])
+    const blocked = masteryGate({ completion: ['a', 'b'], record, tasks: { total: 2, done: 0 } })
+    expect(blocked.ready).toBe(false)
+    expect(blocked.missing).toContain('0 of 2 practice tasks completed')
+
+    const open = masteryGate({ completion: ['a', 'b'], record, tasks: { total: 2, done: 1 } })
+    expect(open.ready).toBe(true)
+    expect(open.missing.join(' ')).not.toMatch(/practice tasks/)
+  })
+
+  it('ignores an empty or absent task census (roadmaps without tasks)', () => {
+    const record = rec([0], [{ label: 'repo', url: 'u' }])
+    expect(masteryGate({ completion: ['a'], record, tasks: { total: 0, done: 0 } }).ready).toBe(true)
+    expect(masteryGate({ completion: ['a'], record }).ready).toBe(true)
+  })
+
   it('handles modules with no completion criteria (evidence alone decides)', () => {
     const withEvidence = masteryGate({ completion: [], record: rec([], [{ label: 'demo', url: 'u' }]) })
     expect(withEvidence.ready).toBe(true)

@@ -54,6 +54,15 @@ function moduleAndProjectItems(focus: string): PaletteItem[] {
         keywords: `${pp.title} ${pp.brief} ${name}`,
       })
     }
+    for (const t of b.PRACTICE_TASKS ?? []) {
+      items.push({
+        id: `pt-${slug}-${t.id}`,
+        label: t.title,
+        hint: `${name} · practice task · ~${t.minutes}m · ${t.difficulty}`,
+        route: `/r/${slug}/roadmap/${t.moduleId}#${t.id}`,
+        keywords: `${t.title} ${t.task} ${t.scenario} ${t.kind} practice task ${name}`,
+      })
+    }
   }
   return items
 }

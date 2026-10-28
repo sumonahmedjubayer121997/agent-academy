@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useActiveRoadmap } from '../store/activeRoadmap'
 import { Link } from 'react-router-dom'
-import { BookOpen, Clock, Lock, Search, Sparkles } from 'lucide-react'
+import { BookOpen, Clock, Lock, Search, Sparkles, Wrench } from 'lucide-react'
 import { ask } from '../lib/api'
 import {
   answerPersonalAssistantQuery,
@@ -10,6 +10,7 @@ import {
 import { Badge, Card, ProgressBar, SectionHead, StatusBadge } from '../components/ui'
 import {
   isUnlocked,
+  moduleTaskStats,
   phaseStats,
   stageOf,
   useProgress,
@@ -170,7 +171,7 @@ const STAGE_SYMBOL: Record<MasteryStage, string> = {
 
 import { usePageMeta } from '../hooks/usePageMeta'
 export default function Curriculum() {
-  const { MODULES, PHASES, TRACKS, trackForModule, META } = useActiveRoadmap()
+  const { MODULES, PHASES, PRACTICE_TASKS, TRACKS, trackForModule, META } = useActiveRoadmap()
   usePageMeta('Curriculum', 'All phases and modules of the AI Agents roadmap, with tracks and progress.')
   const { data, cycleStage } = useProgress()
   const stats = phaseStats(data, MODULES, PHASES)
@@ -257,11 +258,18 @@ export default function Curriculum() {
             if (stageFilter === 'done' && st !== 'confident' && st !== 'mastered') return false
             if (!search.trim()) return true
             const q = search.trim().toLowerCase()
+            const modTasks = (PRACTICE_TASKS ?? []).filter((t) => t.moduleId === m.id)
             return (
               m.title.toLowerCase().includes(q) ||
               m.why.toLowerCase().includes(q) ||
               m.deliverable.toLowerCase().includes(q) ||
-              m.objectives.some((o) => o.toLowerCase().includes(q))
+              m.objectives.some((o) => o.toLowerCase().includes(q)) ||
+              modTasks.some(
+                (t) =>
+                  t.title.toLowerCase().includes(q) ||
+                  t.scenario.toLowerCase().includes(q) ||
+                  t.task.toLowerCase().includes(q),
+              )
             )
           })
 
@@ -303,6 +311,7 @@ export default function Curriculum() {
                   const stage = stageOf(data, m.id)
                   const unlocked = isUnlocked(data, m)
                   const tr = TRACKS.find((t) => t.id === trackForModule(m.id))!
+                  const tStats = moduleTaskStats(data, PRACTICE_TASKS, m.id)
                   return (
                     <li
                       key={m.id}
@@ -349,6 +358,14 @@ export default function Curriculum() {
                               className="flex items-center gap-1 text-accent hover:underline"
                             >
                               <BookOpen size={11} /> lesson
+                            </Link>
+                          )}
+                          {tStats.total > 0 && (
+                            <Link
+                              to={`/r/${META.slug}/roadmap/${m.id}#${tStats.nextTask?.id ?? ''}`}
+                              className="flex items-center gap-1 text-accent hover:underline"
+                            >
+                              <Wrench size={11} /> {tStats.done}/{tStats.total} tasks
                             </Link>
                           )}
                         </div>

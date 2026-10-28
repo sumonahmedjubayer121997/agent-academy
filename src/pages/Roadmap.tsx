@@ -15,7 +15,7 @@ import {
 import { usePageMeta } from '../hooks/usePageMeta'
 export default function Roadmap() {
   const activeBundle = useActiveRoadmap()
-  const { MODULES, downstreamUnlockCount, TRACKS, trackForModule, META } = activeBundle
+  const { MODULES, downstreamUnlockCount, PRACTICE_TASKS, TRACKS, trackForModule, META } = activeBundle
   usePageMeta('Roadmap map', 'The full dependency graph of the AI Agents curriculum.')
   const { data } = useProgress()
   const [filter, setFilter] = useState<NonNullable<RoadmapGraphProps['filterTrack']>>('all')
@@ -79,6 +79,9 @@ export default function Roadmap() {
             ...TRACKS.map((t) => ({ id: t.id, label: `${t.code} · ${t.title}` })),
             { id: 'bottlenecks', label: 'KEY Bottlenecks' },
             { id: 'revision', label: 'Due for Revision / Shaky' },
+            ...((PRACTICE_TASKS?.length ?? 0) > 0
+              ? [{ id: 'practice', label: 'Needs Practice' }]
+              : []),
           ] as const
         ).map((item) => (
           <button
