@@ -34,14 +34,14 @@ const aiAgentsStats: RoadmapStats = {
 const promptEngineeringStats: RoadmapStats = {
   phases: promptEngineering.PHASES.length,
   modules: promptEngineering.MODULES.length,
-  lessons: 0,
+  lessons: (promptEngineering.LESSONS ?? []).length,
   hours: promptEngineering.MODULES.reduce((sum, m) => sum + m.hours, 0),
 }
 
 const aiProgrammingStats: RoadmapStats = {
   phases: aiProgramming.PHASES.length,
   modules: aiProgramming.MODULES.length,
-  lessons: 0,
+  lessons: (aiProgramming.LESSONS ?? []).length,
   hours: aiProgramming.MODULES.reduce((sum, m) => sum + m.hours, 0),
 }
 

@@ -24,11 +24,26 @@ describe('roadmap registry', () => {
         // curriculum authored: stats must match the bundle exactly, no planned skeleton
         expect(r.stats?.modules).toBe(BUNDLES[r.slug].MODULES.length)
         expect(r.stats?.phases).toBe(BUNDLES[r.slug].PHASES.length)
+        expect(r.stats?.lessons).toBe((BUNDLES[r.slug].LESSONS ?? []).length)
+        expect(r.stats?.hours).toBe(BUNDLES[r.slug].MODULES.reduce((s, m) => s + m.hours, 0))
         expect(r.plannedPhases).toBeUndefined()
       } else {
         expect((r.plannedPhases ?? []).length).toBeGreaterThanOrEqual(5)
         expect(r.stats).toBeUndefined()
       }
+    }
+  })
+
+  it('every ROADMAPS entry with stats derives phases, modules, lessons, and hours from its bundle', () => {
+    const withStats = ROADMAPS.filter((r) => r.stats !== undefined)
+    expect(withStats.length).toBeGreaterThan(0)
+    for (const r of withStats) {
+      const bundle = BUNDLES[r.slug]
+      expect(bundle, `${r.slug}: stats entry must have a corresponding bundle`).toBeDefined()
+      expect(r.stats?.phases, `${r.slug}: phases`).toBe(bundle.PHASES.length)
+      expect(r.stats?.modules, `${r.slug}: modules`).toBe(bundle.MODULES.length)
+      expect(r.stats?.lessons, `${r.slug}: lessons`).toBe((bundle.LESSONS ?? []).length)
+      expect(r.stats?.hours, `${r.slug}: hours`).toBe(bundle.MODULES.reduce((s, m) => s + m.hours, 0))
     }
   })
 
