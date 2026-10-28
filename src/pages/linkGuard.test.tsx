@@ -1,9 +1,10 @@
-import { render } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { describe, expect, it } from 'vitest'
 import { BUNDLES } from '../content/roadmaps/registry'
 import { ActiveRoadmapProvider } from '../store/activeRoadmap'
-import { ProgressProvider } from '../store/progress'
+import { DEFAULT_DATA, emptyModuleRecord, ProgressProvider, type ProgressData } from '../store/progress'
+import { generateDailyPlan } from '../lib/dailyPlan'
 import Curriculum from './Curriculum'
 import ModuleDetail from './ModuleDetail'
 import Projects from './Projects'
@@ -11,6 +12,7 @@ import Review from './Review'
 import Assessment from './Assessment'
 import Planner from './Planner'
 import Journal from './Journal'
+import Dashboard from './Dashboard'
 
 /**
  * Link-harvest guard: on every roadmap-scoped page, every internal link must
@@ -21,6 +23,7 @@ import Journal from './Journal'
  */
 const GLOBAL_ROUTES = [
   '/',
+  '/braindump',
   '/dashboard',
   '/journal',
   '/playground',
@@ -41,6 +44,7 @@ function isAllowed(href: string, slug: string): boolean {
 }
 
 function harvest(path: string, element: React.ReactElement, slug: string): string[] {
+  localStorage.setItem('aa-last-roadmap', slug)
   const { container } = render(
     <MemoryRouter initialEntries={[path]}>
       <ActiveRoadmapProvider>
@@ -58,6 +62,7 @@ function harvest(path: string, element: React.ReactElement, slug: string): strin
 }
 
 const cases: Array<{ name: string; path: (s: string) => string; el: React.ReactElement }> = [
+  { name: 'dashboard', path: () => '/dashboard', el: <Dashboard /> },
   { name: 'curriculum', path: (s) => `/r/${s}/curriculum`, el: <Curriculum /> },
   { name: 'projects', path: (s) => `/r/${s}/projects`, el: <Projects /> },
   { name: 'review', path: (s) => `/r/${s}/review`, el: <Review /> },
@@ -73,6 +78,38 @@ describe('link-harvest guard: no link escapes the active workspace', () => {
         expect(harvest(path(slug), el, slug)).toEqual([])
       })
     }
+    it(`${slug} · dashboard with active, mastered, shaky, lesson-quiz, and assessment links`, () => {
+      const bundle = BUNDLES[slug]
+      const m0 = bundle.MODULES[0]
+      const m1 = bundle.MODULES[1] ?? m0
+      const m2 = bundle.MODULES.find((m) => m.prereqs.length > 0) ?? m0
+      const lesson = bundle.LESSONS?.[0]
+      const seeded: ProgressData = {
+        ...DEFAULT_DATA,
+        moduleStatus: {
+          [m0.id]: 'completed',
+          [m1.id]: 'in-progress',
+          [m2.id]: 'in-progress',
+        },
+        modules: {
+          [m0.id]: emptyModuleRecord('mastered'),
+          [m1.id]: emptyModuleRecord('learning'),
+          [m2.id]: emptyModuleRecord('practising'),
+        },
+        confidence: {
+          [m1.id]: 'shaky',
+        },
+        quiz: lesson
+          ? { [`lesson:${lesson.id}`]: { score: 1, total: 4, at: '2026-10-28T00:00:00.000Z' } }
+          : {},
+        assessments: {
+          [slug]: { done: true, applied: false, scores: { [Object.keys(bundle.DOMAIN_LABELS)[0]]: 2 } },
+        },
+      }
+      localStorage.setItem('aa-progress-v1', JSON.stringify(seeded))
+      expect(harvest('/dashboard', <Dashboard />, slug)).toEqual([])
+      localStorage.removeItem('aa-progress-v1')
+    })
     it(`${slug} · module detail`, () => {
       const first = BUNDLES[slug].MODULES[0]
       expect(harvest(`/r/${slug}/roadmap/${first.id}`, <ModuleDetail />, slug)).toEqual([])
@@ -82,4 +119,96 @@ describe('link-harvest guard: no link escapes the active workspace', () => {
       expect(harvest(`/r/${slug}/roadmap/${withPrereqs.id}`, <ModuleDetail />, slug)).toEqual([])
     })
   }
+})
+
+describe('Dashboard multi-roadmap daily plan & diagnostic assessment isolation', () => {
+  it('reads diagnostic assessment from the active roadmap rather than hardcoding ai-agents', () => {
+    const seeded: ProgressData = {
+      ...DEFAULT_DATA,
+      assessments: {
+        'ai-agents': { done: true, applied: true, scores: { python: 3, math: 2 } },
+        'prompt-engineering': { done: false, applied: false, scores: {} },
+      },
+    }
+    localStorage.setItem('aa-progress-v1', JSON.stringify(seeded))
+    localStorage.setItem('aa-last-roadmap', 'prompt-engineering')
+
+    const { unmount } = render(
+      <MemoryRouter initialEntries={['/dashboard']}>
+        <ActiveRoadmapProvider>
+          <ProgressProvider>
+            <Routes>
+              <Route path="/dashboard" element={<Dashboard />} />
+            </Routes>
+          </ProgressProvider>
+        </ActiveRoadmapProvider>
+      </MemoryRouter>,
+    )
+
+    // Since prompt-engineering assessment is not done, "Take the diagnostic" must render
+    const takeLink = screen.getByRole('link', { name: /Take the diagnostic/i })
+    expect(takeLink.getAttribute('href')).toBe('/r/prompt-engineering/assess')
+    unmount()
+
+    // Now mark prompt-engineering assessment as done with its own domain score
+    const seededDone: ProgressData = {
+      ...DEFAULT_DATA,
+      assessments: {
+        'ai-agents': { done: false, applied: false, scores: {} },
+        'prompt-engineering': { done: true, applied: false, scores: { fundamentals: 3 } },
+      },
+    }
+    localStorage.setItem('aa-progress-v1', JSON.stringify(seededDone))
+    localStorage.setItem('aa-last-roadmap', 'prompt-engineering')
+
+    render(
+      <MemoryRouter initialEntries={['/dashboard']}>
+        <ActiveRoadmapProvider>
+          <ProgressProvider>
+            <Routes>
+              <Route path="/dashboard" element={<Dashboard />} />
+            </Routes>
+          </ProgressProvider>
+        </ActiveRoadmapProvider>
+      </MemoryRouter>,
+    )
+
+    const retakeLink = screen.getByRole('link', { name: /Retake or review/i })
+    expect(retakeLink.getAttribute('href')).toBe('/r/prompt-engineering/assess')
+    expect(screen.getByText('fundamentals')).toBeTruthy()
+    localStorage.removeItem('aa-progress-v1')
+  })
+
+  it('generates Today study plan for the active roadmap and does not leak a cached plan from another roadmap', () => {
+    const today = new Date()
+    const todayIso = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
+    const aiAgentsPlan = generateDailyPlan(DEFAULT_DATA, todayIso, 90, BUNDLES['ai-agents'])
+
+    const seeded: ProgressData = {
+      ...DEFAULT_DATA,
+      dailyPlans: {
+        [todayIso]: aiAgentsPlan,
+      },
+    }
+    localStorage.setItem('aa-progress-v1', JSON.stringify(seeded))
+    localStorage.setItem('aa-last-roadmap', 'chatbot-dev')
+
+    render(
+      <MemoryRouter initialEntries={['/dashboard']}>
+        <ActiveRoadmapProvider>
+          <ProgressProvider>
+            <Routes>
+              <Route path="/dashboard" element={<Dashboard />} />
+            </Routes>
+          </ProgressProvider>
+        </ActiveRoadmapProvider>
+      </MemoryRouter>,
+    )
+
+    const cbFirstTitle = BUNDLES['chatbot-dev'].MODULES[0].title
+    const aaFirstTitle = BUNDLES['ai-agents'].MODULES[0].title
+    expect(screen.getByText(`Learn concept: ${cbFirstTitle}`)).toBeTruthy()
+    expect(screen.queryByText(`Learn concept: ${aaFirstTitle}`)).toBeNull()
+    localStorage.removeItem('aa-progress-v1')
+  })
 })

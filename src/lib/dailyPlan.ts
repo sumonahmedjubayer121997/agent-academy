@@ -1,9 +1,10 @@
-import { roadmapSlugOfModule } from '../store/progress'
 import { BUNDLES } from '../content/roadmaps/registry'
 import type { RoadmapBundle } from '../content/roadmaps/registry'
 import {
+  dailyPlanRoadmapOf,
   dueCards,
   moduleRecordOf,
+  roadmapSlugOfModule,
   stageOf,
   todayStr,
   type DailyPlanRecord,
@@ -11,8 +12,6 @@ import {
   type ProgressData,
 } from '../store/progress'
 import { getRecommendations } from './recommend'
-
-const modById = new Map(BUNDLES['ai-agents'].MODULES.map((m) => [m.id, m]))
 
 /**
  * Generates a realistic, proportional 4-block daily study plan (Revise, Learn, Practise, Reflect)
@@ -25,7 +24,9 @@ export function generateDailyPlan(
   budgetMinutes = 90,
   bundle: RoadmapBundle = BUNDLES['ai-agents'],
 ): DailyPlanRecord {
-  const { MODULES } = bundle
+  const { META, MODULES } = bundle
+  const slug = META.slug
+  const modById = new Map(MODULES.map((m) => [m.id, m]))
   const safeBudget = Math.max(15, Math.min(360, Math.round(budgetMinutes)))
   const reviseMin = Math.max(5, Math.round((safeBudget * 15) / 90 / 5) * 5)
   const reflectMin = Math.max(5, Math.round((safeBudget * 15) / 90 / 5) * 5)
@@ -36,9 +37,14 @@ export function generateDailyPlan(
   const due = dueCards(data, date)
   const recs = getRecommendations(data, { dailyMinutes: safeBudget, limit: 2, bundle })
   const topRec = recs[0]
+  const lastActiveForSlug =
+    data.lastActiveByRoadmap?.[slug] ??
+    (data.lastActiveModuleId && modById.has(data.lastActiveModuleId)
+      ? data.lastActiveModuleId
+      : undefined)
   const primaryMod =
     topRec?.module ??
-    (data.lastActiveModuleId ? modById.get(data.lastActiveModuleId) : undefined) ??
+    (lastActiveForSlug ? modById.get(lastActiveForSlug) : undefined) ??
     MODULES[0]
 
   const modRec = moduleRecordOf(data, primaryMod.id)
@@ -110,9 +116,24 @@ export function generateDailyPlan(
 
   return {
     date,
+    roadmap: slug,
     budgetMinutes: blocks.reduce((s, b) => s + b.minutes, 0),
     blocks,
   }
+}
+
+export function getSavedDailyPlan(
+  data: ProgressData,
+  date: string,
+  slug: string,
+): DailyPlanRecord | undefined {
+  const scoped = data.dailyPlans?.[`${date}:${slug}`]
+  if (scoped && scoped.blocks.length > 0) return scoped
+  const byDate = data.dailyPlans?.[date]
+  if (byDate && byDate.blocks.length > 0 && dailyPlanRoadmapOf(byDate) === slug) {
+    return byDate
+  }
+  return undefined
 }
 
 export function getOrCreateDailyPlan(
@@ -121,8 +142,8 @@ export function getOrCreateDailyPlan(
   defaultBudget = 90,
   bundle: RoadmapBundle = BUNDLES['ai-agents'],
 ): DailyPlanRecord {
-  const existing = data.dailyPlans?.[date]
-  if (existing && existing.blocks.length > 0) return existing
+  const existing = getSavedDailyPlan(data, date, bundle.META.slug)
+  if (existing) return existing
   return generateDailyPlan(data, date, defaultBudget, bundle)
 }
 
@@ -130,16 +151,20 @@ export function getOrCreateDailyPlan(
 export function findUnfinishedYesterdayBlocks(
   data: ProgressData,
   today: string = todayStr(),
+  bundle?: RoadmapBundle,
 ): { fromDate: string; blocks: DailyTaskBlock[] } | null {
   const plans = data.dailyPlans ?? {}
-  const prevDates = Object.keys(plans)
-    .filter((d) => d < today)
-    .sort((a, b) => b.localeCompare(a))
-  if (prevDates.length === 0) return null
-  const latestDate = prevDates[0]
-  const unfinished = plans[latestDate].blocks.filter((b) => !b.done && !b.skipped)
+  const matching = Object.values(plans).filter((p) => {
+    if (!p || typeof p.date !== 'string' || p.date >= today) return false
+    if (bundle && dailyPlanRoadmapOf(p) !== bundle.META.slug) return false
+    return true
+  })
+  matching.sort((a, b) => b.date.localeCompare(a.date))
+  if (matching.length === 0) return null
+  const latest = matching[0]
+  const unfinished = latest.blocks.filter((b) => !b.done && !b.skipped)
   if (unfinished.length === 0) return null
-  return { fromDate: latestDate, blocks: unfinished }
+  return { fromDate: latest.date, blocks: unfinished }
 }
 
 /** Move a block up (-1) or down (+1) in the daily plan. */

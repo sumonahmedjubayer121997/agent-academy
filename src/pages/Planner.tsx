@@ -22,6 +22,7 @@ import {
   findUnfinishedYesterdayBlocks,
   generateDailyPlan,
   getOrCreateDailyPlan,
+  getSavedDailyPlan,
   moveDailyBlock,
 } from '../lib/dailyPlan'
 import { buildSchedule } from '../lib/schedule'
@@ -55,7 +56,7 @@ export default function Planner() {
 
   const [confirmReset, setConfirmReset] = useState(false)
   const [dailyBudget, setDailyBudget] = useState<number>(
-    () => data.dailyPlans?.[todayStr()]?.budgetMinutes ?? 90,
+    () => getSavedDailyPlan(data, todayStr(), activeBundle.META.slug)?.budgetMinutes ?? 90,
   )
   const [importStatus, setImportStatus] = useState<{ ok: boolean; msg: string } | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -68,11 +69,11 @@ export default function Planner() {
   // Daily study plan
   const todayPlan = useMemo(
     () => getOrCreateDailyPlan(data, today, dailyBudget, activeBundle),
-    [data, today, dailyBudget],
+    [data, today, dailyBudget, activeBundle],
   )
   const unfinishedYesterday = useMemo(
-    () => findUnfinishedYesterdayBlocks(data, today),
-    [data, today],
+    () => findUnfinishedYesterdayBlocks(data, today, activeBundle),
+    [data, today, activeBundle],
   )
 
   const plannedDoneMin = todayPlan.blocks
@@ -255,7 +256,7 @@ export default function Planner() {
               <div className="flex min-w-0 flex-1 items-start gap-3">
                 <button
                   onClick={() => {
-                    if (!data.dailyPlans?.[today]) saveDailyPlan(todayPlan)
+                    if (!getSavedDailyPlan(data, today, activeBundle.META.slug)) saveDailyPlan(todayPlan)
                     toggleDailyBlock(today, block.id)
                   }}
                   aria-label={`Mark "${block.title}" as done`}

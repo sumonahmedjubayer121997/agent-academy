@@ -170,6 +170,8 @@ export interface DailyPlanRecord {
   date: string
   budgetMinutes: number
   blocks: DailyTaskBlock[]
+  /** Roadmap slug this daily plan was generated for. */
+  roadmap?: string
 }
 
 export interface ProgressData {
@@ -238,7 +240,16 @@ export function assessmentOf(
 }
 
 export function sequenceModeOf(data: ProgressData, slug: string): string {
-  return data.sequenceModes?.[slug] ?? 'agent-fast-track'
+  return data.sequenceModes?.[slug] ?? BUNDLES[slug]?.SEQUENCE_MODES?.[0]?.id ?? 'agent-fast-track'
+}
+
+export function dailyPlanRoadmapOf(plan: DailyPlanRecord): string {
+  if (plan.roadmap && BUNDLES[plan.roadmap]) return plan.roadmap
+  for (const b of plan.blocks) {
+    if (b.target?.slug && BUNDLES[b.target.slug]) return b.target.slug
+    if (b.moduleId) return roadmapSlugOfModule(b.moduleId)
+  }
+  return 'ai-agents'
 }
 
 export function emptyModuleRecord(stage: MasteryStage = 'not-started'): ModuleRecord {
@@ -400,7 +411,7 @@ export function validateAndMigrateProgress(
   if (obj.dailyPlans && typeof obj.dailyPlans === 'object' && !Array.isArray(obj.dailyPlans)) {
     for (const [dateKey, planRaw] of Object.entries(obj.dailyPlans as Record<string, unknown>)) {
       if (!planRaw || typeof planRaw !== 'object') continue
-      const pl = planRaw as { budgetMinutes?: unknown; blocks?: unknown }
+      const pl = planRaw as { date?: unknown; roadmap?: unknown; budgetMinutes?: unknown; blocks?: unknown }
       const blocksIn = Array.isArray(pl.blocks) ? (pl.blocks as Array<Record<string, unknown>>) : []
       const blocks: DailyTaskBlock[] = blocksIn.map((b) => {
         const rest = { ...b } as Partial<DailyTaskBlock>
@@ -426,9 +437,10 @@ export function validateAndMigrateProgress(
         return block
       })
       dailyPlans[dateKey] = {
-        date: dateKey,
+        date: typeof pl.date === 'string' ? pl.date : dateKey.split(':')[0],
         budgetMinutes: typeof pl.budgetMinutes === 'number' ? pl.budgetMinutes : 0,
         blocks,
+        ...(typeof pl.roadmap === 'string' ? { roadmap: pl.roadmap } : {}),
       }
     }
   }
@@ -507,7 +519,7 @@ function prunePlans(data: ProgressData): ProgressData {
   const cutoff = Date.now() - 60 * 24 * 60 * 60 * 1000
   const kept: Record<string, DailyPlanRecord> = {}
   for (const [k, v] of Object.entries(plans)) {
-    const t = Date.parse(k)
+    const t = Date.parse(v?.date || k.split(':')[0])
     if (Number.isNaN(t) || t >= cutoff) kept[k] = v
   }
   return { ...data, dailyPlans: kept }
@@ -1086,13 +1098,30 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
           journal: (d.journal ?? []).filter((j) => j.id !== id),
         })),
       saveDailyPlan: (plan) =>
-        setData((d) => ({
-          ...d,
-          dailyPlans: { ...(d.dailyPlans ?? {}), [plan.date]: plan },
-        })),
+        setData((d) => {
+          const slug = dailyPlanRoadmapOf(plan)
+          const withRoadmap: DailyPlanRecord = { ...plan, roadmap: slug }
+          const nextPlans: Record<string, DailyPlanRecord> = {
+            ...(d.dailyPlans ?? {}),
+            [`${plan.date}:${slug}`]: withRoadmap,
+          }
+          const existingDatePlan = d.dailyPlans?.[plan.date]
+          if (!existingDatePlan || dailyPlanRoadmapOf(existingDatePlan) === slug) {
+            nextPlans[plan.date] = withRoadmap
+          }
+          return {
+            ...d,
+            dailyPlans: nextPlans,
+          }
+        }),
       toggleDailyBlock: (date, blockId) =>
         setData((d) => {
-          const plan = d.dailyPlans?.[date]
+          const scopedKey = `${date}:${activeSlug}`
+          const plan =
+            d.dailyPlans?.[scopedKey] ??
+            (d.dailyPlans?.[date] && dailyPlanRoadmapOf(d.dailyPlans[date]) === activeSlug
+              ? d.dailyPlans[date]
+              : undefined)
           if (!plan) return d
           let loggedBlock: DailyTaskBlock | null = null
           const blocks = plan.blocks.map((b) => {
@@ -1101,9 +1130,18 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
             if (nextDone && !b.done) loggedBlock = b
             return { ...b, done: nextDone, skipped: false }
           })
+          const updatedPlan: DailyPlanRecord = { ...plan, roadmap: activeSlug, blocks }
+          const nextPlans: Record<string, DailyPlanRecord> = {
+            ...(d.dailyPlans ?? {}),
+            [scopedKey]: updatedPlan,
+          }
+          const existingDatePlan = d.dailyPlans?.[date]
+          if (!existingDatePlan || dailyPlanRoadmapOf(existingDatePlan) === activeSlug) {
+            nextPlans[date] = updatedPlan
+          }
           let nextState: ProgressData = {
             ...d,
-            dailyPlans: { ...(d.dailyPlans ?? {}), [date]: { ...plan, blocks } },
+            dailyPlans: nextPlans,
           }
           if (loggedBlock) {
             const blk = loggedBlock as DailyTaskBlock

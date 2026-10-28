@@ -1,8 +1,6 @@
-import { sequenceModeOf } from '../store/progress'
+import { assessmentOf, sequenceModeOf } from '../store/progress'
 import { BUNDLES } from '../content/roadmaps/registry'
 import type { RoadmapBundle } from '../content/roadmaps/registry'
-import { assessmentOf } from '../store/progress'
-import type { SequenceMode, TrackId } from '../content/roadmaps/ai-agents'
 import type { LearningModule, TrackSpecCommon } from '../content/types'
 import {
   isUnlocked,
@@ -52,12 +50,9 @@ export interface RecommendationOptions {
   /** Content bundle to reason over — defaults to AI Agents; pages pass the active roadmap. */
   bundle?: RoadmapBundle
   dailyMinutes?: number
-  filterTrack?: TrackId | 'all'
+  filterTrack?: string
   limit?: number
 }
-
-const modById = new Map(BUNDLES['ai-agents'].MODULES.map((m) => [m.id, m]))
-const lessonByModId = new Map((BUNDLES['ai-agents'].LESSONS ?? []).map((l) => [l.moduleId, l]))
 
 /**
  * Transparent, rule-based recommendation engine.
@@ -68,13 +63,26 @@ export function getRecommendations(
   data: ProgressData,
   options: RecommendationOptions = {},
 ): TopicRecommendation[] {
+  const bundle = options.bundle ?? BUNDLES['ai-agents']
   const {
-    MODULES, LESSONS, PROJECTS, downstreamUnlockCount, trackForModule, trackSpecFor, waveForModule,
-  } = options.bundle ?? BUNDLES['ai-agents']
+    META,
+    MODULES,
+    LESSONS = [],
+    PROJECTS,
+    DOMAIN_CREDIT,
+    DOMAIN_LABELS,
+    downstreamUnlockCount,
+    trackForModule,
+    trackSpecFor,
+    waveForModule,
+  } = bundle
+  const slug = META.slug
+  const modById = new Map(MODULES.map((m) => [m.id, m]))
+  const lessonByModId = new Map(LESSONS.map((l) => [l.moduleId, l]))
   const dailyMinutes = options.dailyMinutes ?? Math.max(30, Math.round((data.weeklyHours * 60) / 5))
   const filterTrack = options.filterTrack ?? 'all'
   const limit = options.limit ?? 3
-  const mode: string = sequenceModeOf(data, 'ai-agents')
+  const mode: string = sequenceModeOf(data, slug)
 
   // Identify active projects (started milestones or non-planning autonomy)
   const activeProjectModuleIds = new Set<string>()
@@ -209,6 +217,24 @@ export function getRecommendations(
         reasons.push('Prioritised for your Machine Learning & Data Science track focus.')
       }
       score += (9 - m.phase) * 8
+    } else if (mode === 'builder-fast-track') {
+      if (trackId === 'builder') {
+        score += 28
+        reasons.push('Prioritised for your Builder Fast-Track focus (APIs, schemas & tool calling first).')
+      }
+      score += (5 - wave) * 12
+    } else if (mode === 'api-first') {
+      if (trackId === 'api-first') {
+        score += 28
+        reasons.push('Prioritised for your API-First sequence mode.')
+      }
+      score += (5 - wave) * 12
+    } else if (mode === 'rag-first') {
+      if (trackId === 'rag-first') {
+        score += 28
+        reasons.push('Prioritised for your RAG-First grounded chatbot track.')
+      }
+      score += (5 - wave) * 12
     }
 
     // Rule 6: Bottleneck / downstream unlock leverage
@@ -221,14 +247,34 @@ export function getRecommendations(
     }
 
     // Rule 7: Diagnostic gap alignment
-    if (assessmentOf(data, 'ai-agents').done) {
-      const s = assessmentOf(data, 'ai-agents').scores
-      if (m.phase === 1 && (s.python ?? 3) <= 1) {
-        score += 12
-        reasons.push('Addresses the Python & Software gap flagged in your diagnostic assessment.')
-      } else if (m.phase === 2 && ((s.math ?? 3) <= 1 || (s.ml ?? 3) <= 1)) {
-        score += 12
-        reasons.push('Addresses the Math / ML methodology gap flagged in your diagnostic.')
+    const assessment = assessmentOf(data, slug)
+    if (assessment.done) {
+      const s = assessment.scores
+      let matchedGap = false
+      if (slug === 'ai-agents') {
+        if (m.phase === 1 && (s.python ?? 3) <= 1) {
+          score += 12
+          reasons.push('Addresses the Python & Software gap flagged in your diagnostic assessment.')
+          matchedGap = true
+        } else if (m.phase === 2 && ((s.math ?? 3) <= 1 || (s.ml ?? 3) <= 1)) {
+          score += 12
+          reasons.push('Addresses the Math / ML methodology gap flagged in your diagnostic.')
+          matchedGap = true
+        }
+      }
+      if (!matchedGap && DOMAIN_CREDIT) {
+        for (const [domain, credit] of Object.entries(DOMAIN_CREDIT)) {
+          if (
+            (s[domain] ?? 3) <= 1 &&
+            (credit.full.includes(m.id) || credit.partial.includes(m.id))
+          ) {
+            score += 12
+            reasons.push(
+              `Addresses the ${DOMAIN_LABELS?.[domain] ?? domain} gap flagged in your diagnostic assessment.`,
+            )
+            break
+          }
+        }
       }
     }
 

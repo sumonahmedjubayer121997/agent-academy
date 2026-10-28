@@ -39,7 +39,7 @@ import {
 } from '../store/progress'
 import { dueForecast } from '../lib/srs'
 import { getRecommendations } from '../lib/recommend'
-import { getOrCreateDailyPlan } from '../lib/dailyPlan'
+import { getOrCreateDailyPlan, getSavedDailyPlan } from '../lib/dailyPlan'
 import { Badge, Card, ProgressBar, SectionHead, Stat, StatusBadge } from '../components/ui'
 
 const CONF_LEVELS: { key: Confidence; label: string }[] = [
@@ -51,6 +51,7 @@ const CONF_LEVELS: { key: Confidence; label: string }[] = [
 import { usePageMeta } from '../hooks/usePageMeta'
 export default function Dashboard() {
   const activeBundleForRecs = useActiveRoadmap()
+  const activeSlug = activeBundleForRecs.META.slug
   const { LESSONS = [], MODULES, PHASES, PROJECTS, TRACKS, trackForModule, waveForModule } = activeBundleForRecs
   usePageMeta('Today', 'Your daily plan, streak, and honest progress analytics.')
   const { data, logStudyDay, logSession, saveDailyPlan, toggleDailyBlock } = useProgress()
@@ -71,7 +72,7 @@ export default function Dashboard() {
 
   // Today's study plan (Feature 4)
   const defaultDailyBudget = Math.max(30, Math.round((data.weeklyHours * 60) / 5))
-  const todayPlan = getOrCreateDailyPlan(data, today, defaultDailyBudget)
+  const todayPlan = getOrCreateDailyPlan(data, today, defaultDailyBudget, activeBundleForRecs)
   const plannedMinutesToday = todayPlan.blocks
     .filter((b) => !b.skipped)
     .reduce((s, b) => s + b.minutes, 0)
@@ -181,7 +182,7 @@ export default function Dashboard() {
   })
 
   const handleToggleTodayBlock = (blockId: string) => {
-    if (!data.dailyPlans?.[today]) {
+    if (!getSavedDailyPlan(data, today, activeSlug)) {
       saveDailyPlan(todayPlan)
     }
     toggleDailyBlock(today, blockId)
@@ -218,7 +219,7 @@ export default function Dashboard() {
         <div className="mb-6 flex flex-wrap items-center gap-2">
           {continueModule && (
             <Link
-              to={`/roadmap/${continueModule.id}`}
+              to={`/r/${activeSlug}/roadmap/${continueModule.id}`}
               className="inline-flex items-center gap-2 rounded-xl bg-accent px-4 py-2.5 text-sm font-semibold text-accent-ink transition-all hover:bg-accent-hover"
             >
               <Play size={15} />
@@ -275,7 +276,7 @@ export default function Dashboard() {
                   </p>
                 </div>
               </div>
-              <Link to="/planner" className="text-xs font-medium text-accent hover:underline">
+              <Link to={`/r/${activeSlug}/planner`} className="text-xs font-medium text-accent hover:underline">
                 Customise →
               </Link>
             </div>
@@ -379,7 +380,7 @@ export default function Dashboard() {
                         )}
                       </div>
                       <Link
-                        to={`/roadmap/${rec.module.id}`}
+                        to={`/r/${activeSlug}/roadmap/${rec.module.id}`}
                         className="mt-2 inline-flex items-center gap-1.5 text-lg font-semibold tracking-tight text-ink hover:text-accent"
                       >
                         {rec.module.title}
@@ -387,7 +388,7 @@ export default function Dashboard() {
                       </Link>
                     </div>
                     <Link
-                      to={`/roadmap/${rec.module.id}`}
+                      to={`/r/${activeSlug}/roadmap/${rec.module.id}`}
                       className="rounded-xl bg-accent px-3.5 py-2 text-xs font-semibold text-accent-ink transition-all hover:bg-accent-hover"
                     >
                       Open module
@@ -433,7 +434,7 @@ export default function Dashboard() {
                         rec.prerequisites.map((p) => (
                           <Link
                             key={p.id}
-                            to={`/roadmap/${p.id}`}
+                            to={`/r/${activeSlug}/roadmap/${p.id}`}
                             className={`rounded-md px-2 py-0.5 font-medium ${
                               p.met ? 'bg-ok/10 text-ok' : 'bg-warn/15 text-warn'
                             }`}
@@ -493,14 +494,14 @@ export default function Dashboard() {
             </div>
             {due.length > 0 ? (
               <Link
-                to="/review"
+                to={`/r/${activeSlug}/review`}
                 className="rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-accent-ink transition-all hover:bg-accent-hover"
               >
                 Review {due.length} {due.length === 1 ? 'card' : 'cards'} (~{Math.max(1, Math.round(due.length * 0.75))} min)
               </Link>
             ) : (
               <Link
-                to="/review"
+                to={`/r/${activeSlug}/review`}
                 className="rounded-xl border border-line-strong bg-surface px-3.5 py-1.5 text-xs font-medium text-ink-soft hover:bg-raised"
               >
                 Open Review Deck →
@@ -531,7 +532,7 @@ export default function Dashboard() {
               {shakyModules.slice(0, 4).map((m) => (
                 <Link
                   key={m.id}
-                  to={`/roadmap/${m.id}`}
+                  to={`/r/${activeSlug}/roadmap/${m.id}`}
                   className="rounded-md bg-warn/15 px-2 py-0.5 font-medium text-warn hover:underline"
                 >
                   {m.title}
@@ -652,7 +653,7 @@ export default function Dashboard() {
             <ul className="mt-4 space-y-2.5">
               {weakest.map((w) => (
                 <li key={w.lessonId} className="flex items-center justify-between gap-2 text-sm">
-                  <Link to={`/learn/${w.lessonId}`} className="truncate text-ink-soft hover:text-accent hover:underline">
+                  <Link to={`/r/${activeSlug}/learn/${w.lessonId}`} className="truncate text-ink-soft hover:text-accent hover:underline">
                     {w.title}
                   </Link>
                   <span className={`font-semibold ${w.pct < 0.7 ? 'text-bad' : 'text-ok'}`}>
@@ -718,7 +719,7 @@ export default function Dashboard() {
               <p className="flex items-center gap-2 text-sm font-semibold">
                 <FolderGit2 size={15} className="text-accent" /> Active projects & next actions
               </p>
-              <Link to="/projects" className="text-xs font-medium text-accent hover:underline">
+              <Link to={`/r/${activeSlug}/projects`} className="text-xs font-medium text-accent hover:underline">
                 All projects →
               </Link>
             </div>
@@ -726,7 +727,7 @@ export default function Dashboard() {
               {featuredProjects.slice(0, 2).map(({ project, autonomy, doneSteps, totalSteps, nextStep }) => (
                 <Link
                   key={project.id}
-                  to="/projects"
+                  to={`/r/${activeSlug}/projects`}
                   className="rounded-xl border border-line bg-raised/30 p-3.5 transition-all hover:border-accent/40"
                 >
                   <div className="flex items-center justify-between gap-2">
@@ -750,7 +751,7 @@ export default function Dashboard() {
             {upcoming.length === 0 && (
               <p className="text-sm text-ink-soft">
                 Everything essential is complete — outstanding. Visit the{' '}
-                <Link to="/planner" className="text-accent hover:underline">
+                <Link to={`/r/${activeSlug}/planner`} className="text-accent hover:underline">
                   Planner
                 </Link>{' '}
                 for what's left.
@@ -759,7 +760,7 @@ export default function Dashboard() {
             {upcoming.map((m) => (
               <Link
                 key={m.id}
-                to={`/roadmap/${m.id}`}
+                to={`/r/${activeSlug}/roadmap/${m.id}`}
                 className="group flex items-center justify-between rounded-xl border border-line px-4 py-3 transition-all hover:border-accent/40 hover:bg-accent-soft"
               >
                 <div>
@@ -800,7 +801,7 @@ export default function Dashboard() {
                     <li key={m.id} className="rounded-xl border border-line bg-raised/30 p-3">
                       <div className="flex items-center justify-between gap-2">
                         <Link
-                          to={`/roadmap/${m.id}`}
+                          to={`/r/${activeSlug}/roadmap/${m.id}`}
                           className="truncate text-sm font-medium text-ink hover:text-accent hover:underline"
                         >
                           {m.title}
@@ -828,7 +829,7 @@ export default function Dashboard() {
                   {completedModules.slice(-4).map((m) => (
                     <Link
                       key={m.id}
-                      to={`/roadmap/${m.id}`}
+                      to={`/r/${activeSlug}/roadmap/${m.id}`}
                       className="rounded-md bg-ok/10 px-2 py-0.5 text-xs font-medium text-ok hover:underline"
                     >
                       ✓ {m.title}
@@ -847,15 +848,15 @@ export default function Dashboard() {
               </span>
               <h3 className="font-semibold tracking-tight">Diagnostic assessment</h3>
             </div>
-            {assessmentOf(data, 'ai-agents').done ? (
+            {assessmentOf(data, activeSlug).done ? (
               <div className="mt-3 space-y-2">
-                {Object.entries(assessmentOf(data, 'ai-agents').scores).map(([d, s]) => (
+                {Object.entries(assessmentOf(data, activeSlug).scores).map(([d, s]) => (
                   <div key={d} className="flex items-center justify-between text-sm">
                     <span className="capitalize text-ink-soft">{d}</span>
                     <span className="font-semibold">{s}/3</span>
                   </div>
                 ))}
-                <Link to="/assess" className="mt-2 inline-block text-sm text-accent hover:underline">
+                <Link to={`/r/${activeSlug}/assess`} className="mt-2 inline-block text-sm text-accent hover:underline">
                   Retake or review →
                 </Link>
               </div>
@@ -865,7 +866,7 @@ export default function Dashboard() {
                   Not taken yet. It takes ~10 minutes and personalises your starting point.
                 </p>
                 <Link
-                  to="/assess"
+                  to={`/r/${activeSlug}/assess`}
                   className="mt-3 inline-flex rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-accent-ink transition-all hover:bg-accent-hover"
                 >
                   Take the diagnostic
@@ -987,7 +988,7 @@ export default function Dashboard() {
               <ul className="mt-2 space-y-1.5 text-sm text-ink-soft">
                 {recommendations.map((r, i) => (
                   <li key={r.module.id} className="flex items-center justify-between gap-2">
-                    <Link to={`/roadmap/${r.module.id}`} className="font-medium text-ink hover:text-accent hover:underline">
+                    <Link to={`/r/${activeSlug}/roadmap/${r.module.id}`} className="font-medium text-ink hover:text-accent hover:underline">
                       {i + 1}. {r.module.title}
                     </Link>
                     <span className="text-xs text-ink-faint">
@@ -1011,7 +1012,7 @@ export default function Dashboard() {
                   {shakyModules.slice(0, 2).map((m) => (
                     <li key={m.id}>
                       • Confidence marked <span className="font-medium text-warn">{data.confidence[m.id]}</span> on{' '}
-                      <Link to={`/roadmap/${m.id}`} className="text-accent hover:underline">
+                      <Link to={`/r/${activeSlug}/roadmap/${m.id}`} className="text-accent hover:underline">
                         {m.title}
                       </Link>
                     </li>
@@ -1019,7 +1020,7 @@ export default function Dashboard() {
                   {weakest.slice(0, 2).map((w) => (
                     <li key={w.lessonId}>
                       • Quiz score <span className="font-medium text-bad">{Math.round(w.pct * 100)}%</span> on{' '}
-                      <Link to={`/learn/${w.lessonId}`} className="text-accent hover:underline">
+                      <Link to={`/r/${activeSlug}/learn/${w.lessonId}`} className="text-accent hover:underline">
                         {w.title}
                       </Link>
                     </li>
@@ -1040,7 +1041,7 @@ export default function Dashboard() {
             return (
               <Link
                 key={phase.id}
-                to="/curriculum"
+                to={`/r/${activeSlug}/curriculum`}
                 className="rounded-xl border border-line bg-surface p-4 transition-all hover:-translate-y-0.5"
               >
                 <div className="flex items-center justify-between text-sm">
