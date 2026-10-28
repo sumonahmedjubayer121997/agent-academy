@@ -1,6 +1,6 @@
 import { createElement } from 'react'
-import { act, render } from '@testing-library/react'
-import { MemoryRouter } from 'react-router-dom'
+import { act, render, screen } from '@testing-library/react'
+import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { describe, expect, it } from 'vitest'
 import { MODULES } from './modules'
 import { PHASES } from './phases'
@@ -15,6 +15,7 @@ import { TRACKS, SEQUENCE_MODES, trackForModule, waveForModule } from './tracks'
 import { BUNDLES } from '../registry'
 import { ActiveRoadmapProvider } from '../../../store/activeRoadmap'
 import { ProgressProvider, moduleRecordOf, nextUp, stageOf, todayStr, useProgress } from '../../../store/progress'
+import LessonPage from '../../../pages/Lesson'
 
 const ids = new Set(MODULES.map((m) => m.id))
 
@@ -113,11 +114,16 @@ describe('ai-programming curriculum integrity', () => {
     }
   })
 
-  it('has 2 exemplar lessons, complete in all nine layers, wired to real modules', () => {
-    expect(LESSONS).toHaveLength(3)
+  it('has 5 exemplar lessons (including aip-eval-suites and aip-logging-tracing), complete in all nine layers, wired to real modules', () => {
+    expect(LESSONS).toHaveLength(5)
+    const lessonIds = LESSONS.map((l) => l.id)
+    expect(new Set(lessonIds).size).toBe(LESSONS.length)
+    expect(lessonIds).toContain('aip-eval-suites')
+    expect(lessonIds).toContain('aip-logging-tracing')
     const validDemos = ['agent-loop', 'vector-sim', 'context-inspector', 'structured-stepthrough', 'retry-timeline', 'cost-meter', 'anatomy-builder', 'fake-provider']
     for (const l of LESSONS) {
       expect(ids.has(l.moduleId), `lesson ${l.id} on unknown module`).toBe(true)
+      expect(l.takeaways).toHaveLength(3)
       expect(l.simple.length).toBeGreaterThanOrEqual(4)
       expect(l.intuition.paragraphs.length).toBeGreaterThanOrEqual(2)
       expect(l.technical.length).toBeGreaterThanOrEqual(4)
@@ -130,6 +136,9 @@ describe('ai-programming curriculum integrity', () => {
       expect(l.realWorld.length).toBeGreaterThanOrEqual(3)
       expect(l.further.length).toBeGreaterThanOrEqual(3)
       if (l.demo) expect(validDemos).toContain(l.demo)
+      if (l.relatedPractice) {
+        expect(PRACTICE_PROJECTS.some((p) => p.id === l.relatedPractice)).toBe(true)
+      }
       const mod = MODULES.find((m) => m.id === l.moduleId)
       expect(mod?.lessonId).toBe(l.id)
       if (l.pre) {
@@ -137,6 +146,36 @@ describe('ai-programming curriculum integrity', () => {
         expect(l.pre.answer).toBeGreaterThanOrEqual(0)
         expect(l.pre.answer).toBeLessThan(4)
       }
+    }
+  })
+
+  it('mounts LessonPage at /r/ai-programming/learn/<id> for both new exemplar lessons without errors', () => {
+    for (const lessonId of ['aip-eval-suites', 'aip-logging-tracing'] as const) {
+      const lesson = LESSONS.find((l) => l.id === lessonId)!
+      const { unmount } = render(
+        createElement(
+          MemoryRouter,
+          { initialEntries: [`/r/ai-programming/learn/${lessonId}`] },
+          createElement(
+            ActiveRoadmapProvider,
+            null,
+            createElement(
+              ProgressProvider,
+              null,
+              createElement(
+                Routes,
+                null,
+                createElement(Route, {
+                  path: '/r/:slug/learn/:lessonId',
+                  element: createElement(LessonPage),
+                }),
+              ),
+            ),
+          ),
+        ),
+      )
+      expect(screen.getByRole('heading', { name: lesson.title })).toBeTruthy()
+      unmount()
     }
   })
 
