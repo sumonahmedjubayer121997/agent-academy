@@ -1,3 +1,6 @@
+import { createElement } from 'react'
+import { act, render } from '@testing-library/react'
+import { MemoryRouter } from 'react-router-dom'
 import { describe, expect, it } from 'vitest'
 import { MODULES } from './modules'
 import { PHASES } from './phases'
@@ -6,8 +9,12 @@ import { PROJECTS } from './projects'
 import { ASSESSMENT, DOMAIN_LABELS, DOMAIN_CREDIT } from './assessment'
 import { CURRICULUM_DECK, cardsForModule } from './cards'
 import { EDGE_WHY } from './edges'
+import { EQUIVALENTS } from './equivalents'
 import { LESSONS } from './lessons'
 import { TRACKS, SEQUENCE_MODES, trackForModule, waveForModule } from './tracks'
+import { BUNDLES } from '../registry'
+import { ActiveRoadmapProvider } from '../../../store/activeRoadmap'
+import { ProgressProvider, moduleRecordOf, nextUp, stageOf, todayStr, useProgress } from '../../../store/progress'
 
 const ids = new Set(MODULES.map((m) => m.id))
 
@@ -140,5 +147,89 @@ describe('ai-programming curriculum integrity', () => {
       expect(TRACKS.some((t) => t.id === trackForModule(m.id))).toBe(true)
       expect([1, 2, 3, 4]).toContain(waveForModule(m.id))
     }
+  })
+
+  it('cross-roadmap equivalents map valid aip- modules to real foreign modules without self-links or duplicates', () => {
+    const foreignIds = new Set(
+      Object.entries(BUNDLES)
+        .filter(([slug]) => slug !== 'ai-programming')
+        .flatMap(([, b]) => b.MODULES.map((m) => m.id)),
+    )
+    expect(Object.keys(EQUIVALENTS).length).toBeGreaterThanOrEqual(6)
+    expect((BUNDLES['ai-programming'] as unknown as { EQUIVALENTS?: Record<string, string[]> }).EQUIVALENTS).toBe(EQUIVALENTS)
+    for (const [aipId, eqs] of Object.entries(EQUIVALENTS)) {
+      expect(ids.has(aipId), `equivalents key ${aipId} is not an ai-programming module`).toBe(true)
+      expect(eqs.length).toBeGreaterThan(0)
+      expect(new Set(eqs).size, `duplicate targets in EQUIVALENTS[${aipId}]`).toBe(eqs.length)
+      for (const eq of eqs) {
+        expect(ids.has(eq), `self-roadmap target ${eq} in EQUIVALENTS[${aipId}]`).toBe(false)
+        expect(foreignIds.has(eq), `equivalent ${eq} on ${aipId} not found in any foreign bundle`).toBe(true)
+      }
+    }
+  })
+
+  it('SRS equivalents behavior: confident/mastered foreign equivalent defers same-day cards without completing module, skipping objectives, or removing from plan', () => {
+    localStorage.clear()
+    let api: ReturnType<typeof useProgress> | undefined
+    function Probe() {
+      api = useProgress()
+      return null
+    }
+    const { unmount } = render(
+      createElement(
+        MemoryRouter,
+        { initialEntries: ['/r/ai-programming/curriculum'] },
+        createElement(ActiveRoadmapProvider, null, createElement(ProgressProvider, null, createElement(Probe))),
+      ),
+    )
+
+    // Complete Phase-1 essential prereqs so aip-first-call is the next recommended module in ai-programming
+    for (const prereqId of [
+      'aip-toolchain',
+      'aip-env-config',
+      'aip-http-clients',
+      'aip-async-patterns',
+      'aip-data-models',
+      'aip-testing-fundamentals',
+    ]) {
+      act(() => api!.setStage(prereqId, 'confident'))
+    }
+
+    // Mark foreign equivalents as confident / mastered
+    act(() => {
+      api!.setStage('p4-llm-apis', 'confident') // equivalent of aip-first-call
+      api!.setStage('pe-ci-prompts', 'mastered') // equivalent of aip-eval-suites
+    })
+
+    const today = todayStr()
+    let seededFirstCall = 0
+    let seededEvalSuites = 0
+    act(() => {
+      seededFirstCall = api!.seedModuleCards('aip-first-call')
+      seededEvalSuites = api!.seedModuleCards('aip-eval-suites')
+    })
+
+    expect(seededFirstCall).toBeGreaterThan(0)
+    expect(seededEvalSuites).toBeGreaterThan(0)
+
+    // 1. Immediate card seeding is deferred (due > today, not due today)
+    for (const modId of ['aip-first-call', 'aip-eval-suites']) {
+      for (const c of cardsForModule(modId)) {
+        const srsCard = api!.data.srs[c.cardId]
+        expect(srsCard, `expected SRS card ${c.cardId} to be seeded`).toBeDefined()
+        expect(srsCard.due > today, `expected ${c.cardId} due (${srsCard.due}) > today (${today})`).toBe(true)
+      }
+    }
+
+    // 2. Module is NOT marked complete/confident and objectives are NOT skipped
+    expect(stageOf(api!.data, 'aip-first-call')).toBe('not-started')
+    expect(stageOf(api!.data, 'aip-eval-suites')).toBe('not-started')
+    expect(moduleRecordOf(api!.data, 'aip-first-call').completionDone).toEqual([])
+    expect(moduleRecordOf(api!.data, 'aip-eval-suites').completionDone).toEqual([])
+
+    // 3. Module is NOT removed from the learning plan / recommendations
+    const rec = nextUp(api!.data, 3, MODULES)
+    expect(rec[0]?.id).toBe('aip-first-call')
+    unmount()
   })
 })
