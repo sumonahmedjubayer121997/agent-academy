@@ -354,6 +354,7 @@ export const MODULES: LearningModule[] = [
     id: 'aip-codegen-fundamentals',
     phase: 3,
     title: 'Prompting for code that compiles',
+    lessonId: 'aip-codegen-loop',
     why: 'Generated prose forgives; compilers do not. Code generation is where prompt engineering meets an unforgiving verifier — and that combination is your quality lever.',
     objectives: [
       'Prompt for a function with explicit signature and constraints',
@@ -717,6 +718,7 @@ export const MODULES: LearningModule[] = [
     id: 'aip-fallbacks',
     phase: 5,
     title: 'Fallbacks & graceful degradation',
+    lessonId: 'aip-fallback-ladder',
     why: 'The question is never "if the model fails" but "what the user sees when it does". Smaller model, cached answer, queue, or honest human path — designed in advance.',
     objectives: [
       'Design a fallback chain for one feature (fast model -> cache -> queue)',

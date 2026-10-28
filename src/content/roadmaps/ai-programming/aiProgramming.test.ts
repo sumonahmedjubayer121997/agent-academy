@@ -114,13 +114,15 @@ describe('ai-programming curriculum integrity', () => {
     }
   })
 
-  it('has 5 exemplar lessons (including aip-eval-suites and aip-logging-tracing), complete in all nine layers, wired to real modules', () => {
-    expect(LESSONS).toHaveLength(5)
+  it('has 7 exemplar lessons (including aip-codegen-loop and aip-fallback-ladder), complete in all nine layers, wired to real modules', () => {
+    expect(LESSONS).toHaveLength(7)
     const lessonIds = LESSONS.map((l) => l.id)
     expect(new Set(lessonIds).size).toBe(LESSONS.length)
     expect(lessonIds).toContain('aip-eval-suites')
     expect(lessonIds).toContain('aip-logging-tracing')
-    const validDemos = ['agent-loop', 'vector-sim', 'context-inspector', 'structured-stepthrough', 'retry-timeline', 'cost-meter', 'anatomy-builder', 'fake-provider']
+    expect(lessonIds).toContain('aip-codegen-loop')
+    expect(lessonIds).toContain('aip-fallback-ladder')
+    const validDemos = ['agent-loop', 'vector-sim', 'context-inspector', 'structured-stepthrough', 'retry-timeline', 'cost-meter', 'fallback-ladder', 'anatomy-builder', 'fake-provider']
     for (const l of LESSONS) {
       expect(ids.has(l.moduleId), `lesson ${l.id} on unknown module`).toBe(true)
       expect(l.takeaways).toHaveLength(3)
@@ -149,8 +151,8 @@ describe('ai-programming curriculum integrity', () => {
     }
   })
 
-  it('mounts LessonPage at /r/ai-programming/learn/<id> for both new exemplar lessons without errors', () => {
-    for (const lessonId of ['aip-eval-suites', 'aip-logging-tracing'] as const) {
+  it('mounts LessonPage at /r/ai-programming/learn/<id> for the new exemplar lessons without errors', () => {
+    for (const lessonId of ['aip-eval-suites', 'aip-logging-tracing', 'aip-codegen-loop', 'aip-fallback-ladder'] as const) {
       const lesson = LESSONS.find((l) => l.id === lessonId)!
       const { unmount } = render(
         createElement(

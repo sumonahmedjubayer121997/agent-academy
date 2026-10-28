@@ -13,6 +13,7 @@ import ContextInspector from '../components/demos/ContextInspector'
 import StructuredStepthrough from '../components/demos/StructuredStepthrough'
 import RetryTimeline from '../components/demos/RetryTimeline'
 import CostMeter from '../components/demos/CostMeter'
+import FallbackLadder from '../components/demos/FallbackLadder'
 import AnatomyBuilder from '../components/demos/AnatomyBuilder'
 import FakeProviderConsole from '../components/demos/FakeProviderConsole'
 import ChatTurnStepper from '../components/demos/ChatTurnStepper'
@@ -495,6 +496,8 @@ export default function LessonPage() {
               <ChatTurnStepper />
             ) : lesson.demo === 'grounding-check' ? (
               <GroundingCheck />
+            ) : lesson.demo === 'fallback-ladder' ? (
+              <FallbackLadder />
             ) : (
               <CostMeter />
             )}
