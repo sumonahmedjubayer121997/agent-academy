@@ -196,3 +196,46 @@ describe('VectorSim', () => {
     expect(cosLine.textContent).toContain(cos.toFixed(3))
   })
 })
+
+describe('RoadmapGraph practice-task surfacing', () => {
+  it('shows done/total practice counts on AIP nodes and their accessible labels', () => {
+    localStorage.clear()
+    const { container } = render(
+      <MemoryRouter>
+        <ProgressProvider>
+          <RoadmapGraph bundle={BUNDLES['ai-programming']} />
+        </ProgressProvider>
+      </MemoryRouter>,
+    )
+    // aip-toolchain has exactly one task; fresh progress shows 0/1 on the node subtitle
+    expect(container.textContent).toContain('🛠 0/1')
+    // The census also reaches the accessible layer (<title>/<desc> via aria-describedby)
+    expect(container.textContent).toContain('0 of 1 practice tasks done')
+    // ai-agents nodes carry no practice badge (no PRACTICE_TASKS on that bundle)
+    const aa = render(
+      <MemoryRouter>
+        <ProgressProvider>
+          <RoadmapGraph bundle={BUNDLES['ai-agents']} />
+        </ProgressProvider>
+      </MemoryRouter>,
+    )
+    expect(aa.container.textContent).not.toContain('🛠')
+  })
+
+  it('Needs Practice filter focuses the first module with open, actionable tasks', () => {
+    localStorage.clear()
+    render(
+      <MemoryRouter>
+        <ProgressProvider>
+          <RoadmapGraph bundle={BUNDLES['ai-programming']} filterTrack="practice" />
+        </ProgressProvider>
+      </MemoryRouter>,
+    )
+    const tabStops = screen
+      .getAllByRole('button')
+      .filter((el) => el.getAttribute('tabindex') === '0')
+    expect(tabStops.length).toBe(1)
+    // aip-toolchain: no prereqs (unlocked), 1 open task → first match under the filter
+    expect(tabStops[0].getAttribute('data-module-id')).toBe('aip-toolchain')
+  })
+})

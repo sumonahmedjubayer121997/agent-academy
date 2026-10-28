@@ -101,4 +101,35 @@ describe('dailyPlan (Feature 4)', () => {
     expect(plan.blocks[1].moduleId).toBe(targetPeMod.id)
     expect(plan.blocks[1].target?.slug).toBe('prompt-engineering')
   })
+
+  it('ai-programming: practise block schedules the next incomplete practice task with a taskId deep link', () => {
+    const aipBundle = BUNDLES['ai-programming']
+    const plan = generateDailyPlan(makeData(), '2026-04-20', 90, aipBundle)
+    const practise = plan.blocks.find((b) => b.kind === 'practise')!
+    // Fresh data: primary module is aip-toolchain, whose only open task is the 15m exercise
+    expect(practise.title).toBe('Practice (~15m): Prove the one-command check bites')
+    expect(practise.subtitle).toMatch(/^Done when: /)
+    expect(practise.target?.taskId).toBe('aip-t-toolcheck')
+    expect(practise.target?.slug).toBe('ai-programming')
+  })
+
+  it('ai-programming: falls back to the legacy practise block when the primary module’s tasks are all done', () => {
+    const aipBundle = BUNDLES['ai-programming']
+    const d = makeData({
+      tasks: { 'aip-t-toolcheck': { done: true, at: '2026-04-19T10:00:00.000Z' } },
+    })
+    const plan = generateDailyPlan(d, '2026-04-20', 90, aipBundle)
+    const practise = plan.blocks.find((b) => b.kind === 'practise')!
+    expect(practise.title).toBe(`Hands-on exercise: ${aipBundle.MODULES[0].title}`)
+    expect(practise.subtitle).toMatch(/^Practice target: /)
+    expect(practise.target?.taskId).toBeUndefined()
+  })
+
+  it('ai-agents (no PRACTICE_TASKS): practise block keeps the exact legacy fallback', () => {
+    const plan = generateDailyPlan(makeData(), '2026-04-20', 90)
+    const practise = plan.blocks.find((b) => b.kind === 'practise')!
+    expect(practise.title).toMatch(/^Hands-on exercise: /)
+    expect(practise.subtitle).toMatch(/^Practice target: /)
+    expect(practise.target?.taskId).toBeUndefined()
+  })
 })

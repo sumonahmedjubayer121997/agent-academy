@@ -298,7 +298,9 @@ export default function Planner() {
               <div className="flex items-center gap-1">
                 {block.target && !block.done && !block.skipped && (
                   <Link
-                    to={`/r/${block.target.slug}/roadmap/${block.target.moduleId}`}
+                    to={`/r/${block.target.slug}/roadmap/${block.target.moduleId}${
+                      block.target.taskId ? `#${block.target.taskId}` : ''
+                    }`}
                     className="mr-1 rounded-lg bg-accent-soft px-2.5 py-1 text-xs font-semibold text-accent hover:bg-accent hover:text-accent-ink"
                   >
                     Open →

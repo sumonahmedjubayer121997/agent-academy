@@ -153,6 +153,61 @@ describe('validateAndMigrateProgress', () => {
     expect(r.data.tasks?.['not-an-object']).toBeUndefined() // non-object entries dropped
   })
 
+  it('preserves extended TaskRecord fields when valid and drops them when malformed', () => {
+    const r = validateAndMigrateProgress({
+      moduleStatus: {},
+      tasks: {
+        'aip-t-rich': {
+          done: true,
+          at: '2026-10-28T10:00:00.000Z',
+          startedAt: '2026-10-28T09:40:00.000Z',
+          checksDone: [0, 2],
+          hintsUsed: 1,
+          solutionViewed: false,
+          autonomy: 'hinted',
+          evidenceUrl: 'https://github.com/me/repo',
+          testOutputSummary: 'vitest: 10 passed (10)',
+        },
+        'aip-t-malformed': {
+          done: true,
+          checksDone: ['a', 1, null],
+          hintsUsed: 'two',
+          solutionViewed: 'yes',
+          autonomy: 'superhuman',
+          evidenceUrl: 42,
+        },
+      },
+    })
+    expect(r.ok).toBe(true)
+    if (!r.ok) return
+    expect(r.data.tasks?.['aip-t-rich']).toEqual({
+      done: true,
+      at: '2026-10-28T10:00:00.000Z',
+      startedAt: '2026-10-28T09:40:00.000Z',
+      checksDone: [0, 2], // valid indices preserved in order
+      hintsUsed: 1,
+      solutionViewed: false,
+      autonomy: 'hinted',
+      evidenceUrl: 'https://github.com/me/repo',
+      testOutputSummary: 'vitest: 10 passed (10)',
+    })
+    expect(r.data.tasks?.['aip-t-malformed']).toEqual({
+      done: true,
+      checksDone: [1], // element-wise sanitising: valid numbers kept, junk dropped
+    })
+  })
+
+  it('keeps plain { done: true } task records valid with no schema bump (backward compat)', () => {
+    const r = validateAndMigrateProgress({
+      moduleStatus: {},
+      tasks: { 'aip-t-legacy': { done: true } },
+    })
+    expect(r.ok).toBe(true)
+    if (!r.ok) return
+    expect(r.data.schemaVersion).toBe(3)
+    expect(r.data.tasks?.['aip-t-legacy']).toEqual({ done: true })
+  })
+
   it('loads pre-tasks v3 progress unchanged — no tasks key, no schema bump', () => {
     const r = validateAndMigrateProgress({
       moduleStatus: { 'p1-python-core': 'completed' },

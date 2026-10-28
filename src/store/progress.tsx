@@ -123,10 +123,23 @@ export interface ProjectRecord {
   updatedAt: string
 }
 
-/** Completion state of one practice task (PracticeTaskSpec.id keyed). */
+/** Completion state of one practice task (PracticeTaskSpec.id keyed). v3-additive:
+ * older { done, at? } records stay valid; every new field is optional. */
+export type TaskAutonomy = 'assisted' | 'hinted' | 'independent' | 'verified'
+
 export interface TaskRecord {
   done: boolean
   at?: string
+  startedAt?: string
+  /** Indices of the task's verification checklist that are ticked. */
+  checksDone?: number[]
+  /** Highest hint number opened before completion (0 = none). */
+  hintsUsed?: number
+  /** True when the reference solution was opened before completion. */
+  solutionViewed?: boolean
+  autonomy?: TaskAutonomy
+  evidenceUrl?: string
+  testOutputSummary?: string
 }
 
 export interface BrainDumpEntry {
@@ -164,7 +177,7 @@ export interface DailyTaskBlock {
   subtitle?: string
   moduleId?: string
   /** New in v3: canonical link target; URLs are built at render time. */
-  target?: { slug: string; moduleId: string }
+  target?: { slug: string; moduleId: string; taskId?: string }
   /** Legacy v2 field, accepted on import and migrated to `target`. */
   route?: string
   minutes: number
@@ -485,13 +498,28 @@ export function validateAndMigrateProgress(
       ? { ...(obj.startedRoadmaps as Record<string, string>) }
       : {}
 
-  // practice tasks: sanitise entries — keep {done, at?}, drop malformed ones
+  // practice tasks: sanitise entries — keep valid fields, drop malformed ones
+  const TASK_AUTONOMIES = new Set(['assisted', 'hinted', 'independent', 'verified'])
   const tasks: Record<string, TaskRecord> = {}
   if (obj.tasks && typeof obj.tasks === 'object' && !Array.isArray(obj.tasks)) {
     for (const [k, v] of Object.entries(obj.tasks as Record<string, unknown>)) {
       if (v && typeof v === 'object') {
-        const t = v as { done?: unknown; at?: unknown }
-        tasks[k] = { done: Boolean(t.done), ...(typeof t.at === 'string' ? { at: t.at } : {}) }
+        const t = v as Record<string, unknown>
+        tasks[k] = {
+          done: Boolean(t.done),
+          ...(typeof t.at === 'string' ? { at: t.at } : {}),
+          ...(typeof t.startedAt === 'string' ? { startedAt: t.startedAt } : {}),
+          ...(Array.isArray(t.checksDone)
+            ? { checksDone: t.checksDone.filter((n): n is number => typeof n === 'number') }
+            : {}),
+          ...(typeof t.hintsUsed === 'number' ? { hintsUsed: t.hintsUsed } : {}),
+          ...(typeof t.solutionViewed === 'boolean' ? { solutionViewed: t.solutionViewed } : {}),
+          ...(typeof t.autonomy === 'string' && TASK_AUTONOMIES.has(t.autonomy)
+            ? { autonomy: t.autonomy as TaskAutonomy }
+            : {}),
+          ...(typeof t.evidenceUrl === 'string' ? { evidenceUrl: t.evidenceUrl } : {}),
+          ...(typeof t.testOutputSummary === 'string' ? { testOutputSummary: t.testOutputSummary } : {}),
+        }
       }
     }
   }
@@ -585,6 +613,50 @@ export function statusOf(data: ProgressData, id: string): ModuleStatus {
 
 export function taskDoneOf(data: ProgressData, taskId: string): boolean {
   return Boolean(data.tasks?.[taskId]?.done)
+}
+
+export function taskRecordOf(data: ProgressData, taskId: string): TaskRecord {
+  return data.tasks?.[taskId] ?? { done: false }
+}
+
+/** Honest-completion tier: solution beats hints beats cold work; all checks +
+ * evidence upgrade independent work to verified. */
+export function computeTaskAutonomy(
+  rec: TaskRecord,
+  totalChecks: number,
+): TaskAutonomy | undefined {
+  if (!rec.done) return undefined
+  if (rec.solutionViewed) return 'assisted'
+  if ((rec.hintsUsed ?? 0) > 0) return 'hinted'
+  const allChecked = totalChecks > 0 && (rec.checksDone?.length ?? 0) >= totalChecks
+  if (allChecked && (rec.evidenceUrl || rec.testOutputSummary)) return 'verified'
+  return 'independent'
+}
+
+export interface ModuleTaskStats {
+  total: number
+  done: number
+  verified: number
+  nextTask: import('../content/types').PracticeTaskSpec | undefined
+}
+
+/** Practice-task census for one module over a bundle's optional task list. */
+export function moduleTaskStats(
+  data: ProgressData,
+  tasks: import('../content/types').PracticeTaskSpec[] | undefined,
+  moduleId: string,
+): ModuleTaskStats {
+  const mine = (tasks ?? []).filter((t) => t.moduleId === moduleId)
+  let done = 0
+  let verified = 0
+  let nextTask: ModuleTaskStats['nextTask']
+  for (const t of mine) {
+    const rec = taskRecordOf(data, t.id)
+    if (rec.done) done++
+    else if (!nextTask) nextTask = t
+    if (computeTaskAutonomy(rec, t.checks.length) === 'verified') verified++
+  }
+  return { total: mine.length, done, verified, nextTask }
 }
 
 export function isUnlocked(data: ProgressData, m: LearningModule): boolean {
@@ -758,6 +830,11 @@ interface ProgressContextValue {
   updateProject: (projectId: string, moduleId: string, patch: Partial<ProjectRecord>) => void
   toggleProjectMilestone: (projectId: string, moduleId: string, milestoneIndex: number) => void
   toggleTask: (taskId: string) => void
+  toggleTaskCheck: (taskId: string, checkIndex: number) => void
+  recordTaskHint: (taskId: string, hintNumber: number) => void
+  recordTaskSolutionView: (taskId: string) => void
+  setTaskEvidence: (taskId: string, evidenceUrl: string, testOutputSummary?: string) => void
+  addEvidence: (moduleId: string, evidence: EvidenceLink) => void
   addBrainDump: (entry: Omit<BrainDumpEntry, 'id' | 'createdAt' | 'updatedAt'>) => void
   updateBrainDump: (id: string, patch: Partial<BrainDumpEntry>) => void
   addJournalEntry: (entry: Omit<JournalEntry, 'id' | 'createdAt'>) => void
@@ -1091,6 +1168,84 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
             ? { done: false }
             : { done: true, at: new Date().toISOString() }
           return touch({ ...d, tasks: { ...(d.tasks ?? {}), [taskId]: next } })
+        }),
+      toggleTaskCheck: (taskId, checkIndex) =>
+        setData((d) => {
+          const prev = taskRecordOf(d, taskId)
+          const has = prev.checksDone?.includes(checkIndex)
+          const checksDone = has
+            ? prev.checksDone!.filter((i) => i !== checkIndex)
+            : [...(prev.checksDone ?? []), checkIndex].sort((a, b) => a - b)
+          return touch({
+            ...d,
+            tasks: {
+              ...(d.tasks ?? {}),
+              [taskId]: {
+                ...prev,
+                checksDone,
+                startedAt: prev.startedAt ?? new Date().toISOString(),
+              },
+            },
+          })
+        }),
+      recordTaskHint: (taskId, hintNumber) =>
+        setData((d) => {
+          const prev = taskRecordOf(d, taskId)
+          if (prev.done) return d
+          return touch({
+            ...d,
+            tasks: {
+              ...(d.tasks ?? {}),
+              [taskId]: {
+                ...prev,
+                hintsUsed: Math.max(prev.hintsUsed ?? 0, hintNumber),
+                startedAt: prev.startedAt ?? new Date().toISOString(),
+              },
+            },
+          })
+        }),
+      recordTaskSolutionView: (taskId) =>
+        setData((d) => {
+          const prev = taskRecordOf(d, taskId)
+          if (prev.done || prev.solutionViewed) return d
+          return touch({
+            ...d,
+            tasks: {
+              ...(d.tasks ?? {}),
+              [taskId]: {
+                ...prev,
+                solutionViewed: true,
+                startedAt: prev.startedAt ?? new Date().toISOString(),
+              },
+            },
+          })
+        }),
+      setTaskEvidence: (taskId, evidenceUrl, testOutputSummary) =>
+        setData((d) => {
+          const prev = taskRecordOf(d, taskId)
+          return touch({
+            ...d,
+            tasks: {
+              ...(d.tasks ?? {}),
+              [taskId]: {
+                ...prev,
+                evidenceUrl,
+                ...(testOutputSummary ? { testOutputSummary } : {}),
+              },
+            },
+          })
+        }),
+      addEvidence: (moduleId, evidence) =>
+        setData((d) => {
+          const prev = moduleRecordOf(d, moduleId)
+          if (prev.evidenceUrls.some((e) => e.url === evidence.url)) return d
+          return touch({
+            ...withLastActive(d, moduleId),
+            modules: {
+              ...(d.modules ?? {}),
+              [moduleId]: { ...prev, evidenceUrls: [...prev.evidenceUrls, evidence] },
+            },
+          })
         }),
       addBrainDump: (entry) =>
         setData((d) => {

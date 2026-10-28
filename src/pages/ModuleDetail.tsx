@@ -29,6 +29,7 @@ import {
   MASTERY_STAGES,
   moduleMinutesLogged,
   moduleRecordOf,
+  moduleTaskStats,
   stageOf,
   statusOf,
   useProgress,
@@ -36,7 +37,7 @@ import {
 } from '../store/progress'
 
 export default function ModuleDetail() {
-  const { cardsForModule, EDGE_WHY, MODULES, PHASES, trackForModule, trackSpecFor, META } = useActiveRoadmap()
+  const { cardsForModule, EDGE_WHY, MODULES, PHASES, PRACTICE_TASKS, trackForModule, trackSpecFor, META } = useActiveRoadmap()
   const { moduleId } = useParams()
   const {
     data,
@@ -214,7 +215,11 @@ export default function ModuleDetail() {
                   aria-pressed={stage === st.id}
                   onClick={() => {
                     if (st.id === 'mastered') {
-                      const gate = masteryGate({ completion: m.completion, record: rec })
+                      const gate = masteryGate({
+                        completion: m.completion,
+                        record: rec,
+                        tasks: moduleTaskStats(data, PRACTICE_TASKS, m.id),
+                      })
                       if (!gate.ready) {
                         setMasterPrompt(gate.missing)
                         return

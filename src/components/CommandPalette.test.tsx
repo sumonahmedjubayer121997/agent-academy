@@ -218,4 +218,30 @@ describe('CommandPalette accessibility (Workstream A)', () => {
     expect(screen.queryByRole('dialog')).toBeNull()
     expect(document.activeElement).toBe(searchBtn)
   })
+
+  it('searches practice tasks and deep-links to the module page with the task anchor', () => {
+    function HashProbe() {
+      const l = useLocation()
+      return <div data-testid="loc">{`${l.pathname}${l.hash}`}</div>
+    }
+    render(
+      <MemoryRouter initialEntries={['/']}>
+        <ActiveRoadmapProvider>
+          <ProgressProvider>
+            <CommandPalette open onClose={() => {}} />
+            <HashProbe />
+          </ProgressProvider>
+        </ActiveRoadmapProvider>
+      </MemoryRouter>,
+    )
+    const input = screen.getByRole('combobox', { name: 'Search everything' })
+    fireEvent.change(input, { target: { value: 'error-triage' } })
+    const option = screen.getByRole('option', { name: /error-triage policy table/i })
+    expect(option.textContent).toContain('practice task')
+    expect(option.textContent).toContain('~15m')
+    fireEvent.click(option)
+    expect(screen.getByTestId('loc').textContent).toBe(
+      '/r/ai-programming/roadmap/aip-reliability#aip-t-error-triage',
+    )
+  })
 })

@@ -55,6 +55,14 @@ export function generateDailyPlan(
     primaryMod.completion.find((_, idx) => !modRec.completionDone.includes(idx)) ??
     primaryMod.completion[0]
 
+  // Verified-practice loop: when the roadmap has chapter-level practice tasks,
+  // the practise block points at the next incomplete one on the primary module
+  // (preferring a task that fits the block's minutes).
+  const openTasks = (bundle.PRACTICE_TASKS ?? []).filter(
+    (t) => t.moduleId === primaryMod.id && !data.tasks?.[t.id]?.done,
+  )
+  const nextTask = openTasks.find((t) => t.minutes <= practiseMin) ?? openTasks[0]
+
   // Check if there is a shaky/completed topic to revise when no SRS cards are due
   const completedOrShaky = MODULES.find(
     (m) =>
@@ -95,10 +103,18 @@ export function generateDailyPlan(
     {
       id: `${date}-practise`,
       kind: 'practise',
-      title: `Hands-on exercise: ${primaryMod.title}`,
-      subtitle: `Practice target: ${nextCompletion}`,
+      title: nextTask
+        ? `Practice (~${nextTask.minutes}m): ${nextTask.title}`
+        : `Hands-on exercise: ${primaryMod.title}`,
+      subtitle: nextTask
+        ? `Done when: ${nextTask.doneWhen}`
+        : `Practice target: ${nextCompletion}`,
       moduleId: primaryMod.id,
-      target: { slug: roadmapSlugOfModule(primaryMod.id), moduleId: primaryMod.id },
+      target: {
+        slug: roadmapSlugOfModule(primaryMod.id),
+        moduleId: primaryMod.id,
+        ...(nextTask ? { taskId: nextTask.id } : {}),
+      },
       minutes: practiseMin,
       done: false,
     },
