@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { AnkiExportButton } from '../components/AnkiExportDialog'
 import { useActiveRoadmap } from '../store/activeRoadmap'
 import { Link, useParams } from 'react-router-dom'
 import { usePageMeta } from '../hooks/usePageMeta'
@@ -378,6 +379,11 @@ export default function LessonPage() {
             <Badge>~{lesson.minutes} min</Badge>
           </div>
           <FocusTimer moduleId={lesson.moduleId} />
+            <AnkiExportButton
+              scope={{ kind: 'lesson', slug: META.slug, moduleId: lesson.moduleId }}
+              title={lesson.title}
+              label="Export lesson cards"
+            />
         </div>
         {moduleStatus === 'not-started' && (
           <button

@@ -123,6 +123,21 @@ export interface ProjectRecord {
   updatedAt: string
 }
 
+export interface BrainDumpEntry {
+  id: string
+  date: string
+  createdAt: string
+  updatedAt: string
+  slug?: string
+  moduleId?: string
+  lessonId?: string
+  learned: string
+  explained: string
+  confusing: string
+  next: string
+  status: 'draft' | 'completed'
+}
+
 export interface JournalEntry {
   id: string
   date: string
@@ -172,6 +187,7 @@ export interface ProgressData {
   customCards?: CustomCard[]
   projects?: Record<string, ProjectRecord>
   journal?: JournalEntry[]
+  brainDumps?: BrainDumpEntry[]
   dailyPlans?: Record<string, DailyPlanRecord>
   lastActiveModuleId?: string
   // v3 multi-roadmap fields
@@ -477,6 +493,7 @@ export function validateAndMigrateProgress(
         ? (obj.projects as Record<string, ProjectRecord>)
         : {},
     journal: Array.isArray(obj.journal) ? (obj.journal as JournalEntry[]) : [],
+    brainDumps: Array.isArray(obj.brainDumps) ? (obj.brainDumps as BrainDumpEntry[]) : [],
     lastActiveModuleId: typeof obj.lastActiveModuleId === 'string' ? obj.lastActiveModuleId : undefined,
   }
 
@@ -703,6 +720,8 @@ interface ProgressContextValue {
   logSession: (moduleId: string | 'review', minutes: number, note?: string) => void
   updateProject: (projectId: string, moduleId: string, patch: Partial<ProjectRecord>) => void
   toggleProjectMilestone: (projectId: string, moduleId: string, milestoneIndex: number) => void
+  addBrainDump: (entry: Omit<BrainDumpEntry, 'id' | 'createdAt' | 'updatedAt'>) => void
+  updateBrainDump: (id: string, patch: Partial<BrainDumpEntry>) => void
   addJournalEntry: (entry: Omit<JournalEntry, 'id' | 'createdAt'>) => void
   updateJournalEntry: (id: string, patch: Partial<JournalEntry>) => void
   deleteJournalEntry: (id: string) => void
@@ -1027,6 +1046,23 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
             projects: { ...(d.projects ?? {}), [projectId]: next },
           })
         }),
+      addBrainDump: (entry) =>
+        setData((d) => {
+          const e: BrainDumpEntry = {
+            ...entry,
+            id: `braindump:${Date.now()}`,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          }
+          return { ...d, brainDumps: [e, ...(d.brainDumps ?? [])] }
+        }),
+      updateBrainDump: (id, patch) =>
+        setData((d) => ({
+          ...d,
+          brainDumps: (d.brainDumps ?? []).map((b) =>
+            b.id === id ? { ...b, ...patch, updatedAt: new Date().toISOString() } : b,
+          ),
+        })),
       addJournalEntry: (entry) =>
         setData((d) => {
           const newEntry: JournalEntry = {

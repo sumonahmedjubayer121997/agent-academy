@@ -64,7 +64,7 @@ describe('Review page (Feature 5 & P0 multi-card session fix)', () => {
       .getAllByRole('button')
       .filter(
         (b) =>
-          !/Add card|All roadmaps|This roadmap|Next card|Drill|Spread/i.test(b.textContent ?? ''),
+          !/Add card|All roadmaps|This roadmap|Next card|Drill|Spread|Export/i.test(b.textContent ?? ''),
       )
     fireEvent.click(optionButtons[0])
     fireEvent.click(screen.getByRole('button', { name: /Finish session/i }))

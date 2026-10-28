@@ -20,6 +20,7 @@ import Planner from './pages/Planner'
 import Review from './pages/Review'
 import Journal from './pages/Journal'
 import Roadmaps, { RoadmapDetail } from './pages/Roadmaps'
+import BrainDump from './pages/BrainDump'
 
 function ScrollToTop() {
   const { pathname } = useLocation()
@@ -107,6 +108,7 @@ export default function App() {
                 <Route path="/roadmaps" element={<Roadmaps />} />
                 <Route path="/roadmaps/:slug" element={<RoadmapDetail />} />
                 <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/braindump" element={<BrainDump />} />
                 <Route path="/journal" element={<Journal />} />
                 <Route path="/playground" element={<Playground />} />
                 <Route path="/resources" element={<Resources />} />
