@@ -60,11 +60,12 @@ export default function Onboarding() {
           New here? Start in three steps.
         </h2>
         <button
+          type="button"
           onClick={dismiss}
           aria-label="Skip introduction"
-          className="rounded-lg p-1.5 text-ink-faint transition-colors hover:bg-raised hover:text-ink"
+          className="-mr-1.5 -mt-1.5 inline-flex min-h-[40px] min-w-[40px] items-center justify-center rounded-lg p-2 text-ink-faint transition-colors hover:bg-raised hover:text-ink"
         >
-          <X size={15} />
+          <X size={15} aria-hidden="true" />
         </button>
       </div>
 

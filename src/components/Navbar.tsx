@@ -45,11 +45,12 @@ function ThemeToggle() {
   }, [dark])
   return (
     <button
+      type="button"
       onClick={() => setDark((v) => !v)}
       aria-label={dark ? 'Switch to light mode' : 'Switch to dark mode'}
-      className="rounded-lg p-2 text-ink-soft transition-colors hover:bg-raised hover:text-ink"
+      className="inline-flex min-h-[40px] min-w-[40px] items-center justify-center rounded-lg p-2 text-ink-soft transition-colors hover:bg-raised hover:text-ink"
     >
-      {dark ? <Sun size={18} /> : <Moon size={18} />}
+      {dark ? <Sun size={18} aria-hidden="true" /> : <Moon size={18} aria-hidden="true" />}
     </button>
   )
 }
@@ -300,22 +301,28 @@ export default function Navbar() {
 
         <div className="ml-auto flex items-center gap-1">
           <button
+            type="button"
+            data-palette-trigger="desktop"
             onClick={() => setPaletteOpen(true)}
             aria-label="Search (Ctrl+K)"
+            aria-haspopup="dialog"
+            aria-expanded={paletteOpen}
             className="hidden items-center gap-2 rounded-lg border border-line px-2.5 py-1.5 text-xs text-ink-faint transition-colors hover:bg-raised hover:text-ink-soft md:flex"
           >
-            <Search size={12} />
+            <Search size={12} aria-hidden="true" />
             Search…
-            <kbd className="rounded border border-line px-1 font-mono text-[10px]">⌘K</kbd>
+            <kbd aria-hidden="true" className="rounded border border-line px-1 font-mono text-[10px]">⌘K</kbd>
           </button>
           <ThemeToggle />
           <button
-            className="rounded-lg p-2 text-ink-soft hover:bg-raised hover:text-ink lg:hidden"
+            type="button"
+            data-palette-fallback="mobile-menu"
+            className="inline-flex min-h-[40px] min-w-[40px] items-center justify-center rounded-lg p-2 text-ink-soft hover:bg-raised hover:text-ink lg:hidden"
             onClick={() => setOpen((v) => !v)}
             aria-label={open ? 'Close menu' : 'Open menu'}
             aria-expanded={open}
           >
-            {open ? <X size={18} /> : <Menu size={18} />}
+            {open ? <X size={18} aria-hidden="true" /> : <Menu size={18} aria-hidden="true" />}
           </button>
         </div>
       </div>
@@ -327,13 +334,16 @@ export default function Navbar() {
             <RoadmapSwitcher onNavigate={() => setOpen(false)} />
           </div>
           <button
+            type="button"
             onClick={() => {
               setOpen(false)
               setPaletteOpen(true)
             }}
+            aria-haspopup="dialog"
+            aria-expanded={paletteOpen}
             className="mb-3 flex w-full items-center gap-2 rounded-lg border border-line px-3 py-2.5 text-sm font-medium text-ink-soft"
           >
-            <Search size={15} /> Search everything
+            <Search size={15} aria-hidden="true" /> Search everything
           </button>
           <div className="grid grid-cols-2 gap-1">
             <NavLink to="/dashboard" className={({ isActive }) => `flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium ${isActive ? 'bg-raised text-ink' : 'text-ink-soft hover:bg-raised hover:text-ink'}`}>

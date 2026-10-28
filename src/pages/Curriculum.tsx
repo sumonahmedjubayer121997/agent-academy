@@ -103,6 +103,7 @@ export function AskTheRoadmapAndAssistant() {
         <input
           value={q}
           onChange={(e) => setQ(e.target.value)}
+          aria-label="Ask a question about the roadmap or your learning history"
           placeholder="e.g. What should I learn next? or why does cosine ignore document length?"
           className="flex-1 rounded-xl border border-line bg-surface px-4 py-2 text-sm placeholder:text-ink-faint focus:border-accent focus:outline-none"
         />
@@ -192,17 +193,20 @@ export default function Curriculum() {
       <Card className="mb-8 p-4">
         <div className="flex flex-wrap items-center gap-3">
           <div className="relative min-w-[220px] flex-1">
-            <Search size={14} className="absolute left-3 top-2.5 text-ink-faint" />
+            <Search size={14} className="absolute left-3 top-2.5 text-ink-faint" aria-hidden="true" />
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
+              aria-label="Filter modules by title, objective, or deliverable"
               placeholder="Filter modules by title, objective, or deliverable…"
               className="w-full rounded-xl border border-line bg-surface py-1.5 pl-8 pr-3 text-sm placeholder:text-ink-faint focus:border-accent focus:outline-none"
             />
           </div>
 
-          <div className="flex flex-wrap gap-1.5">
+          <div className="flex flex-wrap gap-1.5" role="group" aria-label="Filter modules by track">
             <button
+              type="button"
+              aria-pressed={trackFilter === 'all'}
               onClick={() => setTrackFilter('all')}
               className={`rounded-lg border px-2.5 py-1 text-xs font-medium ${
                 trackFilter === 'all'
@@ -215,6 +219,8 @@ export default function Curriculum() {
             {TRACKS.map((t) => (
               <button
                 key={t.id}
+                type="button"
+                aria-pressed={trackFilter === t.id}
                 onClick={() => setTrackFilter(t.id)}
                 className={`rounded-lg border px-2.5 py-1 text-xs font-medium ${
                   trackFilter === t.id
@@ -303,9 +309,10 @@ export default function Curriculum() {
                       className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-raised/60"
                     >
                       <button
+                        type="button"
                         onClick={() => cycleStage(m.id)}
                         aria-label={`Cycle status for ${m.title} (currently ${stage.replace('-', ' ')})`}
-                        className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border transition-all ${
+                        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full border transition-all ${
                           stage === 'mastered'
                             ? 'border-ok bg-ok text-white'
                             : stage === 'confident'

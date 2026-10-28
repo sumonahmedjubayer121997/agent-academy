@@ -38,6 +38,7 @@
 
 html {
   scroll-behavior: smooth;
+  scroll-padding-top: 4.5rem;
 }
 
 body {
@@ -54,13 +55,15 @@ body {
   cursor: pointer;
   transition: transform 0.15s ease;
 }
-.rm-node:hover {
+.rm-node:hover,
+.rm-node-btn:focus-visible .rm-node {
   transform: translateY(-2px);
 }
 .rm-node rect {
   transition: stroke 0.15s ease;
 }
-.rm-node:hover rect {
+.rm-node:hover rect,
+.rm-node-btn:focus-visible .rm-node rect {
   stroke: var(--accent);
   stroke-width: 1.5;
 }
@@ -80,6 +83,9 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto !important;
+  }
   *,
   *::before,
   *::after {

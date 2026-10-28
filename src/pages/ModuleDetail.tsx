@@ -209,6 +209,8 @@ export default function ModuleDetail() {
               {MASTERY_STAGES.map((st) => (
                 <button
                   key={st.id}
+                  type="button"
+                  aria-pressed={stage === st.id}
                   onClick={() => {
                     if (st.id === 'mastered') {
                       const gate = masteryGate({ completion: m.completion, record: rec })
@@ -236,7 +238,11 @@ export default function ModuleDetail() {
             <p className="text-xs font-semibold uppercase tracking-wide text-ink-faint">
               Self-Assessed Confidence
             </p>
-            <div className="mt-2 inline-flex rounded-xl border border-line bg-raised/50 p-1">
+            <div
+              className="mt-2 inline-flex rounded-xl border border-line bg-raised/50 p-1"
+              role="group"
+              aria-label="Self-assessed confidence"
+            >
               {(
                 [
                   { id: 'lost', label: 'Lost' },
@@ -246,6 +252,8 @@ export default function ModuleDetail() {
               ).map((c) => (
                 <button
                   key={c.id}
+                  type="button"
+                  aria-pressed={confidence === c.id}
                   onClick={() => setConfidence(m.id, c.id)}
                   className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all sm:text-sm ${
                     confidence === c.id
@@ -272,6 +280,12 @@ export default function ModuleDetail() {
             aria-modal="true"
             aria-label="Mastery evidence check"
             onClick={() => setMasterPrompt(null)}
+            onKeyDown={(e) => {
+              if (e.key === 'Escape') {
+                e.preventDefault()
+                setMasterPrompt(null)
+              }
+            }}
           >
             <Card variant="overlay" className="max-w-md p-6">
               <div onClick={(e) => e.stopPropagation()}>
@@ -493,6 +507,7 @@ export default function ModuleDetail() {
             value={rec.notes}
             onChange={(e) => updateModuleRecord(m.id, { notes: e.target.value })}
             rows={5}
+            aria-label="Personal notes and key takeaways"
             placeholder="Key takeaways, formulas, code snippets, or architecture notes for this topic…"
             className="mt-3 w-full rounded-xl border border-line bg-surface px-3.5 py-2.5 text-sm leading-relaxed placeholder:text-ink-faint focus:border-accent focus:outline-none"
           />
@@ -505,6 +520,7 @@ export default function ModuleDetail() {
               <input
                 value={newQuestion}
                 onChange={(e) => setNewQuestion(e.target.value)}
+                aria-label="Remaining question or difficulty"
                 placeholder="What still feels unclear or needs testing?"
                 className="flex-1 rounded-xl border border-line bg-surface px-3 py-1.5 text-sm placeholder:text-ink-faint focus:border-accent focus:outline-none"
               />
@@ -521,11 +537,12 @@ export default function ModuleDetail() {
                   >
                     <span>? {q}</span>
                     <button
+                      type="button"
                       onClick={() => handleRemoveQuestion(i)}
-                      className="text-xs text-ink-faint hover:text-bad"
+                      className="-my-1 -mr-1 inline-flex min-h-[34px] min-w-[34px] items-center justify-center rounded-lg p-1.5 text-xs text-ink-faint hover:bg-surface hover:text-bad"
                       aria-label="Resolve and remove question"
                     >
-                      <Trash2 size={13} />
+                      <Trash2 size={13} aria-hidden="true" />
                     </button>
                   </li>
                 ))}
@@ -547,12 +564,14 @@ export default function ModuleDetail() {
               <input
                 value={evidenceLabel}
                 onChange={(e) => setEvidenceLabel(e.target.value)}
+                aria-label="Evidence label"
                 placeholder="Label (e.g. GitHub repo)"
                 className="rounded-xl border border-line bg-surface px-3 py-1.5 text-sm"
               />
               <input
                 value={evidenceUrl}
                 onChange={(e) => setEvidenceUrl(e.target.value)}
+                aria-label="Evidence URL"
                 placeholder="https://github.com/..."
                 className="rounded-xl border border-line bg-surface px-3 py-1.5 text-sm"
               />
@@ -577,13 +596,15 @@ export default function ModuleDetail() {
                       rel="noopener noreferrer"
                       className="truncate font-medium text-accent hover:underline"
                     >
-                      {ev.label} <ExternalLink size={12} className="ml-0.5 inline" />
+                      {ev.label} <ExternalLink size={12} className="ml-0.5 inline" aria-hidden="true" />
                     </a>
                     <button
+                      type="button"
                       onClick={() => handleRemoveEvidence(i)}
-                      className="text-xs text-ink-faint hover:text-bad"
+                      aria-label={`Remove evidence ${ev.label}`}
+                      className="-my-1 -mr-1 inline-flex min-h-[34px] min-w-[34px] items-center justify-center rounded-lg p-1.5 text-xs text-ink-faint hover:bg-raised hover:text-bad"
                     >
-                      <Trash2 size={13} />
+                      <Trash2 size={13} aria-hidden="true" />
                     </button>
                   </li>
                 ))}
@@ -629,12 +650,14 @@ export default function ModuleDetail() {
               <input
                 value={cardFront}
                 onChange={(e) => setCardFront(e.target.value)}
+                aria-label="Flashcard question"
                 placeholder="Flashcard question…"
                 className="rounded-xl border border-line bg-surface px-3 py-1.5 text-xs"
               />
               <input
                 value={cardBack}
                 onChange={(e) => setCardBack(e.target.value)}
+                aria-label="Flashcard answer"
                 placeholder="Flashcard answer…"
                 className="rounded-xl border border-line bg-surface px-3 py-1.5 text-xs"
               />

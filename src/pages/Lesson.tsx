@@ -60,10 +60,12 @@ function LessonQuiz({ quiz, quizId, moduleId }: { quiz: QuizQ[]; quizId: string;
       {!submitted && (
         <div>
           <p className="text-sm font-medium">Before you start — how confident are you in this material?</p>
-          <div className="mt-2 flex gap-2">
+          <div className="mt-2 flex gap-2" role="group" aria-label="Confidence before starting quiz">
             {(['sure', 'shaky', 'lost'] as const).map((c) => (
               <button
                 key={c}
+                type="button"
+                aria-pressed={confidence === c}
                 onClick={() => {
                   setLocalConfidence(c)
                   setConfidence(moduleId, c)
@@ -237,6 +239,7 @@ function FeynmanBox({ lessonId, lessonTitle }: { lessonId: string; lessonTitle: 
         value={text}
         onChange={(e) => setText(e.target.value)}
         rows={4}
+        aria-label="Explain this lesson in your own words"
         placeholder="An embedding is…"
         className="w-full rounded-xl border border-line bg-surface px-4 py-3 text-sm leading-relaxed placeholder:text-ink-faint focus:border-accent focus:outline-none"
       />

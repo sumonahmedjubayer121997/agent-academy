@@ -58,7 +58,7 @@ export default function FocusTimer({ moduleId }: { moduleId: string }) {
 
   return (
     <div className="flex items-center gap-3" role="timer" aria-label={`Focus timer ${mm}:${ss}`}>
-      <div className="relative h-9 w-9">
+      <div className="relative h-9 w-9" aria-hidden="true">
         <svg viewBox="0 0 36 36" className="h-9 w-9 -rotate-90">
           <circle cx="18" cy="18" r="15.5" fill="none" stroke="var(--line)" strokeWidth="3" />
           <circle
@@ -80,22 +80,33 @@ export default function FocusTimer({ moduleId }: { moduleId: string }) {
         <span className="text-xs font-medium text-ok">session logged ✓</span>
       ) : running ? (
         <>
-          <button onClick={() => setRunning(false)} aria-label="Pause focus timer" className="rounded-lg p-1.5 text-ink-soft hover:bg-raised hover:text-ink">
-            <Pause size={14} />
+          <button
+            type="button"
+            onClick={() => setRunning(false)}
+            aria-label="Pause focus timer"
+            className="inline-flex min-h-[36px] min-w-[36px] items-center justify-center rounded-lg p-2 text-ink-soft hover:bg-raised hover:text-ink"
+          >
+            <Pause size={14} aria-hidden="true" />
           </button>
-          <button onClick={endEarly} aria-label="End and log session" className="rounded-lg p-1.5 text-ink-soft hover:bg-raised hover:text-ink">
-            <Square size={14} />
+          <button
+            type="button"
+            onClick={endEarly}
+            aria-label="End and log session"
+            className="inline-flex min-h-[36px] min-w-[36px] items-center justify-center rounded-lg p-2 text-ink-soft hover:bg-raised hover:text-ink"
+          >
+            <Square size={14} aria-hidden="true" />
           </button>
         </>
       ) : (
         <button
+          type="button"
           onClick={() => {
             startedRef.current = true
             setRunning(true)
           }}
-          className="flex items-center gap-1.5 rounded-lg border border-line-strong px-2.5 py-1 text-xs font-medium text-ink-soft transition-all hover:bg-raised hover:text-ink"
+          className="flex min-h-[36px] items-center gap-1.5 rounded-lg border border-line-strong px-3 py-1.5 text-xs font-medium text-ink-soft transition-all hover:bg-raised hover:text-ink"
         >
-          <Play size={12} /> {left === FOCUS_SECONDS ? 'Focus 25′' : 'Resume'}
+          <Play size={12} aria-hidden="true" /> {left === FOCUS_SECONDS ? 'Focus 25′' : 'Resume'}
         </button>
       )}
     </div>
