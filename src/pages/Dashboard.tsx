@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import { Brain } from 'lucide-react'
+import { AnkiExportButton } from '../components/AnkiExportDialog'
 import { useActiveRoadmap } from '../store/activeRoadmap'
 import { assessmentOf } from '../store/progress'
 import { Link } from 'react-router-dom'
@@ -187,6 +189,26 @@ export default function Dashboard() {
 
   return (
     <div className="py-10">
+      <Card className="mb-6 flex flex-wrap items-center justify-between gap-3 p-5">
+        <div>
+          <h2 className="flex items-center gap-2 font-semibold tracking-tight">
+            <Brain size={16} className="text-accent" /> Brain dump ritual
+          </h2>
+          <p className="mt-1 text-sm text-ink-soft">
+            Four prompts, three minutes, from memory — then export what stuck to Anki.
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <AnkiExportButton scope={{ kind: 'all' }} title="All roadmaps" label="Export all cards" />
+          <Link
+            to="/braindump"
+            className="inline-flex items-center gap-1.5 rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-accent-ink transition-colors hover:bg-accent-hover"
+          >
+            <Brain size={14} /> Start brain dump
+          </Link>
+        </div>
+      </Card>
+
       <div className="flex flex-wrap items-end justify-between gap-4">
         <SectionHead
           eyebrow="Personal Learning Operating System"

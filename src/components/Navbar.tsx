@@ -4,6 +4,7 @@ import {
   BookOpen,
   Bot,
   CalendarClock,
+  Brain,
   ChevronDown,
   ClipboardCheck,
   Compass,
@@ -282,6 +283,9 @@ export default function Navbar() {
                 </p>
                 <NavLink to="/roadmaps" role="menuitem" className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] font-medium text-ink-soft transition-colors hover:bg-raised hover:text-ink">
                   <Compass size={14} /> All roadmaps
+                </NavLink>
+                <NavLink to="/braindump" role="menuitem" className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] font-medium text-ink-soft transition-colors hover:bg-raised hover:text-ink">
+                  <Brain size={14} /> Brain dump
                 </NavLink>
                 <NavLink to="/playground" role="menuitem" className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] font-medium text-ink-soft transition-colors hover:bg-raised hover:text-ink">
                   <Bot size={14} /> Playground

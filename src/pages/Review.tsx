@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { AnkiExportButton } from '../components/AnkiExportDialog'
 import type { DeckCard } from '../content/roadmaps/ai-agents'
 import { cardRoadmapOf } from '../lib/cards'
 import { BUNDLES } from '../content/roadmaps/registry'
@@ -242,7 +243,12 @@ export default function Review() {
             title={plan.dueCount === 0 && Object.keys(data.srs).length === 0 ? "Your deck is empty" : "Nothing due right now"}
             sub="Cards enter your review queue automatically when you complete a lesson quiz, move a module to Practising/Confident, or create your own flashcards. You can also run a Weak-Spot Drill anytime."
           />
-          <div className="mb-6 flex flex-wrap gap-2">
+          <div className="mb-6 flex flex-wrap items-center gap-2">
+            <AnkiExportButton
+              scope={{ kind: 'roadmap', slug: activeSlug }}
+              title={META.shortTitle ?? META.title}
+              label='Export roadmap deck'
+            />
             <Button onClick={startWeakSpotDrill}>
               <Flame size={15} /> Drill Weak Spots (10 cards)
             </Button>
@@ -379,6 +385,11 @@ export default function Review() {
     <div className="mx-auto max-w-2xl py-10">
       <ScopeBar />
       <div className="mb-4 flex flex-wrap items-center justify-end gap-2">
+        <AnkiExportButton
+          scope={{ kind: 'roadmap', slug: activeSlug }}
+          title={META.shortTitle ?? META.title}
+          label="Export roadmap deck"
+        />
         <Button variant="ghost" size="sm" onClick={() => setShowAddForm((v) => !v)}>
           <Plus size={14} /> Add card
         </Button>
